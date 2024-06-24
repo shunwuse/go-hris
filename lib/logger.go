@@ -15,20 +15,20 @@ var globalLogger *Logger
 
 func GetLogger() Logger {
 	if globalLogger == nil {
-		logger := newLogger()
+		logger := newLogger(NewEnv())
 		globalLogger = &logger
 	}
 
 	return *globalLogger
 }
 
-func newLogger() Logger {
+func newLogger(env Env) Logger {
 	logger := logrus.New()
 
 	logger.SetFormatter(&logrus.JSONFormatter{})
 	logger.SetLevel(logrus.DebugLevel)
 
-	file, err := os.OpenFile("logrus.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	file, err := os.OpenFile(env.LogOutput, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err == nil {
 		logger.Out = file
 	} else {
