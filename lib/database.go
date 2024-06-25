@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"github.com/shunwuse/go-hris/models"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
@@ -28,7 +29,16 @@ func newDatabase(env Env, logger Logger) Database {
 
 	logger.Info("Database connected")
 
+	logger.Info("Migrating database")
+	if err = migrate(db); err != nil {
+		logger.Fatalf("Error migrating database, %v", err)
+	}
+
 	return Database{
 		DB: db,
 	}
+}
+
+func migrate(db *gorm.DB) error {
+	return db.AutoMigrate(&models.User{})
 }
