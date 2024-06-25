@@ -4,13 +4,16 @@ import "github.com/shunwuse/go-hris/lib"
 
 type ExampleRepository struct {
 	logger lib.Logger
+	lib.Database
 }
 
 func NewExampleRepository() ExampleRepository {
 	logger := lib.GetLogger()
+	db := lib.GetDatabase()
 
 	return ExampleRepository{
-		logger: logger,
+		logger:   logger,
+		Database: db,
 	}
 }
 

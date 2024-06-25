@@ -6,10 +6,16 @@ import (
 	"github.com/spf13/viper"
 )
 
+type SqliteConfig struct {
+	Database string `mapstructure:"DB_PATH"`
+}
+
 type Env struct {
 	Environment string `mapstructure:"ENV"`
 	ServerPort  string `mapstructure:"SERVER_PORT"`
 	LogOutput   string `mapstructure:"LOG_OUTPUT"`
+
+	Sqlite SqliteConfig `mapstructure:"SQLITE"`
 }
 
 func NewEnv() Env {
