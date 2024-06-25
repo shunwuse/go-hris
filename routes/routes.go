@@ -10,9 +10,11 @@ type IRoute interface {
 
 func NewRoutes() Routes {
 	exampleRoute := NewExampleRoute()
+	UserRoute := NewUserRoute()
 
 	return Routes{
 		exampleRoute,
+		UserRoute,
 	}
 }
 
