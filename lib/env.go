@@ -16,6 +16,8 @@ type Env struct {
 	LogOutput   string `mapstructure:"LOG_OUTPUT"`
 
 	Sqlite SqliteConfig `mapstructure:"SQLITE"`
+
+	JWTSecret string `mapsctructure:"JWT_SECRET"`
 }
 
 func NewEnv() Env {
