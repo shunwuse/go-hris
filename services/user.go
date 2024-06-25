@@ -32,3 +32,15 @@ func (s UserService) CreateUser(user *models.User) error {
 
 	return nil
 }
+
+func (s UserService) GetUserByUsername(username string) (*models.User, error) {
+	var user *models.User
+
+	result := s.userRepository.First(&user, "username = ?", username)
+	if result.Error != nil {
+		s.logger.Errorf("Error getting user by username: %v", result.Error)
+		return nil, result.Error
+	}
+
+	return user, nil
+}

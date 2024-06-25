@@ -26,4 +26,5 @@ func (r UserRoute) Setup(router *gin.Engine) {
 	r.logger.Info("Setting up user routes")
 
 	router.POST("/users", r.userController.CreateUser)
+	router.POST("/login", r.userController.Login)
 }
