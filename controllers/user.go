@@ -14,6 +14,7 @@ import (
 type UserController struct {
 	logger      lib.Logger
 	userService services.UserService
+	authService services.AuthService
 }
 
 func NewUserController() UserController {
@@ -21,10 +22,12 @@ func NewUserController() UserController {
 
 	// Initialize services
 	userService := services.NewUserService()
+	authService := services.NewAuthService()
 
 	return UserController{
 		logger:      logger,
 		userService: userService,
+		authService: authService,
 	}
 }
 
@@ -98,8 +101,18 @@ func (c UserController) Login(ctx *gin.Context) {
 		return
 	}
 
+	// generate token
+	token, err := c.authService.GenerateToken(user)
+	if err != nil {
+		c.logger.Errorf("generating token failed: %v", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Error generating token",
+		})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{
-		"message": "login successfully",
+		"token": token,
 	})
 }
 
