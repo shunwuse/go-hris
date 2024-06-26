@@ -114,8 +114,19 @@ func (c UserController) Login(ctx *gin.Context) {
 		return
 	}
 
+	roles := make([]string, 0)
+	for _, role := range user.Roles {
+		roles = append(roles, role.Name)
+	}
+
+	response := dtos.LoginResponse{
+		Username: user.Username,
+		Roles:    roles,
+		Token:    token,
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{
-		"token": token,
+		"data": response,
 	})
 }
 
