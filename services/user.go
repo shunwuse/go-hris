@@ -1,14 +1,17 @@
 package services
 
 import (
+	"github.com/shunwuse/go-hris/constants"
 	"github.com/shunwuse/go-hris/lib"
 	"github.com/shunwuse/go-hris/models"
 	"github.com/shunwuse/go-hris/repositories"
 )
 
 type UserService struct {
-	logger         lib.Logger
-	userRepository repositories.UserRepository
+	logger             lib.Logger
+	userRepository     repositories.UserRepository
+	roleRepository     repositories.RoleRepository
+	userRoleRepository repositories.UserRoleRepository
 }
 
 func NewUserService() UserService {
@@ -16,10 +19,14 @@ func NewUserService() UserService {
 
 	// Initialize repositories
 	userRepository := repositories.NewUserRepository()
+	roleRepository := repositories.NewRoleRepository()
+	userRoleRepository := repositories.NewUserRoleRepository()
 
 	return UserService{
-		logger:         logger,
-		userRepository: userRepository,
+		logger:             logger,
+		userRepository:     userRepository,
+		roleRepository:     roleRepository,
+		userRoleRepository: userRoleRepository,
 	}
 }
 
@@ -27,6 +34,33 @@ func (s UserService) CreateUser(user *models.User) error {
 	result := s.userRepository.Create(user)
 	if result.Error != nil {
 		s.logger.Errorf("Error creating user: %v", result.Error)
+		return result.Error
+	}
+
+	role := s.roleRepository.GetRoleByName(constants.Staff.String())
+	if role == nil {
+		s.logger.Infof("Role not found, creating role: %v", constants.Staff.String())
+
+		role = &models.Role{
+			Name: constants.Staff.String(),
+		}
+
+		if err := s.roleRepository.AddRole(role); err != nil {
+			s.logger.Errorf("add role error: %v", err)
+			return err
+		}
+	}
+
+	// Add user role
+	userRole := &models.UserRole{
+		UserID: int(user.ID),
+		RoleID: role.ID,
+	}
+
+	// Create user role
+	result = s.userRoleRepository.Create(userRole)
+	if result.Error != nil {
+		s.logger.Errorf("creating user role error: %v", result.Error)
 		return result.Error
 	}
 
