@@ -6,13 +6,11 @@ import (
 	"gorm.io/gorm"
 )
 
-type User struct {
+type Password struct {
 	ID        uint           `gorm:"column:id;primaryKey;autoIncrement"`
-	Username  string         `gorm:"column:username"`
-	Name      string         `gorm:"column:name"`
+	UserID    uint           `gorm:"column:user_id"`
+	Hash      string         `gorm:"column:hash"`
 	CreatedAt time.Time      `gorm:"column:created_at;autoCreateTime:milli"`
 	UpdatedAt time.Time      `gorm:"column:updated_at;autoCreateTime:milli"`
 	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at"`
-
-	Password Password `gorm:"foreignkey:UserID;references:ID"`
 }

@@ -52,9 +52,12 @@ func (c UserController) CreateUser(ctx *gin.Context) {
 	}
 
 	var user = &models.User{
-		Username:     userCreate.Username,
-		PasswordHash: hashedPassword,
-		Name:         userCreate.Name,
+		Username: userCreate.Username,
+		Name:     userCreate.Name,
+
+		Password: models.Password{
+			Hash: hashedPassword,
+		},
 	}
 
 	if err := c.userService.CreateUser(user); err != nil {
@@ -92,7 +95,7 @@ func (c UserController) Login(ctx *gin.Context) {
 	}
 
 	// check password
-	passwordMatch := checkPasswordHash(userLogin.Password, user.PasswordHash)
+	passwordMatch := checkPasswordHash(userLogin.Password, user.Password.Hash)
 	if !passwordMatch {
 		c.logger.Errorf("Error password not match")
 		ctx.JSON(http.StatusUnauthorized, gin.H{

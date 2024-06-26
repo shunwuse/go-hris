@@ -36,7 +36,7 @@ func (s UserService) CreateUser(user *models.User) error {
 func (s UserService) GetUserByUsername(username string) (*models.User, error) {
 	var user *models.User
 
-	result := s.userRepository.First(&user, "username = ?", username)
+	result := s.userRepository.Preload("Password").First(&user, "username = ?", username)
 	if result.Error != nil {
 		s.logger.Errorf("Error getting user by username: %v", result.Error)
 		return nil, result.Error
