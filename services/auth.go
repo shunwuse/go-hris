@@ -73,3 +73,26 @@ func (s AuthService) GenerateToken(user *models.User) (string, error) {
 
 	return tokenString, nil
 }
+
+type claims struct {
+	jwt.StandardClaims
+	TokenPayload
+}
+
+func (s AuthService) AuthenticateToken(tokenString string) (*claims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &claims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(s.secreteKey), nil
+	})
+	if err != nil {
+		s.logger.Errorf("parsing token failed: %v", err)
+		return nil, err
+	}
+
+	claims, ok := token.Claims.(*claims)
+	if !ok || !token.Valid {
+		s.logger.Errorf("invalid token")
+		return nil, err
+	}
+
+	return claims, nil
+}
