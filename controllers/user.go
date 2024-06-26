@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/shunwuse/go-hris/constants"
 	"github.com/shunwuse/go-hris/dtos"
 	"github.com/shunwuse/go-hris/lib"
 	"github.com/shunwuse/go-hris/models"
@@ -34,6 +35,23 @@ func NewUserController() UserController {
 // CreateUser controller
 func (c UserController) CreateUser(ctx *gin.Context) {
 	var userCreate dtos.UserCreate
+
+	token := ctx.MustGet(constants.JWTClaims).(services.TokenPayload)
+	roles := token.Roles
+
+	// check all roles
+	hasAdminRole := false
+	for _, role := range roles {
+		hasAdminRole = role.IsAdmin()
+	}
+
+	if !hasAdminRole {
+		c.logger.Errorf("Error user not authorized")
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User not authorized",
+		})
+		return
+	}
 
 	if err := ctx.ShouldBindJSON(&userCreate); err != nil {
 		c.logger.Errorf("Error binding user: %v", err)
