@@ -15,4 +15,6 @@ type User struct {
 	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at"`
 
 	Password Password `gorm:"foreignkey:UserID;references:ID"`
+
+	Roles []Role `gorm:"many2many:user_role;"`
 }
