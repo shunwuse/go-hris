@@ -5,7 +5,7 @@ This is a simple Human Resources Information System (HRIS).
 
 ## How to run
 1. Clone this repository
-2. Run `go run main.go` from the root directory
+2. Run `make server` to start the server
 
 ## Features
 - [x] Create user
