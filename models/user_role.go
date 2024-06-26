@@ -8,8 +8,8 @@ import (
 
 type UserRole struct {
 	ID        int            `gorm:"column:id;primaryKey;autoIncrement"`
-	UserID    int            `gorm:"column:user_id"`
-	RoleID    int            `gorm:"column:role_id"`
+	UserID    uint           `gorm:"column:user_id"`
+	RoleID    uint           `gorm:"column:role_id"`
 	CreatedAt time.Time      `gorm:"column:created_at;autoCreateTime:milli"`
 	UpdatedAt time.Time      `gorm:"column:updated_at;autoCreateTime:milli"`
 	DeletedAt gorm.DeletedAt `gorm:"column:deleted_at"`
