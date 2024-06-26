@@ -6,3 +6,5 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     deleted_at DATETIME
 );
+
+create INDEX IF NOT EXISTS idx_users_username on users (username);
