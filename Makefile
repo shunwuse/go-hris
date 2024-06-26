@@ -1,5 +1,3 @@
-.PHONY: start
-
 # variables
 migrations_dir = ./migrations
 sqlite_db = ./test.db
@@ -23,3 +21,7 @@ go-migrate-up:
 
 go-migrate-down:
 	go run ./cmd/migrate/main.go down
+
+.PHONY: server \
+	migrate-create migrate-up migrate-down \
+	go-migrate-up go-migrate-down
