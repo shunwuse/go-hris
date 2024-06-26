@@ -68,7 +68,7 @@ func (m JWTMiddleware) Handler() gin.HandlerFunc {
 			return
 		}
 
-		ctx.Set(constants.JWTClaims, claims)
+		ctx.Set(constants.JWTClaims, claims.TokenPayload)
 		ctx.Next()
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/golang-jwt/jwt"
+	"github.com/shunwuse/go-hris/constants"
 	"github.com/shunwuse/go-hris/lib"
 	"github.com/shunwuse/go-hris/models"
 )
@@ -28,16 +29,16 @@ func NewAuthService() AuthService {
 }
 
 type TokenPayload struct {
-	UserID    uint      `json:"user_id"`
-	Username  string    `json:"username"`
-	CreatedAt time.Time `json:"created_at"`
-	Roles     []string  `json:"roles"`
+	UserID    uint             `json:"user_id"`
+	Username  string           `json:"username"`
+	CreatedAt time.Time        `json:"created_at"`
+	Roles     []constants.Role `json:"roles"`
 }
 
 func (s AuthService) GenerateToken(user *models.User) (string, error) {
-	roles := make([]string, 0)
+	roles := make([]constants.Role, 0)
 	for _, role := range user.Roles {
-		roles = append(roles, role.Name)
+		roles = append(roles, constants.Role(role.Name))
 	}
 
 	payload := TokenPayload{
