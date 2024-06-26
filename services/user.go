@@ -53,7 +53,7 @@ func (s UserService) CreateUser(user *models.User) error {
 
 	// Add user role
 	userRole := &models.UserRole{
-		UserID: int(user.ID),
+		UserID: user.ID,
 		RoleID: role.ID,
 	}
 
