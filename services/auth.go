@@ -31,13 +31,20 @@ type TokenPayload struct {
 	UserID    uint      `json:"user_id"`
 	Username  string    `json:"username"`
 	CreatedAt time.Time `json:"created_at"`
+	Roles     []string  `json:"roles"`
 }
 
 func (s AuthService) GenerateToken(user *models.User) (string, error) {
+	roles := make([]string, 0)
+	for _, role := range user.Roles {
+		roles = append(roles, role.Name)
+	}
+
 	payload := TokenPayload{
 		UserID:    user.ID,
 		Username:  user.Username,
 		CreatedAt: user.CreatedAt,
+		Roles:     roles,
 	}
 
 	// convert payload to json
