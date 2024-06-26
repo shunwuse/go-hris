@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/shunwuse/go-hris/constants"
 	"github.com/shunwuse/go-hris/lib"
 	"github.com/shunwuse/go-hris/services"
 )
@@ -67,7 +68,7 @@ func (m JWTMiddleware) Handler() gin.HandlerFunc {
 			return
 		}
 
-		ctx.Set("claims", claims)
+		ctx.Set(constants.JWTClaims, claims)
 		ctx.Next()
 	}
 }
