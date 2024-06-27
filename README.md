@@ -11,6 +11,6 @@ This is a simple Human Resources Information System (HRIS).
 ## Features
 - [x] Create user
 - [x] Login
-- [ ] Role management
+- [x] Role management
 - [ ] Permission management
 - [ ] Approval Management
