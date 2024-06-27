@@ -27,6 +27,7 @@ func (r UserRoute) Setup(router *gin.Engine) {
 	r.logger.Info("Setting up user routes")
 
 	userRouter := router.Group("/users", middlewares.NewJWTMiddleware().Handler())
+	userRouter.GET("/", r.userController.GetUsers)
 	userRouter.POST("/", r.userController.CreateUser)
 	userRouter.PUT("/", r.userController.UpdateUser)
 
