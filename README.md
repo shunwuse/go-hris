@@ -13,4 +13,4 @@ This is a simple Human Resources Information System (HRIS).
 - [x] Login
 - [x] Role management
 - [ ] Permission management
-- [ ] Approval Management
+- [x] Approval Management
