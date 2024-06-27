@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/shunwuse/go-hris/constants"
+	"github.com/shunwuse/go-hris/dtos"
 	"github.com/shunwuse/go-hris/lib"
 	"github.com/shunwuse/go-hris/models"
 	"github.com/shunwuse/go-hris/services"
@@ -37,8 +38,24 @@ func (c ApprovalController) GetApprovals(ctx *gin.Context) {
 		return
 	}
 
+	approvalsResponse := make([]dtos.ApprovalResponse, 0)
+	for _, approval := range approvals {
+		approvalResponse := dtos.ApprovalResponse{
+			ID:          approval.ID,
+			CreatorName: approval.Creator.Name,
+			Status:      string(approval.Status),
+		}
+
+		if approval.Approver != nil {
+			approvalResponse.ApproverName = &approval.Approver.Name
+		}
+
+		approvalsResponse = append(approvalsResponse, approvalResponse)
+
+	}
+
 	ctx.JSON(http.StatusOK, gin.H{
-		"data": approvals,
+		"data": approvalsResponse,
 	})
 }
 
