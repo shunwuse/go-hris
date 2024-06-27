@@ -6,6 +6,12 @@ type UserCreate struct {
 	Name     string `json:"name" binding:"required"`
 }
 
+type UserUpdate struct {
+	ID uint `json:"id" binding:"required"`
+	// name is optional
+	Name string `json:"name" binding:"omitempty"`
+}
+
 type UserLogin struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
