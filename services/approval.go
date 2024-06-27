@@ -34,3 +34,13 @@ func (s ApprovalService) GetApprovals() ([]models.Approval, error) {
 
 	return approvals, nil
 }
+
+func (s ApprovalService) AddApproval(approval models.Approval) error {
+	result := s.approvalRepository.Create(&approval)
+	if result.Error != nil {
+		s.logger.Errorf("Error adding approval: %v", result.Error)
+		return result.Error
+	}
+
+	return nil
+}

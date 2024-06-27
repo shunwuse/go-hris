@@ -11,7 +11,7 @@ type Approval struct {
 	ID         uint                     `gorm:"column:id;primaryKey;autoIncrement"`
 	Status     constants.ApprovalStatus `gorm:"column:status"`
 	CreatorID  uint                     `gorm:"column:creator_id"`
-	ApproverID uint                     `gorm:"column:approver_id"`
+	ApproverID *uint                    `gorm:"column:approver_id"`
 	CreatedAt  time.Time                `gorm:"column:created_at;autoCreateTime:milli"`
 	UpdatedAt  time.Time                `gorm:"column:updated_at;autoCreateTime:milli"`
 	DeletedAt  gorm.DeletedAt           `gorm:"column:deleted_at"`
