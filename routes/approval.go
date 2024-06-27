@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/shunwuse/go-hris/controllers"
 	"github.com/shunwuse/go-hris/lib"
+	"github.com/shunwuse/go-hris/middlewares"
 )
 
 type ApprovalRoute struct {
@@ -25,6 +26,7 @@ func NewApprovalRoute() ApprovalRoute {
 func (r ApprovalRoute) Setup(router *gin.Engine) {
 	r.logger.Info("Setting up approval routes")
 
-	approvalRouter := router.Group("/approvals")
+	approvalRouter := router.Group("/approvals", middlewares.NewJWTMiddleware().Handler())
 	approvalRouter.GET("", r.approvalController.GetApprovals)
+	approvalRouter.POST("", r.approvalController.AddApproval)
 }

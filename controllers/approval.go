@@ -4,7 +4,9 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/shunwuse/go-hris/constants"
 	"github.com/shunwuse/go-hris/lib"
+	"github.com/shunwuse/go-hris/models"
 	"github.com/shunwuse/go-hris/services"
 )
 
@@ -37,5 +39,28 @@ func (c ApprovalController) GetApprovals(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"data": approvals,
+	})
+}
+
+func (c ApprovalController) AddApproval(ctx *gin.Context) {
+	token := ctx.MustGet(constants.JWTClaims).(services.TokenPayload)
+	userID := token.UserID
+
+	approval := models.Approval{
+		CreatorID: userID,
+		Status:    constants.ApprovalStatusPending,
+	}
+
+	err := c.approvalService.AddApproval(approval)
+	if err != nil {
+		c.logger.Errorf("Error adding approval: %v", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Error adding approval",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "Approval added successfully",
 	})
 }
