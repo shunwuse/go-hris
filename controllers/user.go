@@ -91,6 +91,50 @@ func (c UserController) CreateUser(ctx *gin.Context) {
 	})
 }
 
+// UpdateUser controller
+func (c UserController) UpdateUser(ctx *gin.Context) {
+	var userUpdate dtos.UserUpdate
+
+	token := ctx.MustGet(constants.JWTClaims).(services.TokenPayload)
+	roles := token.Roles
+
+	// check all roles
+	hasAdminRole := false
+	for _, role := range roles {
+		hasAdminRole = role.IsAdmin()
+	}
+
+	if !hasAdminRole {
+		c.logger.Errorf("Error user not authorized")
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User not authorized",
+		})
+		return
+	}
+
+	if err := ctx.ShouldBindJSON(&userUpdate); err != nil {
+		c.logger.Errorf("Error binding user: %v", err)
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request",
+		})
+		return
+	}
+
+	var user = &models.User{
+		ID:   userUpdate.ID,
+		Name: userUpdate.Name,
+	}
+
+	if err := c.userService.UpdateUser(user); err != nil {
+		c.logger.Errorf("Error updating user: %v", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Error updating user",
+		})
+		return
+	}
+
+}
+
 // Login controller
 func (c UserController) Login(ctx *gin.Context) {
 	var userLogin dtos.UserLogin

@@ -78,3 +78,13 @@ func (s UserService) GetUserByUsername(username string) (*models.User, error) {
 
 	return user, nil
 }
+
+func (s UserService) UpdateUser(user *models.User) error {
+	result := s.userRepository.Updates(user)
+	if result.Error != nil {
+		s.logger.Errorf("Error updating user: %v", result.Error)
+		return result.Error
+	}
+
+	return nil
+}
