@@ -16,6 +16,6 @@ type Approval struct {
 	UpdatedAt  time.Time                `gorm:"column:updated_at;autoCreateTime:milli"`
 	DeletedAt  gorm.DeletedAt           `gorm:"column:deleted_at"`
 
-	Creator  User `gorm:"foreignkey:ID;references:CreatorID"`
-	Approver User `gorm:"foreignkey:ID;references:ApproverID"`
+	Creator  User  `gorm:"foreignkey:ID;references:CreatorID"`
+	Approver *User `gorm:"foreignkey:ID;references:ApproverID"`
 }
