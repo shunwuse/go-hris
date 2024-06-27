@@ -1,6 +1,7 @@
 package services
 
 import (
+	"github.com/shunwuse/go-hris/constants"
 	"github.com/shunwuse/go-hris/lib"
 	"github.com/shunwuse/go-hris/models"
 	"github.com/shunwuse/go-hris/repositories"
@@ -39,6 +40,20 @@ func (s ApprovalService) AddApproval(approval models.Approval) error {
 	result := s.approvalRepository.Create(&approval)
 	if result.Error != nil {
 		s.logger.Errorf("Error adding approval: %v", result.Error)
+		return result.Error
+	}
+
+	return nil
+}
+
+func (s ApprovalService) ActionApproval(approvalID uint, action string, approverID uint) error {
+	result := s.approvalRepository.Debug().Where("id = ?", approvalID).Updates(models.Approval{
+		Status:     constants.ApprovalStatus(action),
+		ApproverID: &approverID,
+	})
+
+	if result.Error != nil {
+		s.logger.Errorf("Error updating approval: %v", result.Error)
 		return result.Error
 	}
 

@@ -29,4 +29,5 @@ func (r ApprovalRoute) Setup(router *gin.Engine) {
 	approvalRouter := router.Group("/approvals", middlewares.NewJWTMiddleware().Handler())
 	approvalRouter.GET("", r.approvalController.GetApprovals)
 	approvalRouter.POST("", r.approvalController.AddApproval)
+	approvalRouter.PUT("/action", r.approvalController.ActionApproval)
 }
