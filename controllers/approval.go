@@ -81,3 +81,34 @@ func (c ApprovalController) AddApproval(ctx *gin.Context) {
 		"message": "Approval added successfully",
 	})
 }
+
+func (c ApprovalController) ActionApproval(ctx *gin.Context) {
+	token := ctx.MustGet(constants.JWTClaims).(services.TokenPayload)
+	userID := token.UserID
+
+	var actionRequest dtos.ApprovalAction
+	err := ctx.ShouldBindJSON(&actionRequest)
+	if err != nil {
+		c.logger.Errorf("Error binding action request: %v", err)
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid request",
+		})
+		return
+	}
+
+	approvalID := actionRequest.ID
+	action := actionRequest.Action
+
+	err = c.approvalService.ActionApproval(approvalID, action, userID)
+	if err != nil {
+		c.logger.Errorf("Error actioning approval: %v", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Error actioning approval",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "Approval actioned successfully",
+	})
+}
