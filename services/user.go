@@ -30,6 +30,18 @@ func NewUserService() UserService {
 	}
 }
 
+func (s UserService) GetUsers() ([]models.User, error) {
+	var users []models.User
+
+	result := s.userRepository.Find(&users)
+	if result.Error != nil {
+		s.logger.Errorf("Error getting users: %v", result.Error)
+		return nil, result.Error
+	}
+
+	return users, nil
+}
+
 func (s UserService) CreateUser(user *models.User) error {
 	result := s.userRepository.Create(user)
 	if result.Error != nil {

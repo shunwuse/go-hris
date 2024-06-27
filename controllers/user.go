@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/shunwuse/go-hris/constants"
@@ -30,6 +31,51 @@ func NewUserController() UserController {
 		userService: userService,
 		authService: authService,
 	}
+}
+
+// GetUsers controller
+func (c UserController) GetUsers(ctx *gin.Context) {
+	token := ctx.MustGet(constants.JWTClaims).(services.TokenPayload)
+	roles := token.Roles
+
+	// check all roles
+	hasAdminRole := false
+	for _, role := range roles {
+		hasAdminRole = role.IsAdmin()
+	}
+
+	if !hasAdminRole {
+		c.logger.Errorf("Error user not authorized")
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User not authorized",
+		})
+		return
+	}
+
+	users, err := c.userService.GetUsers()
+	if err != nil {
+		c.logger.Errorf("Error getting users: %v", err)
+		ctx.JSON(http.StatusInternalServerError, gin.H{
+			"error": "Error getting users",
+		})
+		return
+	}
+
+	usersResponse := make([]dtos.GetUserResponse, 0)
+	for _, user := range users {
+		usersResponse = append(usersResponse, dtos.GetUserResponse{
+			ID:              user.ID,
+			Username:        user.Username,
+			Name:            user.Name,
+			CreatedTime:     strconv.FormatInt(user.CreatedAt.UnixMilli(), 10),
+			LastUpdatedTime: strconv.FormatInt(user.UpdatedAt.UnixMilli(), 10),
+		})
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"data": usersResponse,
+	})
+
 }
 
 // CreateUser controller

@@ -1,5 +1,13 @@
 package dtos
 
+type GetUserResponse struct {
+	ID              uint   `json:"id"`
+	Username        string `json:"username"`
+	Name            string `json:"name"`
+	CreatedTime     string `json:"created_time"`
+	LastUpdatedTime string `json:"last_updated_time"`
+}
+
 type UserCreate struct {
 	Username string `json:"username" binding:"required"`
 	Password string `json:"password" binding:"required"`
