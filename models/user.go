@@ -3,6 +3,7 @@ package models
 import (
 	"time"
 
+	"github.com/shunwuse/go-hris/constants"
 	"gorm.io/gorm"
 )
 
@@ -17,4 +18,6 @@ type User struct {
 	Password Password `gorm:"foreignkey:UserID;references:ID"`
 
 	Roles []Role `gorm:"many2many:user_role;"`
+
+	Permissions []constants.Permission `gorm:"-"`
 }
