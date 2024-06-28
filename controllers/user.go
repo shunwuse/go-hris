@@ -173,6 +173,9 @@ func (c UserController) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "update successfully",
+	})
 }
 
 // Login controller
