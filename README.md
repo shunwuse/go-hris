@@ -10,9 +10,9 @@ This is a simple Human Resources Information System (HRIS).
 1. Clone this repository
 2. Run `make go-migrate-up` to migrate the database
 3. Run `make server` to start the server on port 8080 (default)
-
-swagger: http://localhost:8080/swagger/index.html
 ```
+
+swagger will be available at `http://localhost:8080/swagger/index.html`
 
 Login with default user:
 ```plaintext
