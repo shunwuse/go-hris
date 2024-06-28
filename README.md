@@ -12,6 +12,12 @@ This is a simple Human Resources Information System (HRIS).
 3. Run `make server` to start the server on port 8080 (default)
 ```
 
+Alternatively, you can run the server using docker:
+```plaintext
+1. Clone this repository
+2. Run `make docker build` to build the docker image
+3. Run `make docker run` to run the docker image, the server will be available on port 8080
+```
 swagger will be available at `http://localhost:8080/swagger/index.html`
 
 Login with default user:
