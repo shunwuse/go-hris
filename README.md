@@ -14,6 +14,12 @@ This is a simple Human Resources Information System (HRIS).
 swagger: http://localhost:8080/swagger/index.html
 ```
 
+Login with default user:
+```plaintext
+username: admin
+password: password
+```
+
 ## Features
 - [x] Create user
 - [x] Login
