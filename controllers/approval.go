@@ -140,7 +140,7 @@ func (c ApprovalController) ActionApproval(ctx *gin.Context) {
 	if err != nil {
 		c.logger.Errorf("Error actioning approval: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{
-			"error": "Error actioning approval",
+			"error": err.Error(),
 		})
 		return
 	}
