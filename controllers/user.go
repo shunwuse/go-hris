@@ -3,6 +3,7 @@ package controllers
 import (
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/shunwuse/go-hris/constants"
@@ -116,6 +117,9 @@ func (c UserController) CreateUser(ctx *gin.Context) {
 		return
 	}
 
+	// lower case username
+	userCreate.Username = strings.ToLower(userCreate.Username)
+
 	// cannot create user with role admin
 	if userCreate.Role == constants.Admin {
 		c.logger.Errorf("Error user not authorized to create admin user")
@@ -227,6 +231,9 @@ func (c UserController) Login(ctx *gin.Context) {
 		})
 		return
 	}
+
+	// lower case username
+	userLogin.Username = strings.ToLower(userLogin.Username)
 
 	user, err := c.userService.GetUserByUsername(userLogin.Username)
 	if err != nil {

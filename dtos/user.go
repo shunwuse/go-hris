@@ -13,7 +13,7 @@ type GetUserResponse struct {
 }
 
 type UserCreate struct {
-	Username string         `json:"username" binding:"required"`
+	Username string         `json:"username" binding:"required" validate:"alphanum"`
 	Password string         `json:"password" binding:"required"`
 	Name     string         `json:"name" binding:"required"`
 	Role     constants.Role `json:"role" binding:"required"`
@@ -26,7 +26,7 @@ type UserUpdate struct {
 }
 
 type UserLogin struct {
-	Username string `json:"username" binding:"required"`
+	Username string `json:"username" binding:"required" validate:"alphanum"`
 	Password string `json:"password" binding:"required"`
 }
 
