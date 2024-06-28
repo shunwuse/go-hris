@@ -3,6 +3,8 @@
 ## Description
 This is a simple Human Resources Information System (HRIS).
 
+[Postman Collection](https://documenter.getpostman.com/view/23207346/2sA3duEsLN)
+
 ## How to
 ```plaintext
 1. Clone this repository
