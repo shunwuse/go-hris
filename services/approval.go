@@ -1,6 +1,8 @@
 package services
 
 import (
+	"errors"
+
 	"github.com/shunwuse/go-hris/constants"
 	"github.com/shunwuse/go-hris/lib"
 	"github.com/shunwuse/go-hris/models"
@@ -47,7 +49,7 @@ func (s ApprovalService) AddApproval(approval models.Approval) error {
 }
 
 func (s ApprovalService) ActionApproval(approvalID uint, action string, approverID uint) error {
-	result := s.approvalRepository.Debug().Where("id = ?", approvalID).Updates(models.Approval{
+	result := s.approvalRepository.Where("id = ?", approvalID).Where("status = ?", constants.ApprovalStatusPending).Updates(models.Approval{
 		Status:     constants.ApprovalStatus(action),
 		ApproverID: &approverID,
 	})
@@ -55,6 +57,11 @@ func (s ApprovalService) ActionApproval(approvalID uint, action string, approver
 	if result.Error != nil {
 		s.logger.Errorf("Error updating approval: %v", result.Error)
 		return result.Error
+	}
+
+	if result.RowsAffected == 0 {
+		s.logger.Errorf("Error updating approval: approval not found or already actioned")
+		return errors.New("approval not found or already actioned")
 	}
 
 	return nil
