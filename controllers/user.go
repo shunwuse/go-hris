@@ -36,18 +36,13 @@ func NewUserController() UserController {
 // GetUsers controller
 func (c UserController) GetUsers(ctx *gin.Context) {
 	token := ctx.MustGet(constants.JWTClaims).(services.TokenPayload)
-	roles := token.Roles
+	permissions := token.Permissions
 
-	// check all roles
-	hasAdminRole := false
-	for _, role := range roles {
-		hasAdminRole = role.IsAdmin()
-	}
-
-	if !hasAdminRole {
-		c.logger.Errorf("Error user not authorized")
+	// check all permissions
+	if hasPermission := permissions.Contains(constants.PermissionReadUser); !hasPermission {
+		c.logger.Errorf("Error user not authorized to get users")
 		ctx.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not authorized",
+			"error": "User not authorized to get users",
 		})
 		return
 	}
@@ -83,18 +78,13 @@ func (c UserController) CreateUser(ctx *gin.Context) {
 	var userCreate dtos.UserCreate
 
 	token := ctx.MustGet(constants.JWTClaims).(services.TokenPayload)
-	roles := token.Roles
+	permissions := token.Permissions
 
-	// check all roles
-	hasAdminRole := false
-	for _, role := range roles {
-		hasAdminRole = role.IsAdmin()
-	}
-
-	if !hasAdminRole {
-		c.logger.Errorf("Error user not authorized")
+	// check all permissions
+	if hasPermission := permissions.Contains(constants.PermissionCreateUser); !hasPermission {
+		c.logger.Errorf("Error user not authorized to create user")
 		ctx.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not authorized",
+			"error": "User not authorized to create user",
 		})
 		return
 	}
@@ -142,18 +132,13 @@ func (c UserController) UpdateUser(ctx *gin.Context) {
 	var userUpdate dtos.UserUpdate
 
 	token := ctx.MustGet(constants.JWTClaims).(services.TokenPayload)
-	roles := token.Roles
+	permissions := token.Permissions
 
-	// check all roles
-	hasAdminRole := false
-	for _, role := range roles {
-		hasAdminRole = role.IsAdmin()
-	}
-
-	if !hasAdminRole {
-		c.logger.Errorf("Error user not authorized")
+	// check all permissions
+	if hasPermission := permissions.Contains(constants.PermissionUpdateUser); !hasPermission {
+		c.logger.Errorf("Error user not authorized to update user")
 		ctx.JSON(http.StatusUnauthorized, gin.H{
-			"error": "User not authorized",
+			"error": "User not authorized to update user",
 		})
 		return
 	}
