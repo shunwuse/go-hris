@@ -1,6 +1,7 @@
 package services
 
 import (
+	"errors"
 	"slices"
 
 	"github.com/shunwuse/go-hris/constants"
@@ -47,31 +48,34 @@ func (s UserService) GetUsers() ([]models.User, error) {
 	return users, nil
 }
 
-func (s UserService) CreateUser(user *models.User) error {
+func (s UserService) CreateUser(user *models.User, role constants.Role) error {
 	result := s.userRepository.Create(user)
 	if result.Error != nil {
 		s.logger.Errorf("Error creating user: %v", result.Error)
 		return result.Error
 	}
 
-	role := s.roleRepository.GetRoleByName(constants.Staff.String())
-	if role == nil {
-		s.logger.Infof("Role not found, creating role: %v", constants.Staff.String())
+	roleModel := s.roleRepository.GetRoleByName(role.String())
+	if roleModel == nil {
+		// s.logger.Infof("Role not found, creating role: %v", role)
 
-		role = &models.Role{
-			Name: constants.Staff.String(),
-		}
+		// roleModel = &models.Role{
+		// 	Name: constants.Staff.String(),
+		// }
 
-		if err := s.roleRepository.AddRole(role); err != nil {
-			s.logger.Errorf("add role error: %v", err)
-			return err
-		}
+		// if err := s.roleRepository.AddRole(roleModel); err != nil {
+		// 	s.logger.Errorf("add role error: %v", err)
+		// 	return err
+		// }
+
+		s.logger.Errorf("Role not found: %v", role)
+		return errors.New("role not found")
 	}
 
 	// Add user role
 	userRole := &models.UserRole{
 		UserID: user.ID,
-		RoleID: role.ID,
+		RoleID: roleModel.ID,
 	}
 
 	// Create user role
