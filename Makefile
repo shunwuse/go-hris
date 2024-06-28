@@ -27,7 +27,14 @@ go-migrate-down:
 swagger:
 	swag init -g ./cmd/server/main.go -o ./docs/swagger
 
+docker-build:
+	docker build -t go-hris:latest .
+
+docker-run:
+	docker run --rm -p 8080:8080 go-hris:latest
+
 .PHONY: server \
 	migrate-create migrate-up migrate-down \
 	go-migrate-up go-migrate-down \
-	swagger
+	swagger \
+	docker-build docker-run
