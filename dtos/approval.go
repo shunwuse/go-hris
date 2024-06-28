@@ -1,5 +1,7 @@
 package dtos
 
+import "github.com/shunwuse/go-hris/constants"
+
 type ApprovalResponse struct {
 	ID           uint    `json:"id"`
 	CreatorName  string  `json:"creator_name"`
@@ -8,6 +10,6 @@ type ApprovalResponse struct {
 }
 
 type ApprovalAction struct {
-	ID     uint   `json:"id" binding:"required"`
-	Action string `json:"action" binding:"required,oneof=APPROVED REJECTED"`
+	ID     uint                     `json:"id" binding:"required"`
+	Action constants.ApprovalStatus `json:"action" binding:"required"`
 }
