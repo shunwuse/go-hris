@@ -261,6 +261,19 @@ const docTemplate = `{
         }
     },
     "definitions": {
+        "constants.ApprovalStatus": {
+            "type": "string",
+            "enum": [
+                "PENDING",
+                "APPROVED",
+                "REJECTED"
+            ],
+            "x-enum-varnames": [
+                "ApprovalStatusPending",
+                "ApprovalStatusApproved",
+                "ApprovalStatusRejected"
+            ]
+        },
         "constants.Role": {
             "type": "string",
             "enum": [
@@ -282,11 +295,7 @@ const docTemplate = `{
             ],
             "properties": {
                 "action": {
-                    "type": "string",
-                    "enum": [
-                        "APPROVED",
-                        "REJECTED"
-                    ]
+                    "$ref": "#/definitions/constants.ApprovalStatus"
                 },
                 "id": {
                     "type": "integer"
