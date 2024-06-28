@@ -1,6 +1,8 @@
 package services
 
 import (
+	"slices"
+
 	"github.com/shunwuse/go-hris/constants"
 	"github.com/shunwuse/go-hris/lib"
 	"github.com/shunwuse/go-hris/models"
@@ -8,10 +10,11 @@ import (
 )
 
 type UserService struct {
-	logger             lib.Logger
-	userRepository     repositories.UserRepository
-	roleRepository     repositories.RoleRepository
-	userRoleRepository repositories.UserRoleRepository
+	logger                   lib.Logger
+	userRepository           repositories.UserRepository
+	roleRepository           repositories.RoleRepository
+	userRoleRepository       repositories.UserRoleRepository
+	rolePermissionRepository repositories.RolePermissionRepository
 }
 
 func NewUserService() UserService {
@@ -21,12 +24,14 @@ func NewUserService() UserService {
 	userRepository := repositories.NewUserRepository()
 	roleRepository := repositories.NewRoleRepository()
 	userRoleRepository := repositories.NewUserRoleRepository()
+	rolePermissionRepository := repositories.NewRolePermissionRepository()
 
 	return UserService{
-		logger:             logger,
-		userRepository:     userRepository,
-		roleRepository:     roleRepository,
-		userRoleRepository: userRoleRepository,
+		logger:                   logger,
+		userRepository:           userRepository,
+		roleRepository:           roleRepository,
+		userRoleRepository:       userRoleRepository,
+		rolePermissionRepository: rolePermissionRepository,
 	}
 }
 
@@ -87,6 +92,25 @@ func (s UserService) GetUserByUsername(username string) (*models.User, error) {
 		s.logger.Errorf("Error getting user by username: %v", result.Error)
 		return nil, result.Error
 	}
+
+	// Get permissions
+	permissions := make([]constants.Permission, 0)
+	roles := user.Roles
+
+	// Get permissions by role
+	for _, role := range roles {
+		rolePermissions := s.rolePermissionRepository.GetPermissionsByRole(constants.Role(role.Name))
+
+		// Add permissions to user
+		for _, permission := range rolePermissions {
+			if !slices.Contains(permissions, permission) {
+				permissions = append(permissions, permission)
+			}
+		}
+	}
+
+	// Set permissions to user
+	user.Permissions = permissions
 
 	return user, nil
 }

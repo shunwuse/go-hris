@@ -29,10 +29,11 @@ func NewAuthService() AuthService {
 }
 
 type TokenPayload struct {
-	UserID    uint             `json:"user_id"`
-	Username  string           `json:"username"`
-	CreatedAt time.Time        `json:"created_at"`
-	Roles     []constants.Role `json:"roles"`
+	UserID      uint                   `json:"user_id"`
+	Username    string                 `json:"username"`
+	CreatedAt   time.Time              `json:"created_at"`
+	Roles       []constants.Role       `json:"roles"`
+	Permissions []constants.Permission `json:"permissions"`
 }
 
 func (s AuthService) GenerateToken(user *models.User) (string, error) {
@@ -42,10 +43,11 @@ func (s AuthService) GenerateToken(user *models.User) (string, error) {
 	}
 
 	payload := TokenPayload{
-		UserID:    user.ID,
-		Username:  user.Username,
-		CreatedAt: user.CreatedAt,
-		Roles:     roles,
+		UserID:      user.ID,
+		Username:    user.Username,
+		CreatedAt:   user.CreatedAt,
+		Roles:       roles,
+		Permissions: user.Permissions,
 	}
 
 	// convert payload to json
