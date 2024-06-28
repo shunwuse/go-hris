@@ -167,6 +167,14 @@ func (c ApprovalController) ActionApproval(ctx *gin.Context) {
 	approvalID := actionRequest.ID
 	action := actionRequest.Action
 
+	if !isActionValid(action) {
+		c.logger.Errorf("Error invalid action: %v", action)
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "Invalid action",
+		})
+		return
+	}
+
 	err = c.approvalService.ActionApproval(approvalID, action, userID)
 	if err != nil {
 		c.logger.Errorf("Error actioning approval: %v", err)
@@ -179,4 +187,8 @@ func (c ApprovalController) ActionApproval(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "Approval actioned successfully",
 	})
+}
+
+func isActionValid(action constants.ApprovalStatus) bool {
+	return action == constants.ApprovalStatusApproved || action == constants.ApprovalStatusRejected
 }

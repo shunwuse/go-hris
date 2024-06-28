@@ -48,9 +48,9 @@ func (s ApprovalService) AddApproval(approval models.Approval) error {
 	return nil
 }
 
-func (s ApprovalService) ActionApproval(approvalID uint, action string, approverID uint) error {
+func (s ApprovalService) ActionApproval(approvalID uint, action constants.ApprovalStatus, approverID uint) error {
 	result := s.approvalRepository.Where("id = ?", approvalID).Where("status = ?", constants.ApprovalStatusPending).Updates(models.Approval{
-		Status:     constants.ApprovalStatus(action),
+		Status:     action,
 		ApproverID: &approverID,
 	})
 
