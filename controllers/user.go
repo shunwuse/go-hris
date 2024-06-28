@@ -41,7 +41,7 @@ func NewUserController() UserController {
 // @security BasicAuth
 // @Accept json
 // @Produce json
-// @Success 200	{array}		dtos.GetUserResponse
+// @Success 200 {array} dtos.GetUserResponse
 // @Router /users [get]
 func (c UserController) GetUsers(ctx *gin.Context) {
 	token := ctx.MustGet(constants.JWTClaims).(services.TokenPayload)
