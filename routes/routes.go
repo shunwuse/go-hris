@@ -13,10 +13,14 @@ func NewRoutes() Routes {
 	UserRoute := NewUserRoute()
 	ApprovalRoute := NewApprovalRoute()
 
+	// swagger route
+	swaggerRoute := NewSwaggerRoute()
+
 	return Routes{
 		exampleRoute,
 		UserRoute,
 		ApprovalRoute,
+		swaggerRoute,
 	}
 }
 
