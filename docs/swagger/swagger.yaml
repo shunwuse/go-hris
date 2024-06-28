@@ -1,4 +1,75 @@
 basePath: /
+definitions:
+  constants.Role:
+    enum:
+    - administrator
+    - manager
+    - staff
+    type: string
+    x-enum-varnames:
+    - Admin
+    - Manager
+    - Staff
+  dtos.GetUserResponse:
+    properties:
+      created_time:
+        type: string
+      id:
+        type: integer
+      last_updated_time:
+        type: string
+      name:
+        type: string
+      username:
+        type: string
+    type: object
+  dtos.LoginResponse:
+    properties:
+      roles:
+        items:
+          type: string
+        type: array
+      token:
+        type: string
+      username:
+        type: string
+    type: object
+  dtos.UserCreate:
+    properties:
+      name:
+        type: string
+      password:
+        type: string
+      role:
+        $ref: '#/definitions/constants.Role'
+      username:
+        type: string
+    required:
+    - name
+    - password
+    - role
+    - username
+    type: object
+  dtos.UserLogin:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    required:
+    - password
+    - username
+    type: object
+  dtos.UserUpdate:
+    properties:
+      id:
+        type: integer
+      name:
+        description: name is optional
+        type: string
+    required:
+    - id
+    type: object
 externalDocs:
   description: OpenAPI
   url: https://swagger.io/resources/open-api/
@@ -15,7 +86,94 @@ info:
   termsOfService: http://swagger.io/terms/
   title: Swagger Example API
   version: "1.0"
-paths: {}
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Login
+      parameters:
+      - description: User object that needs to login
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.UserLogin'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dtos.LoginResponse'
+      summary: Login
+      tags:
+      - users
+  /users:
+    get:
+      consumes:
+      - application/json
+      description: Get all users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dtos.GetUserResponse'
+            type: array
+      security:
+      - BasicAuth: []
+      summary: Get users
+      tags:
+      - users
+    post:
+      consumes:
+      - application/json
+      description: Create a new user
+      parameters:
+      - description: User object that needs to be created
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.UserCreate'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: create successfully
+          schema:
+            type: string
+      security:
+      - BasicAuth: []
+      summary: Create user
+      tags:
+      - users
+    put:
+      consumes:
+      - application/json
+      description: Update user
+      parameters:
+      - description: User object that needs to be updated
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.UserUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: update successfully
+          schema:
+            type: string
+      security:
+      - BasicAuth: []
+      summary: Update user
+      tags:
+      - users
 securityDefinitions:
   BasicAuth:
     type: basic

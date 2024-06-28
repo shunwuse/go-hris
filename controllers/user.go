@@ -33,7 +33,16 @@ func NewUserController() UserController {
 	}
 }
 
-// GetUsers controller
+// GetUsers godoc
+//
+// @Summary Get users
+// @Description Get all users
+// @Tags users
+// @security BasicAuth
+// @Accept json
+// @Produce json
+// @Success 200	{array}		dtos.GetUserResponse
+// @Router /users [get]
 func (c UserController) GetUsers(ctx *gin.Context) {
 	token := ctx.MustGet(constants.JWTClaims).(services.TokenPayload)
 	permissions := token.Permissions
@@ -73,7 +82,17 @@ func (c UserController) GetUsers(ctx *gin.Context) {
 
 }
 
-// CreateUser controller
+// CreateUser godoc
+//
+// @Summary Create user
+// @Description Create a new user
+// @Tags users
+// @security BasicAuth
+// @Accept json
+// @Produce json
+// @Param user body dtos.UserCreate true "User object that needs to be created"
+// @Success 201 {string} string "create successfully"
+// @Router /users [post]
 func (c UserController) CreateUser(ctx *gin.Context) {
 	var userCreate dtos.UserCreate
 
@@ -136,7 +155,17 @@ func (c UserController) CreateUser(ctx *gin.Context) {
 	})
 }
 
-// UpdateUser controller
+// UpdateUser godoc
+//
+// @Summary Update user
+// @Description Update user
+// @Tags users
+// @security BasicAuth
+// @Accept json
+// @Produce json
+// @Param user body dtos.UserUpdate true "User object that needs to be updated"
+// @Success 200 {string} string "update successfully"
+// @Router /users [put]
 func (c UserController) UpdateUser(ctx *gin.Context) {
 	var userUpdate dtos.UserUpdate
 
@@ -178,7 +207,16 @@ func (c UserController) UpdateUser(ctx *gin.Context) {
 	})
 }
 
-// Login controller
+// Login godoc
+//
+// @Summary Login
+// @Description Login
+// @Tags users
+// @Accept json
+// @Produce json
+// @Param user body dtos.UserLogin true "User object that needs to login"
+// @Success 200 {object} dtos.LoginResponse
+// @Router /login [post]
 func (c UserController) Login(ctx *gin.Context) {
 	var userLogin dtos.UserLogin
 
