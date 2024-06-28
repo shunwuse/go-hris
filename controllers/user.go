@@ -97,6 +97,15 @@ func (c UserController) CreateUser(ctx *gin.Context) {
 		return
 	}
 
+	// cannot create user with role admin
+	if userCreate.Role == constants.Admin {
+		c.logger.Errorf("Error user not authorized to create admin user")
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User not authorized to create admin user",
+		})
+		return
+	}
+
 	hashedPassword, err := hashPassword(userCreate.Password)
 	if err != nil {
 		c.logger.Errorf("Error hashing password: %v", err)
@@ -114,7 +123,7 @@ func (c UserController) CreateUser(ctx *gin.Context) {
 		},
 	}
 
-	if err := c.userService.CreateUser(user); err != nil {
+	if err := c.userService.CreateUser(user, userCreate.Role); err != nil {
 		c.logger.Errorf("Error creating user: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Error creating user",

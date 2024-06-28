@@ -1,5 +1,9 @@
 package dtos
 
+import (
+	"github.com/shunwuse/go-hris/constants"
+)
+
 type GetUserResponse struct {
 	ID              uint   `json:"id"`
 	Username        string `json:"username"`
@@ -9,9 +13,10 @@ type GetUserResponse struct {
 }
 
 type UserCreate struct {
-	Username string `json:"username" binding:"required"`
-	Password string `json:"password" binding:"required"`
-	Name     string `json:"name" binding:"required"`
+	Username string         `json:"username" binding:"required"`
+	Password string         `json:"password" binding:"required"`
+	Name     string         `json:"name" binding:"required"`
+	Role     constants.Role `json:"role" binding:"required"`
 }
 
 type UserUpdate struct {
