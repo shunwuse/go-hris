@@ -10,6 +10,30 @@ definitions:
     - Admin
     - Manager
     - Staff
+  dtos.ApprovalAction:
+    properties:
+      action:
+        enum:
+        - APPROVED
+        - REJECTED
+        type: string
+      id:
+        type: integer
+    required:
+    - action
+    - id
+    type: object
+  dtos.ApprovalResponse:
+    properties:
+      approver_name:
+        type: string
+      creator_name:
+        type: string
+      id:
+        type: integer
+      status:
+        type: string
+    type: object
   dtos.GetUserResponse:
     properties:
       created_time:
@@ -87,6 +111,65 @@ info:
   title: Swagger Example API
   version: "1.0"
 paths:
+  /approvals:
+    get:
+      consumes:
+      - application/json
+      description: Get all approvals
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dtos.ApprovalResponse'
+            type: array
+      security:
+      - BasicAuth: []
+      summary: Get approvals
+      tags:
+      - approvals
+    post:
+      consumes:
+      - application/json
+      description: Add a new approval
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Approval added successfully
+          schema:
+            type: string
+      security:
+      - BasicAuth: []
+      summary: Add approval
+      tags:
+      - approvals
+  /approvals/action:
+    put:
+      consumes:
+      - application/json
+      description: Action an approval
+      parameters:
+      - description: Approval action object
+        in: body
+        name: action
+        required: true
+        schema:
+          $ref: '#/definitions/dtos.ApprovalAction'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Approval actioned successfully
+          schema:
+            type: string
+      security:
+      - BasicAuth: []
+      summary: Action approval
+      tags:
+      - approvals
   /login:
     post:
       consumes:

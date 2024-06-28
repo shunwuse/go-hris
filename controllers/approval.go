@@ -28,6 +28,16 @@ func NewApprovalController() ApprovalController {
 	}
 }
 
+// GetApprovals godoc
+//
+// @Summary Get approvals
+// @Description Get all approvals
+// @Tags approvals
+// @security BasicAuth
+// @Accept json
+// @Produce json
+// @Success 200 {array} dtos.ApprovalResponse
+// @Router /approvals [get]
 func (c ApprovalController) GetApprovals(ctx *gin.Context) {
 	token := ctx.MustGet(constants.JWTClaims).(services.TokenPayload)
 	permissions := token.Permissions
@@ -71,6 +81,16 @@ func (c ApprovalController) GetApprovals(ctx *gin.Context) {
 	})
 }
 
+// AddApproval godoc
+//
+// @Summary Add approval
+// @Description Add a new approval
+// @Tags approvals
+// @security BasicAuth
+// @Accept json
+// @Produce json
+// @Success 200 {string} message "Approval added successfully"
+// @Router /approvals [post]
 func (c ApprovalController) AddApproval(ctx *gin.Context) {
 	token := ctx.MustGet(constants.JWTClaims).(services.TokenPayload)
 	permissions := token.Permissions
@@ -105,6 +125,17 @@ func (c ApprovalController) AddApproval(ctx *gin.Context) {
 	})
 }
 
+// ActionApproval godoc
+//
+// @Summary Action approval
+// @Description Action an approval
+// @Tags approvals
+// @security BasicAuth
+// @Accept json
+// @Produce json
+// @Param action body dtos.ApprovalAction true "Approval action object"
+// @Success 200 {string} message "Approval actioned successfully"
+// @Router /approvals/action [put]
 func (c ApprovalController) ActionApproval(ctx *gin.Context) {
 	token := ctx.MustGet(constants.JWTClaims).(services.TokenPayload)
 	permissions := token.Permissions
