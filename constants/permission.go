@@ -1,10 +1,12 @@
 package constants
 
+type Permission string
+
 const (
-	PermissionCreateUser     = "create_user"
-	PermissionReadUser       = "read_user"
-	PermissionUpdateUser     = "update_user"
-	PermissionCreateApproval = "create_approval"
-	PermissionReadApproval   = "read_approval"
-	PermissionActionApproval = "action_approval"
+	PermissionCreateUser     Permission = "create_user"
+	PermissionReadUser       Permission = "read_user"
+	PermissionUpdateUser     Permission = "update_user"
+	PermissionCreateApproval Permission = "create_approval"
+	PermissionReadApproval   Permission = "read_approval"
+	PermissionActionApproval Permission = "action_approval"
 )
