@@ -29,6 +29,18 @@ func NewApprovalController() ApprovalController {
 }
 
 func (c ApprovalController) GetApprovals(ctx *gin.Context) {
+	token := ctx.MustGet(constants.JWTClaims).(services.TokenPayload)
+	permissions := token.Permissions
+
+	// check all permissions
+	if hasPermission := permissions.Contains(constants.PermissionReadApproval); !hasPermission {
+		c.logger.Errorf("Error user not authorized to get approvals")
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User not authorized to get approvals",
+		})
+		return
+	}
+
 	approvals, err := c.approvalService.GetApprovals()
 	if err != nil {
 		c.logger.Errorf("Error getting approvals: %v", err)
@@ -61,6 +73,17 @@ func (c ApprovalController) GetApprovals(ctx *gin.Context) {
 
 func (c ApprovalController) AddApproval(ctx *gin.Context) {
 	token := ctx.MustGet(constants.JWTClaims).(services.TokenPayload)
+	permissions := token.Permissions
+
+	// check all permissions
+	if hasPermission := permissions.Contains(constants.PermissionCreateApproval); !hasPermission {
+		c.logger.Errorf("Error user not authorized to add approval")
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User not authorized to add approval",
+		})
+		return
+	}
+
 	userID := token.UserID
 
 	approval := models.Approval{
@@ -84,6 +107,20 @@ func (c ApprovalController) AddApproval(ctx *gin.Context) {
 
 func (c ApprovalController) ActionApproval(ctx *gin.Context) {
 	token := ctx.MustGet(constants.JWTClaims).(services.TokenPayload)
+	permissions := token.Permissions
+
+	// check all permissions
+	if hasPermission := permissions.ContainsAll(constants.Permissions{
+		constants.PermissionReadApproval,
+		constants.PermissionActionApproval,
+	}); !hasPermission {
+		c.logger.Errorf("Error user not authorized to action approval")
+		ctx.JSON(http.StatusUnauthorized, gin.H{
+			"error": "User not authorized to action approval",
+		})
+		return
+	}
+
 	userID := token.UserID
 
 	var actionRequest dtos.ApprovalAction
