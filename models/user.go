@@ -19,5 +19,5 @@ type User struct {
 
 	Roles []Role `gorm:"many2many:user_role;"`
 
-	Permissions []constants.Permission `gorm:"-"`
+	Permissions constants.Permissions `gorm:"-"`
 }

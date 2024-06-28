@@ -94,7 +94,7 @@ func (s UserService) GetUserByUsername(username string) (*models.User, error) {
 	}
 
 	// Get permissions
-	permissions := make([]constants.Permission, 0)
+	permissions := make(constants.Permissions, 0)
 	roles := user.Roles
 
 	// Get permissions by role
