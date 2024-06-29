@@ -9,9 +9,9 @@ import (
 	"github.com/shunwuse/go-hris/constants"
 	"github.com/shunwuse/go-hris/dtos"
 	"github.com/shunwuse/go-hris/lib"
+	"github.com/shunwuse/go-hris/lib/utils"
 	"github.com/shunwuse/go-hris/models"
 	"github.com/shunwuse/go-hris/services"
-	"golang.org/x/crypto/bcrypt"
 )
 
 type UserController struct {
@@ -129,7 +129,7 @@ func (c UserController) CreateUser(ctx *gin.Context) {
 		return
 	}
 
-	hashedPassword, err := hashPassword(userCreate.Password)
+	hashedPassword, err := utils.HashPassword(userCreate.Password)
 	if err != nil {
 		c.logger.Errorf("Error hashing password: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -245,7 +245,7 @@ func (c UserController) Login(ctx *gin.Context) {
 	}
 
 	// check password
-	passwordMatch := checkPasswordHash(userLogin.Password, user.Password.Hash)
+	passwordMatch := utils.CheckPasswordHash(userLogin.Password, user.Password.Hash)
 	if !passwordMatch {
 		c.logger.Errorf("Error password not match")
 		ctx.JSON(http.StatusUnauthorized, gin.H{
@@ -278,18 +278,4 @@ func (c UserController) Login(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"data": response,
 	})
-}
-
-func hashPassword(password string) (string, error) {
-	// Use bcrypt to hash the password
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		return "", err
-	}
-	return string(hashedPassword), nil
-}
-
-func checkPasswordHash(password, hash string) bool {
-	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	return err == nil // if err is nil, password match
 }
