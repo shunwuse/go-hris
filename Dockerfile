@@ -7,13 +7,13 @@ COPY . /app
 # set the working directory
 WORKDIR /app
 
-# download the dependencies
-RUN go mod download
-
 # install the migrate tool
 RUN go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 # run the migrations
 RUN make migrate-up
+
+# download the dependencies
+RUN go mod download
 
 # build the application
 RUN GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o myapp ./cmd/server/main.go
