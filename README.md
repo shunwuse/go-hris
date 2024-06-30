@@ -3,8 +3,6 @@
 ## Description
 This is a simple Human Resources Information System (HRIS).
 
-[Postman Collection](https://documenter.getpostman.com/view/23207346/2sA3duEsLN)
-
 ## How to run
 ```plaintext
 1. Clone this repository
@@ -22,7 +20,10 @@ Build and run the server from source:
 Run the server using a pre-built image from Docker Hub:
 1. Run `docker run --rm -p 8080:8080 shunwuse/go-hris:latest`
 ```
-swagger will be available at `http://localhost:8080/swagger/index.html`
+**Swagger UI**: [http://localhost:8080/swagger/index.html](http://localhost:8080/swagger/index.html)
+
+[Postman Collection](https://documenter.getpostman.com/view/23207346/2sA3duEsLN)
+
 
 Login with default user:
 ```plaintext
