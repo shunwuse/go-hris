@@ -95,8 +95,6 @@ func (c UserController) GetUsers(ctx *gin.Context) {
 // @Success 201 {string} string "create successfully"
 // @Router /users [post]
 func (c UserController) CreateUser(ctx *gin.Context) {
-	var userCreate dtos.UserCreate
-
 	token := ctx.MustGet(constants.JWTClaims).(services.TokenPayload)
 	permissions := token.Permissions
 
@@ -109,6 +107,7 @@ func (c UserController) CreateUser(ctx *gin.Context) {
 		return
 	}
 
+	var userCreate dtos.UserCreate
 	if err := ctx.ShouldBindJSON(&userCreate); err != nil {
 		c.logger.Errorf("Error binding user: %v", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{
@@ -171,8 +170,6 @@ func (c UserController) CreateUser(ctx *gin.Context) {
 // @Success 200 {string} string "update successfully"
 // @Router /users [put]
 func (c UserController) UpdateUser(ctx *gin.Context) {
-	var userUpdate dtos.UserUpdate
-
 	token := ctx.MustGet(constants.JWTClaims).(services.TokenPayload)
 	permissions := token.Permissions
 
@@ -185,6 +182,7 @@ func (c UserController) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
+	var userUpdate dtos.UserUpdate
 	if err := ctx.ShouldBindJSON(&userUpdate); err != nil {
 		c.logger.Errorf("Error binding user: %v", err)
 		ctx.JSON(http.StatusBadRequest, gin.H{
