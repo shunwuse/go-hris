@@ -28,7 +28,7 @@ swagger:
 	swag init -g ./cmd/server/main.go -o ./docs/swagger
 
 docker-build:
-	docker build -t go-hris:latest .
+	docker buildx build --platform linux/amd64 -t go-hris:latest .
 
 docker-run:
 	docker run --rm -p 8080:8080 go-hris:latest
