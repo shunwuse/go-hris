@@ -1,5 +1,5 @@
 # Description: Dockerfile for building the application
-FROM golang:1.22.4 AS builder
+FROM golang:1.25.1 AS builder
 
 # copy the source code
 COPY . /app
