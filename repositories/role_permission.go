@@ -13,10 +13,10 @@ type RolePermissionRepository struct {
 	rolePermissionMap map[constants.Role]constants.Permissions
 }
 
-func NewRolePermissionRepository() RolePermissionRepository {
-	logger := lib.GetLogger()
-	db := lib.GetDatabase()
-
+func NewRolePermissionRepository(
+	logger lib.Logger,
+	db lib.Database,
+) RolePermissionRepository {
 	rolePermissionList := make([]models.RolePermission, 0)
 	db.Preload("Role").Preload("Permission").Find(&rolePermissionList)
 

@@ -14,12 +14,10 @@ type ExampleController struct {
 	exampleService services.ExampleService
 }
 
-func NewExampleController() ExampleController {
-	logger := lib.GetLogger()
-
-	// Initialize services
-	exampleService := services.NewExampleService()
-
+func NewExampleController(
+	logger lib.Logger,
+	exampleService services.ExampleService,
+) ExampleController {
 	return ExampleController{
 		logger:         logger,
 		exampleService: exampleService,

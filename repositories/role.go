@@ -12,10 +12,10 @@ type RoleRepository struct {
 	Roles []models.Role
 }
 
-func NewRoleRepository() RoleRepository {
-	logger := lib.GetLogger()
-	db := lib.GetDatabase()
-
+func NewRoleRepository(
+	logger lib.Logger,
+	db lib.Database,
+) RoleRepository {
 	// Initialize roles
 	var roles []models.Role
 	db.Find(&roles)

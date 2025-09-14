@@ -7,3 +7,5 @@
 
 *.log
 *.db
+
+wire_gen.go

@@ -9,16 +9,18 @@ import (
 
 type ApprovalRoute struct {
 	logger             lib.Logger
+	jwtMiddleware      middlewares.JWTMiddleware
 	approvalController controllers.ApprovalController
 }
 
-func NewApprovalRoute() ApprovalRoute {
-	logger := lib.GetLogger()
-
-	approvalController := controllers.NewApprovalController()
-
+func NewApprovalRoute(
+	logger lib.Logger,
+	jwtMiddleware middlewares.JWTMiddleware,
+	approvalController controllers.ApprovalController,
+) ApprovalRoute {
 	return ApprovalRoute{
 		logger:             logger,
+		jwtMiddleware:      jwtMiddleware,
 		approvalController: approvalController,
 	}
 }
@@ -26,7 +28,7 @@ func NewApprovalRoute() ApprovalRoute {
 func (r ApprovalRoute) Setup(router *gin.Engine) {
 	r.logger.Info("Setting up approval routes")
 
-	approvalRouter := router.Group("/approvals", middlewares.NewJWTMiddleware().Handler())
+	approvalRouter := router.Group("/approvals", r.jwtMiddleware.Handler())
 	approvalRouter.GET("", r.approvalController.GetApprovals)
 	approvalRouter.POST("", r.approvalController.AddApproval)
 	approvalRouter.PUT("/action", r.approvalController.ActionApproval)

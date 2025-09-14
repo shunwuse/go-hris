@@ -3,7 +3,11 @@ migrations_dir = ./migrations
 sqlite_db = ./test.db
 
 server:
-	go run ./cmd/server/main.go
+	go run ./cmd/server
+
+# go install github.com/google/wire/cmd/wire@latest
+wire:
+	wire ./cmd/server
 
 # go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
 migrate-create:
@@ -34,6 +38,7 @@ docker-run:
 	docker run --rm -p 8080:8080 go-hris:latest
 
 .PHONY: server \
+	wire \
 	migrate-create migrate-up migrate-down \
 	go-migrate-up go-migrate-down \
 	swagger \

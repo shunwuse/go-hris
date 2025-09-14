@@ -18,15 +18,13 @@ type UserService struct {
 	rolePermissionRepository repositories.RolePermissionRepository
 }
 
-func NewUserService() UserService {
-	logger := lib.GetLogger()
-
-	// Initialize repositories
-	userRepository := repositories.NewUserRepository()
-	roleRepository := repositories.NewRoleRepository()
-	userRoleRepository := repositories.NewUserRoleRepository()
-	rolePermissionRepository := repositories.NewRolePermissionRepository()
-
+func NewUserService(
+	logger lib.Logger,
+	userRepository repositories.UserRepository,
+	roleRepository repositories.RoleRepository,
+	userRoleRepository repositories.UserRoleRepository,
+	rolePermissionRepository repositories.RolePermissionRepository,
+) UserService {
 	return UserService{
 		logger:                   logger,
 		userRepository:           userRepository,

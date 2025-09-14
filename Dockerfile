@@ -15,8 +15,13 @@ RUN make migrate-up
 # download the dependencies
 RUN go mod download
 
+# install wire
+RUN go install github.com/google/wire/cmd/wire@latest
+# generate the wire files
+RUN make wire
+
 # build the application
-RUN GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o myapp ./cmd/server/main.go
+RUN GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o myapp ./cmd/server
 
 # create a new image
 FROM alpine:3.20

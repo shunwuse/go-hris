@@ -7,10 +7,10 @@ type ApprovalRepository struct {
 	lib.Database
 }
 
-func NewApprovalRepository() ApprovalRepository {
-	logger := lib.GetLogger()
-	db := lib.GetDatabase()
-
+func NewApprovalRepository(
+	logger lib.Logger,
+	db lib.Database,
+) ApprovalRepository {
 	return ApprovalRepository{
 		logger:   logger,
 		Database: db,

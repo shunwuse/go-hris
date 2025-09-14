@@ -20,13 +20,11 @@ type UserController struct {
 	authService services.AuthService
 }
 
-func NewUserController() UserController {
-	logger := lib.GetLogger()
-
-	// Initialize services
-	userService := services.NewUserService()
-	authService := services.NewAuthService()
-
+func NewUserController(
+	logger lib.Logger,
+	userService services.UserService,
+	authService services.AuthService,
+) UserController {
 	return UserController{
 		logger:      logger,
 		userService: userService,

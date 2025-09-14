@@ -9,16 +9,18 @@ import (
 
 type UserRoute struct {
 	logger         lib.Logger
+	jwtMiddleware  middlewares.JWTMiddleware
 	userController controllers.UserController
 }
 
-func NewUserRoute() UserRoute {
-	logger := lib.GetLogger()
-
-	userController := controllers.NewUserController()
-
+func NewUserRoute(
+	logger lib.Logger,
+	jwtMiddleware middlewares.JWTMiddleware,
+	userController controllers.UserController,
+) UserRoute {
 	return UserRoute{
 		logger:         logger,
+		jwtMiddleware:  jwtMiddleware,
 		userController: userController,
 	}
 }
@@ -26,7 +28,7 @@ func NewUserRoute() UserRoute {
 func (r UserRoute) Setup(router *gin.Engine) {
 	r.logger.Info("Setting up user routes")
 
-	userRouter := router.Group("/users", middlewares.NewJWTMiddleware().Handler())
+	userRouter := router.Group("/users", r.jwtMiddleware.Handler())
 	userRouter.GET("", r.userController.GetUsers)
 	userRouter.POST("", r.userController.CreateUser)
 	userRouter.PUT("", r.userController.UpdateUser)

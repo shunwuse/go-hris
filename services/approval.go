@@ -14,12 +14,10 @@ type ApprovalService struct {
 	approvalRepository repositories.ApprovalRepository
 }
 
-func NewApprovalService() ApprovalService {
-	logger := lib.GetLogger()
-
-	// Initialize repositories
-	approvalRepository := repositories.NewApprovalRepository()
-
+func NewApprovalService(
+	logger lib.Logger,
+	approvalRepository repositories.ApprovalRepository,
+) ApprovalService {
 	return ApprovalService{
 		logger:             logger,
 		approvalRepository: approvalRepository,
