@@ -16,11 +16,10 @@ type AuthService struct {
 	secreteKey string
 }
 
-func NewAuthService() AuthService {
-	env := lib.NewEnv()
-
-	logger := lib.GetLogger()
-
+func NewAuthService(
+	env lib.Env,
+	logger lib.Logger,
+) AuthService {
 	return AuthService{
 		logger: logger,
 

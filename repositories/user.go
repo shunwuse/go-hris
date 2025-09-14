@@ -7,10 +7,10 @@ type UserRepository struct {
 	lib.Database
 }
 
-func NewUserRepository() UserRepository {
-	logger := lib.GetLogger()
-	db := lib.GetDatabase()
-
+func NewUserRepository(
+	logger lib.Logger,
+	db lib.Database,
+) UserRepository {
 	return UserRepository{
 		logger:   logger,
 		Database: db,

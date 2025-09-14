@@ -16,12 +16,10 @@ type ApprovalController struct {
 	approvalService services.ApprovalService
 }
 
-func NewApprovalController() ApprovalController {
-	logger := lib.GetLogger()
-
-	// Initialize services
-	approvalService := services.NewApprovalService()
-
+func NewApprovalController(
+	logger lib.Logger,
+	approvalService services.ApprovalService,
+) ApprovalController {
 	return ApprovalController{
 		logger:          logger,
 		approvalService: approvalService,

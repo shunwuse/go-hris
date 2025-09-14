@@ -14,12 +14,10 @@ type JWTMiddleware struct {
 	authService services.AuthService
 }
 
-func NewJWTMiddleware() JWTMiddleware {
-	logger := lib.GetLogger()
-
-	// Initialize services
-	authService := services.NewAuthService()
-
+func NewJWTMiddleware(
+	logger lib.Logger,
+	authService services.AuthService,
+) JWTMiddleware {
 	return JWTMiddleware{
 		logger:      logger,
 		authService: authService,

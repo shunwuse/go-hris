@@ -18,11 +18,10 @@ func (r ExampleRoute) Setup(router *gin.Engine) {
 	router.GET("/ping", r.exampleController.Ping)
 }
 
-func NewExampleRoute() ExampleRoute {
-	logger := lib.GetLogger()
-
-	exampleController := controllers.NewExampleController()
-
+func NewExampleRoute(
+	logger lib.Logger,
+	exampleController controllers.ExampleController,
+) ExampleRoute {
 	return ExampleRoute{
 		logger:            logger,
 		exampleController: exampleController,

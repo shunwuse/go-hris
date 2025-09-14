@@ -7,10 +7,10 @@ type ExampleRepository struct {
 	lib.Database
 }
 
-func NewExampleRepository() ExampleRepository {
-	logger := lib.GetLogger()
-	db := lib.GetDatabase()
-
+func NewExampleRepository(
+	logger lib.Logger,
+	db lib.Database,
+) ExampleRepository {
 	return ExampleRepository{
 		logger:   logger,
 		Database: db,

@@ -10,12 +10,10 @@ type ExampleService struct {
 	exampleRepository repositories.ExampleRepository
 }
 
-func NewExampleService() ExampleService {
-	logger := lib.GetLogger()
-
-	// Initialize repositories
-	exampleRepository := repositories.NewExampleRepository()
-
+func NewExampleService(
+	logger lib.Logger,
+	exampleRepository repositories.ExampleRepository,
+) ExampleService {
 	return ExampleService{
 		logger:            logger,
 		exampleRepository: exampleRepository,

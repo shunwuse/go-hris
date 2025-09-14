@@ -12,10 +12,10 @@ type UserRoleRepository struct {
 	UserRoleMap []models.UserRole
 }
 
-func NewUserRoleRepository() UserRoleRepository {
-	logger := lib.GetLogger()
-	db := lib.GetDatabase()
-
+func NewUserRoleRepository(
+	logger lib.Logger,
+	db lib.Database,
+) UserRoleRepository {
 	// Initialize user roles
 	var userRoles []models.UserRole
 	db.Find(&userRoles)

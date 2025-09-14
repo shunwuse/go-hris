@@ -11,10 +11,10 @@ type DBTrxMiddleware struct {
 	db     lib.Database
 }
 
-func NewDBTrxMiddleware() DBTrxMiddleware {
-	logger := lib.GetLogger()
-	db := lib.GetDatabase()
-
+func NewDBTrxMiddleware(
+	logger lib.Logger,
+	db lib.Database,
+) DBTrxMiddleware {
 	return DBTrxMiddleware{
 		logger: logger,
 		db:     db,
@@ -51,4 +51,10 @@ func (m DBTrxMiddleware) Handler() gin.HandlerFunc {
 		m.logger.Info("Commit database transaction")
 		trx.Commit()
 	}
+}
+
+func (m DBTrxMiddleware) Setup(router *gin.Engine) {
+	m.logger.Info("Setting up database transaction middleware")
+
+	router.Use(m.Handler())
 }

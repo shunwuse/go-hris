@@ -14,9 +14,9 @@ type SwaggerRoute struct {
 	logger lib.Logger
 }
 
-func NewSwaggerRoute() SwaggerRoute {
-	logger := lib.GetLogger()
-
+func NewSwaggerRoute(
+	logger lib.Logger,
+) SwaggerRoute {
 	return SwaggerRoute{
 		logger: logger,
 	}
