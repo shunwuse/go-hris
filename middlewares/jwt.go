@@ -55,7 +55,7 @@ func (m JWTMiddleware) Handler() gin.HandlerFunc {
 
 		token := texts[1]
 
-		claims, err := m.authService.AuthenticateToken(token)
+		claims, err := m.authService.AuthenticateToken(ctx, token)
 		if err != nil {
 			m.logger.Errorf("authenticating token failed: %v", err)
 

@@ -27,7 +27,7 @@ func NewExampleController(
 func (c ExampleController) Ping(ctx *gin.Context) {
 	c.logger.Info("Ping controller")
 
-	message := c.exampleService.Ping()
+	message := c.exampleService.Ping(ctx)
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": message,

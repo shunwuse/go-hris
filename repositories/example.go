@@ -1,6 +1,10 @@
 package repositories
 
-import "github.com/shunwuse/go-hris/lib"
+import (
+	"context"
+
+	"github.com/shunwuse/go-hris/lib"
+)
 
 type ExampleRepository struct {
 	logger lib.Logger
@@ -17,7 +21,7 @@ func NewExampleRepository(
 	}
 }
 
-func (r ExampleRepository) Ping() string {
+func (r ExampleRepository) Ping(ctx context.Context) string {
 	r.logger.Info("Ping repository")
 
 	return "pong"

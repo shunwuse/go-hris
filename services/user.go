@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"errors"
 	"slices"
 
@@ -34,7 +35,7 @@ func NewUserService(
 	}
 }
 
-func (s UserService) GetUsers() ([]models.User, error) {
+func (s UserService) GetUsers(ctx context.Context) ([]models.User, error) {
 	var users []models.User
 
 	result := s.userRepository.Find(&users)
@@ -46,14 +47,14 @@ func (s UserService) GetUsers() ([]models.User, error) {
 	return users, nil
 }
 
-func (s UserService) CreateUser(user *models.User, role constants.Role) error {
+func (s UserService) CreateUser(ctx context.Context, user *models.User, role constants.Role) error {
 	result := s.userRepository.Create(user)
 	if result.Error != nil {
 		s.logger.Errorf("Error creating user: %v", result.Error)
 		return result.Error
 	}
 
-	roleModel := s.roleRepository.GetRoleByName(role.String())
+	roleModel := s.roleRepository.GetRoleByName(ctx, role.String())
 	if roleModel == nil {
 		// s.logger.Infof("Role not found, creating role: %v", role)
 
@@ -86,7 +87,7 @@ func (s UserService) CreateUser(user *models.User, role constants.Role) error {
 	return nil
 }
 
-func (s UserService) GetUserByUsername(username string) (*models.User, error) {
+func (s UserService) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
 	var user *models.User
 
 	result := s.userRepository.Preload("Password").Preload("Roles").First(&user, "username = ?", username)
@@ -101,7 +102,7 @@ func (s UserService) GetUserByUsername(username string) (*models.User, error) {
 
 	// Get permissions by role
 	for _, role := range roles {
-		rolePermissions := s.rolePermissionRepository.GetPermissionsByRole(constants.Role(role.Name))
+		rolePermissions := s.rolePermissionRepository.GetPermissionsByRole(ctx, constants.Role(role.Name))
 
 		// Add permissions to user
 		for _, permission := range rolePermissions {
@@ -117,7 +118,7 @@ func (s UserService) GetUserByUsername(username string) (*models.User, error) {
 	return user, nil
 }
 
-func (s UserService) UpdateUser(user *models.User) error {
+func (s UserService) UpdateUser(ctx context.Context, user *models.User) error {
 	result := s.userRepository.Updates(user)
 	if result.Error != nil {
 		s.logger.Errorf("Error updating user: %v", result.Error)

@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"context"
+
 	"github.com/shunwuse/go-hris/constants"
 	"github.com/shunwuse/go-hris/lib"
 	"github.com/shunwuse/go-hris/models"
@@ -39,6 +41,6 @@ func NewRolePermissionRepository(
 	}
 }
 
-func (r RolePermissionRepository) GetPermissionsByRole(role constants.Role) constants.Permissions {
+func (r RolePermissionRepository) GetPermissionsByRole(ctx context.Context, role constants.Role) constants.Permissions {
 	return r.rolePermissionMap[role]
 }

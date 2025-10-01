@@ -1,6 +1,8 @@
 package repositories
 
 import (
+	"context"
+
 	"github.com/shunwuse/go-hris/lib"
 	"github.com/shunwuse/go-hris/models"
 )
@@ -27,7 +29,7 @@ func NewRoleRepository(
 	}
 }
 
-func (r RoleRepository) getAllRoles() error {
+func (r RoleRepository) getAllRoles(ctx context.Context) error {
 	result := r.Find(&r.Roles)
 	if result.Error != nil {
 		r.logger.Errorf("Error getting roles: %v", result.Error)
@@ -37,7 +39,7 @@ func (r RoleRepository) getAllRoles() error {
 	return nil
 }
 
-func (r RoleRepository) GetRoleByName(name string) *models.Role {
+func (r RoleRepository) GetRoleByName(ctx context.Context, name string) *models.Role {
 	for _, role := range r.Roles {
 		if role.Name == name {
 			return &role
@@ -47,14 +49,14 @@ func (r RoleRepository) GetRoleByName(name string) *models.Role {
 	return nil
 }
 
-func (r RoleRepository) AddRole(role *models.Role) error {
+func (r RoleRepository) AddRole(ctx context.Context, role *models.Role) error {
 	result := r.Create(role)
 	if result.Error != nil {
 		r.logger.Errorf("Error adding role: %v", result.Error)
 		return result.Error
 	}
 
-	if err := r.getAllRoles(); err != nil {
+	if err := r.getAllRoles(ctx); err != nil {
 		return err
 	}
 
