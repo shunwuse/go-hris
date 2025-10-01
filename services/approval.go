@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"errors"
 
 	"github.com/shunwuse/go-hris/constants"
@@ -24,7 +25,7 @@ func NewApprovalService(
 	}
 }
 
-func (s ApprovalService) GetApprovals() ([]models.Approval, error) {
+func (s ApprovalService) GetApprovals(ctx context.Context) ([]models.Approval, error) {
 	var approvals []models.Approval
 
 	result := s.approvalRepository.Preload("Creator").Preload("Approver").Find(&approvals)
@@ -36,7 +37,7 @@ func (s ApprovalService) GetApprovals() ([]models.Approval, error) {
 	return approvals, nil
 }
 
-func (s ApprovalService) AddApproval(approval models.Approval) error {
+func (s ApprovalService) AddApproval(ctx context.Context, approval models.Approval) error {
 	result := s.approvalRepository.Create(&approval)
 	if result.Error != nil {
 		s.logger.Errorf("Error adding approval: %v", result.Error)
@@ -46,7 +47,7 @@ func (s ApprovalService) AddApproval(approval models.Approval) error {
 	return nil
 }
 
-func (s ApprovalService) ActionApproval(approvalID uint, action constants.ApprovalStatus, approverID uint) error {
+func (s ApprovalService) ActionApproval(ctx context.Context, approvalID uint, action constants.ApprovalStatus, approverID uint) error {
 	result := s.approvalRepository.Where("id = ?", approvalID).Where("status = ?", constants.ApprovalStatusPending).Updates(models.Approval{
 		Status:     action,
 		ApproverID: &approverID,

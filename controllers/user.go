@@ -55,7 +55,7 @@ func (c UserController) GetUsers(ctx *gin.Context) {
 		return
 	}
 
-	users, err := c.userService.GetUsers()
+	users, err := c.userService.GetUsers(ctx)
 	if err != nil {
 		c.logger.Errorf("Error getting users: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -143,7 +143,7 @@ func (c UserController) CreateUser(ctx *gin.Context) {
 		},
 	}
 
-	if err := c.userService.CreateUser(user, userCreate.Role); err != nil {
+	if err := c.userService.CreateUser(ctx, user, userCreate.Role); err != nil {
 		c.logger.Errorf("Error creating user: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Error creating user",
@@ -194,7 +194,7 @@ func (c UserController) UpdateUser(ctx *gin.Context) {
 		Name: userUpdate.Name,
 	}
 
-	if err := c.userService.UpdateUser(user); err != nil {
+	if err := c.userService.UpdateUser(ctx, user); err != nil {
 		c.logger.Errorf("Error updating user: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{
 			"error": "Error updating user",
@@ -231,7 +231,7 @@ func (c UserController) Login(ctx *gin.Context) {
 	// lower case username
 	userLogin.Username = strings.ToLower(userLogin.Username)
 
-	user, err := c.userService.GetUserByUsername(userLogin.Username)
+	user, err := c.userService.GetUserByUsername(ctx, userLogin.Username)
 	if err != nil {
 		c.logger.Errorf("Error getting user(%s): %v", userLogin.Username, err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -251,7 +251,7 @@ func (c UserController) Login(ctx *gin.Context) {
 	}
 
 	// generate token
-	token, err := c.authService.GenerateToken(user)
+	token, err := c.authService.GenerateToken(ctx, user)
 	if err != nil {
 		c.logger.Errorf("generating token failed: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{

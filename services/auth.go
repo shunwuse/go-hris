@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"encoding/json"
 	"time"
 
@@ -35,7 +36,7 @@ type TokenPayload struct {
 	Permissions constants.Permissions `json:"permissions"`
 }
 
-func (s AuthService) GenerateToken(user *models.User) (string, error) {
+func (s AuthService) GenerateToken(ctx context.Context, user *models.User) (string, error) {
 	roles := make([]constants.Role, 0)
 	for _, role := range user.Roles {
 		roles = append(roles, constants.Role(role.Name))
@@ -81,7 +82,7 @@ type claims struct {
 	TokenPayload
 }
 
-func (s AuthService) AuthenticateToken(tokenString string) (*claims, error) {
+func (s AuthService) AuthenticateToken(ctx context.Context, tokenString string) (*claims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &claims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(s.secreteKey), nil
 	})

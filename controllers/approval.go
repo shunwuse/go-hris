@@ -49,7 +49,7 @@ func (c ApprovalController) GetApprovals(ctx *gin.Context) {
 		return
 	}
 
-	approvals, err := c.approvalService.GetApprovals()
+	approvals, err := c.approvalService.GetApprovals(ctx)
 	if err != nil {
 		c.logger.Errorf("Error getting approvals: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -109,7 +109,7 @@ func (c ApprovalController) AddApproval(ctx *gin.Context) {
 		Status:    constants.ApprovalStatusPending,
 	}
 
-	err := c.approvalService.AddApproval(approval)
+	err := c.approvalService.AddApproval(ctx, approval)
 	if err != nil {
 		c.logger.Errorf("Error adding approval: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{
@@ -173,7 +173,7 @@ func (c ApprovalController) ActionApproval(ctx *gin.Context) {
 		return
 	}
 
-	err = c.approvalService.ActionApproval(approvalID, action, userID)
+	err = c.approvalService.ActionApproval(ctx, approvalID, action, userID)
 	if err != nil {
 		c.logger.Errorf("Error actioning approval: %v", err)
 		ctx.JSON(http.StatusInternalServerError, gin.H{
