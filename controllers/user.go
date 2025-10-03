@@ -7,6 +7,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/shunwuse/go-hris/constants"
+	"github.com/shunwuse/go-hris/domains"
 	"github.com/shunwuse/go-hris/dtos"
 	"github.com/shunwuse/go-hris/lib"
 	"github.com/shunwuse/go-hris/lib/utils"
@@ -43,7 +44,7 @@ func NewUserController(
 // @Success 200 {array} dtos.GetUserResponse
 // @Router /users [get]
 func (c UserController) GetUsers(ctx *gin.Context) {
-	token := ctx.MustGet(constants.JWTClaims).(services.TokenPayload)
+	token := ctx.MustGet(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions
 
 	// check all permissions
@@ -93,7 +94,7 @@ func (c UserController) GetUsers(ctx *gin.Context) {
 // @Success 201 {string} string "create successfully"
 // @Router /users [post]
 func (c UserController) CreateUser(ctx *gin.Context) {
-	token := ctx.MustGet(constants.JWTClaims).(services.TokenPayload)
+	token := ctx.MustGet(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions
 
 	// check all permissions
@@ -168,7 +169,7 @@ func (c UserController) CreateUser(ctx *gin.Context) {
 // @Success 200 {string} string "update successfully"
 // @Router /users [put]
 func (c UserController) UpdateUser(ctx *gin.Context) {
-	token := ctx.MustGet(constants.JWTClaims).(services.TokenPayload)
+	token := ctx.MustGet(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions
 
 	// check all permissions

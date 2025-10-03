@@ -5,6 +5,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/shunwuse/go-hris/constants"
+	"github.com/shunwuse/go-hris/domains"
 	"github.com/shunwuse/go-hris/dtos"
 	"github.com/shunwuse/go-hris/lib"
 	"github.com/shunwuse/go-hris/models"
@@ -37,7 +38,7 @@ func NewApprovalController(
 // @Success 200 {array} dtos.ApprovalResponse
 // @Router /approvals [get]
 func (c ApprovalController) GetApprovals(ctx *gin.Context) {
-	token := ctx.MustGet(constants.JWTClaims).(services.TokenPayload)
+	token := ctx.MustGet(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions
 
 	// check all permissions
@@ -90,7 +91,7 @@ func (c ApprovalController) GetApprovals(ctx *gin.Context) {
 // @Success 200 {string} message "Approval added successfully"
 // @Router /approvals [post]
 func (c ApprovalController) AddApproval(ctx *gin.Context) {
-	token := ctx.MustGet(constants.JWTClaims).(services.TokenPayload)
+	token := ctx.MustGet(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions
 
 	// check all permissions
@@ -135,7 +136,7 @@ func (c ApprovalController) AddApproval(ctx *gin.Context) {
 // @Success 200 {string} message "Approval actioned successfully"
 // @Router /approvals/action [put]
 func (c ApprovalController) ActionApproval(ctx *gin.Context) {
-	token := ctx.MustGet(constants.JWTClaims).(services.TokenPayload)
+	token := ctx.MustGet(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions
 
 	// check all permissions
