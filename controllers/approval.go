@@ -9,17 +9,17 @@ import (
 	"github.com/shunwuse/go-hris/dtos"
 	"github.com/shunwuse/go-hris/lib"
 	"github.com/shunwuse/go-hris/models"
-	"github.com/shunwuse/go-hris/services"
+	"github.com/shunwuse/go-hris/ports/service"
 )
 
 type ApprovalController struct {
 	logger          lib.Logger
-	approvalService services.ApprovalService
+	approvalService service.ApprovalService
 }
 
 func NewApprovalController(
 	logger lib.Logger,
-	approvalService services.ApprovalService,
+	approvalService service.ApprovalService,
 ) ApprovalController {
 	return ApprovalController{
 		logger:          logger,

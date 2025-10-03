@@ -9,9 +9,10 @@ import (
 	"github.com/shunwuse/go-hris/domains"
 	"github.com/shunwuse/go-hris/lib"
 	"github.com/shunwuse/go-hris/models"
+	"github.com/shunwuse/go-hris/ports/service"
 )
 
-type AuthService struct {
+type authService struct {
 	logger lib.Logger
 
 	secreteKey string
@@ -20,15 +21,15 @@ type AuthService struct {
 func NewAuthService(
 	env lib.Env,
 	logger lib.Logger,
-) AuthService {
-	return AuthService{
+) service.AuthService {
+	return authService{
 		logger: logger,
 
 		secreteKey: env.JWTSecret,
 	}
 }
 
-func (s AuthService) GenerateToken(ctx context.Context, user *models.User) (string, error) {
+func (s authService) GenerateToken(ctx context.Context, user *models.User) (string, error) {
 	roles := make([]constants.Role, 0)
 	for _, role := range user.Roles {
 		roles = append(roles, constants.Role(role.Name))
@@ -69,7 +70,7 @@ func (s AuthService) GenerateToken(ctx context.Context, user *models.User) (stri
 	return tokenString, nil
 }
 
-func (s AuthService) AuthenticateToken(ctx context.Context, tokenString string) (*domains.Claims, error) {
+func (s authService) AuthenticateToken(ctx context.Context, tokenString string) (*domains.Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &domains.Claims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(s.secreteKey), nil
 	})

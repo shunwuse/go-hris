@@ -8,10 +8,11 @@ import (
 	"github.com/shunwuse/go-hris/constants"
 	"github.com/shunwuse/go-hris/lib"
 	"github.com/shunwuse/go-hris/models"
+	"github.com/shunwuse/go-hris/ports/service"
 	"github.com/shunwuse/go-hris/repositories"
 )
 
-type UserService struct {
+type userService struct {
 	logger                   lib.Logger
 	userRepository           repositories.UserRepository
 	roleRepository           repositories.RoleRepository
@@ -25,8 +26,8 @@ func NewUserService(
 	roleRepository repositories.RoleRepository,
 	userRoleRepository repositories.UserRoleRepository,
 	rolePermissionRepository repositories.RolePermissionRepository,
-) UserService {
-	return UserService{
+) service.UserService {
+	return userService{
 		logger:                   logger,
 		userRepository:           userRepository,
 		roleRepository:           roleRepository,
@@ -35,7 +36,7 @@ func NewUserService(
 	}
 }
 
-func (s UserService) GetUsers(ctx context.Context) ([]models.User, error) {
+func (s userService) GetUsers(ctx context.Context) ([]models.User, error) {
 	var users []models.User
 
 	result := s.userRepository.Find(&users)
@@ -47,7 +48,7 @@ func (s UserService) GetUsers(ctx context.Context) ([]models.User, error) {
 	return users, nil
 }
 
-func (s UserService) CreateUser(ctx context.Context, user *models.User, role constants.Role) error {
+func (s userService) CreateUser(ctx context.Context, user *models.User, role constants.Role) error {
 	result := s.userRepository.Create(user)
 	if result.Error != nil {
 		s.logger.Errorf("Error creating user: %v", result.Error)
@@ -87,7 +88,7 @@ func (s UserService) CreateUser(ctx context.Context, user *models.User, role con
 	return nil
 }
 
-func (s UserService) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
+func (s userService) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
 	var user *models.User
 
 	result := s.userRepository.Preload("Password").Preload("Roles").First(&user, "username = ?", username)
@@ -118,7 +119,7 @@ func (s UserService) GetUserByUsername(ctx context.Context, username string) (*m
 	return user, nil
 }
 
-func (s UserService) UpdateUser(ctx context.Context, user *models.User) error {
+func (s userService) UpdateUser(ctx context.Context, user *models.User) error {
 	result := s.userRepository.Updates(user)
 	if result.Error != nil {
 		s.logger.Errorf("Error updating user: %v", result.Error)

@@ -4,10 +4,11 @@ import (
 	"context"
 
 	"github.com/shunwuse/go-hris/lib"
+	"github.com/shunwuse/go-hris/ports/service"
 	"github.com/shunwuse/go-hris/repositories"
 )
 
-type ExampleService struct {
+type exampleService struct {
 	logger            lib.Logger
 	exampleRepository repositories.ExampleRepository
 }
@@ -15,14 +16,14 @@ type ExampleService struct {
 func NewExampleService(
 	logger lib.Logger,
 	exampleRepository repositories.ExampleRepository,
-) ExampleService {
-	return ExampleService{
+) service.ExampleService {
+	return exampleService{
 		logger:            logger,
 		exampleRepository: exampleRepository,
 	}
 }
 
-func (s ExampleService) Ping(ctx context.Context) string {
+func (s exampleService) Ping(ctx context.Context) string {
 	s.logger.Info("Ping service")
 
 	pong := s.exampleRepository.Ping(ctx)

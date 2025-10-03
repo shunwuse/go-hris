@@ -7,10 +7,11 @@ import (
 	"github.com/shunwuse/go-hris/constants"
 	"github.com/shunwuse/go-hris/lib"
 	"github.com/shunwuse/go-hris/models"
+	"github.com/shunwuse/go-hris/ports/service"
 	"github.com/shunwuse/go-hris/repositories"
 )
 
-type ApprovalService struct {
+type approvalService struct {
 	logger             lib.Logger
 	approvalRepository repositories.ApprovalRepository
 }
@@ -18,14 +19,14 @@ type ApprovalService struct {
 func NewApprovalService(
 	logger lib.Logger,
 	approvalRepository repositories.ApprovalRepository,
-) ApprovalService {
-	return ApprovalService{
+) service.ApprovalService {
+	return approvalService{
 		logger:             logger,
 		approvalRepository: approvalRepository,
 	}
 }
 
-func (s ApprovalService) GetApprovals(ctx context.Context) ([]models.Approval, error) {
+func (s approvalService) GetApprovals(ctx context.Context) ([]models.Approval, error) {
 	var approvals []models.Approval
 
 	result := s.approvalRepository.Preload("Creator").Preload("Approver").Find(&approvals)
@@ -37,7 +38,7 @@ func (s ApprovalService) GetApprovals(ctx context.Context) ([]models.Approval, e
 	return approvals, nil
 }
 
-func (s ApprovalService) AddApproval(ctx context.Context, approval models.Approval) error {
+func (s approvalService) AddApproval(ctx context.Context, approval models.Approval) error {
 	result := s.approvalRepository.Create(&approval)
 	if result.Error != nil {
 		s.logger.Errorf("Error adding approval: %v", result.Error)
@@ -47,7 +48,7 @@ func (s ApprovalService) AddApproval(ctx context.Context, approval models.Approv
 	return nil
 }
 
-func (s ApprovalService) ActionApproval(ctx context.Context, approvalID uint, action constants.ApprovalStatus, approverID uint) error {
+func (s approvalService) ActionApproval(ctx context.Context, approvalID uint, action constants.ApprovalStatus, approverID uint) error {
 	result := s.approvalRepository.Where("id = ?", approvalID).Where("status = ?", constants.ApprovalStatusPending).Updates(models.Approval{
 		Status:     action,
 		ApproverID: &approverID,
