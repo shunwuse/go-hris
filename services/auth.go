@@ -3,10 +3,10 @@ package services
 import (
 	"context"
 	"encoding/json"
-	"time"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/shunwuse/go-hris/constants"
+	"github.com/shunwuse/go-hris/domains"
 	"github.com/shunwuse/go-hris/lib"
 	"github.com/shunwuse/go-hris/models"
 )
@@ -28,21 +28,13 @@ func NewAuthService(
 	}
 }
 
-type TokenPayload struct {
-	UserID      uint                  `json:"user_id"`
-	Username    string                `json:"username"`
-	CreatedAt   time.Time             `json:"created_at"`
-	Roles       []constants.Role      `json:"roles"`
-	Permissions constants.Permissions `json:"permissions"`
-}
-
 func (s AuthService) GenerateToken(ctx context.Context, user *models.User) (string, error) {
 	roles := make([]constants.Role, 0)
 	for _, role := range user.Roles {
 		roles = append(roles, constants.Role(role.Name))
 	}
 
-	payload := TokenPayload{
+	payload := domains.TokenPayload{
 		UserID:      user.ID,
 		Username:    user.Username,
 		CreatedAt:   user.CreatedAt,
@@ -77,13 +69,8 @@ func (s AuthService) GenerateToken(ctx context.Context, user *models.User) (stri
 	return tokenString, nil
 }
 
-type claims struct {
-	jwt.StandardClaims
-	TokenPayload
-}
-
-func (s AuthService) AuthenticateToken(ctx context.Context, tokenString string) (*claims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &claims{}, func(token *jwt.Token) (interface{}, error) {
+func (s AuthService) AuthenticateToken(ctx context.Context, tokenString string) (*domains.Claims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &domains.Claims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte(s.secreteKey), nil
 	})
 	if err != nil {
@@ -91,7 +78,7 @@ func (s AuthService) AuthenticateToken(ctx context.Context, tokenString string) 
 		return nil, err
 	}
 
-	claims, ok := token.Claims.(*claims)
+	claims, ok := token.Claims.(*domains.Claims)
 	if !ok || !token.Valid {
 		s.logger.Errorf("invalid token")
 		return nil, err
