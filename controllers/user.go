@@ -12,19 +12,19 @@ import (
 	"github.com/shunwuse/go-hris/lib"
 	"github.com/shunwuse/go-hris/lib/utils"
 	"github.com/shunwuse/go-hris/models"
-	"github.com/shunwuse/go-hris/services"
+	"github.com/shunwuse/go-hris/ports/service"
 )
 
 type UserController struct {
 	logger      lib.Logger
-	userService services.UserService
-	authService services.AuthService
+	userService service.UserService
+	authService service.AuthService
 }
 
 func NewUserController(
 	logger lib.Logger,
-	userService services.UserService,
-	authService services.AuthService,
+	userService service.UserService,
+	authService service.AuthService,
 ) UserController {
 	return UserController{
 		logger:      logger,

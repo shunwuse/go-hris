@@ -6,17 +6,17 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/shunwuse/go-hris/constants"
 	"github.com/shunwuse/go-hris/lib"
-	"github.com/shunwuse/go-hris/services"
+	"github.com/shunwuse/go-hris/ports/service"
 )
 
 type JWTMiddleware struct {
 	logger      lib.Logger
-	authService services.AuthService
+	authService service.AuthService
 }
 
 func NewJWTMiddleware(
 	logger lib.Logger,
-	authService services.AuthService,
+	authService service.AuthService,
 ) JWTMiddleware {
 	return JWTMiddleware{
 		logger:      logger,

@@ -5,18 +5,18 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/shunwuse/go-hris/lib"
-	"github.com/shunwuse/go-hris/services"
+	"github.com/shunwuse/go-hris/ports/service"
 )
 
 // ExampleController struct
 type ExampleController struct {
 	logger         lib.Logger
-	exampleService services.ExampleService
+	exampleService service.ExampleService
 }
 
 func NewExampleController(
 	logger lib.Logger,
-	exampleService services.ExampleService,
+	exampleService service.ExampleService,
 ) ExampleController {
 	return ExampleController{
 		logger:         logger,
