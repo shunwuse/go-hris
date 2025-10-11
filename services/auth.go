@@ -8,7 +8,6 @@ import (
 	"github.com/shunwuse/go-hris/constants"
 	"github.com/shunwuse/go-hris/domains"
 	"github.com/shunwuse/go-hris/lib"
-	"github.com/shunwuse/go-hris/models"
 	"github.com/shunwuse/go-hris/ports/service"
 )
 
@@ -29,9 +28,9 @@ func NewAuthService(
 	}
 }
 
-func (s authService) GenerateToken(ctx context.Context, user *models.User) (string, error) {
+func (s authService) GenerateToken(ctx context.Context, user *domains.UserWithPermissions) (string, error) {
 	roles := make([]constants.Role, 0)
-	for _, role := range user.Roles {
+	for _, role := range user.Edges.Roles {
 		roles = append(roles, constants.Role(role.Name))
 	}
 

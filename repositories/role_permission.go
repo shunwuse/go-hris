@@ -5,7 +5,6 @@ import (
 
 	"github.com/shunwuse/go-hris/constants"
 	"github.com/shunwuse/go-hris/lib"
-	"github.com/shunwuse/go-hris/models"
 )
 
 type RolePermissionRepository struct {
@@ -19,19 +18,21 @@ func NewRolePermissionRepository(
 	logger lib.Logger,
 	db lib.Database,
 ) RolePermissionRepository {
-	rolePermissionList := make([]models.RolePermission, 0)
-	db.Preload("Role").Preload("Permission").Find(&rolePermissionList)
+	roles, _ := db.Client.Role.
+		Query().
+		WithPermissions().
+		All(context.Background())
 
 	rolePermissionMap := make(map[constants.Role]constants.Permissions)
-	for _, rolePermission := range rolePermissionList {
-		role := constants.Role(rolePermission.Role.Name)
-		permission := constants.Permission(rolePermission.Permission.Description)
+	for _, role := range roles {
+		roleKey := constants.Role(role.Name)
+		permissions := make(constants.Permissions, 0, len(role.Edges.Permissions))
 
-		if _, ok := rolePermissionMap[role]; !ok {
-			rolePermissionMap[role] = make(constants.Permissions, 0)
+		for _, p := range role.Edges.Permissions {
+			permissions = append(permissions, constants.Permission(p.Description))
 		}
 
-		rolePermissionMap[role] = append(rolePermissionMap[role], permission)
+		rolePermissionMap[roleKey] = permissions
 	}
 
 	return RolePermissionRepository{

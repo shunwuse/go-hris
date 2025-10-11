@@ -1,12 +1,13 @@
 package lib
 
 import (
-	"gorm.io/driver/sqlite"
-	"gorm.io/gorm"
+	ent "github.com/shunwuse/go-hris/ent/entgen"
+
+	_ "github.com/mattn/go-sqlite3"
 )
 
 type Database struct {
-	*gorm.DB
+	Client *ent.Client
 }
 
 var globalDatabase *Database
@@ -21,7 +22,7 @@ func GetDatabase() Database {
 }
 
 func newDatabase(env Env, logger Logger) Database {
-	db, err := gorm.Open(sqlite.Open(env.Sqlite.Database), &gorm.Config{})
+	client, err := ent.Open("sqlite3", env.Sqlite.Database)
 	if err != nil {
 		logger.Fatalf("Error connecting to database, %v", err)
 	}
@@ -29,6 +30,6 @@ func newDatabase(env Env, logger Logger) Database {
 	logger.Info("Database connected")
 
 	return Database{
-		DB: db,
+		Client: client,
 	}
 }
