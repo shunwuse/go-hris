@@ -8,7 +8,6 @@ import (
 	"github.com/shunwuse/go-hris/domains"
 	"github.com/shunwuse/go-hris/dtos"
 	"github.com/shunwuse/go-hris/lib"
-	"github.com/shunwuse/go-hris/models"
 	"github.com/shunwuse/go-hris/ports/service"
 )
 
@@ -63,12 +62,12 @@ func (c ApprovalController) GetApprovals(ctx *gin.Context) {
 	for _, approval := range approvals {
 		approvalResponse := dtos.ApprovalResponse{
 			ID:          approval.ID,
-			CreatorName: approval.Creator.Name,
+			CreatorName: approval.Edges.Creator.Name,
 			Status:      string(approval.Status),
 		}
 
-		if approval.Approver != nil {
-			approvalResponse.ApproverName = &approval.Approver.Name
+		if approval.Edges.Approver != nil {
+			approvalResponse.ApproverName = &approval.Edges.Approver.Name
 		}
 
 		approvalsResponse = append(approvalsResponse, approvalResponse)
@@ -105,7 +104,7 @@ func (c ApprovalController) AddApproval(ctx *gin.Context) {
 
 	userID := token.UserID
 
-	approval := models.Approval{
+	approval := domains.ApprovalCreate{
 		CreatorID: userID,
 		Status:    constants.ApprovalStatusPending,
 	}

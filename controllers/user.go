@@ -11,7 +11,6 @@ import (
 	"github.com/shunwuse/go-hris/dtos"
 	"github.com/shunwuse/go-hris/lib"
 	"github.com/shunwuse/go-hris/lib/utils"
-	"github.com/shunwuse/go-hris/models"
 	"github.com/shunwuse/go-hris/ports/service"
 )
 
@@ -135,11 +134,11 @@ func (c UserController) CreateUser(ctx *gin.Context) {
 		})
 	}
 
-	var user = &models.User{
+	var user = &domains.UserCreate{
 		Username: userCreate.Username,
 		Name:     userCreate.Name,
 
-		Password: models.Password{
+		Password: domains.PasswordCreate{
 			Hash: hashedPassword,
 		},
 	}
@@ -190,7 +189,7 @@ func (c UserController) UpdateUser(ctx *gin.Context) {
 		return
 	}
 
-	var user = &models.User{
+	var user = &domains.UserUpdate{
 		ID:   userUpdate.ID,
 		Name: userUpdate.Name,
 	}
@@ -242,7 +241,7 @@ func (c UserController) Login(ctx *gin.Context) {
 	}
 
 	// check password
-	passwordMatch := utils.CheckPasswordHash(userLogin.Password, user.Password.Hash)
+	passwordMatch := utils.CheckPasswordHash(userLogin.Password, user.Edges.Password.Hash)
 	if !passwordMatch {
 		c.logger.Errorf("Error password not match")
 		ctx.JSON(http.StatusUnauthorized, gin.H{
@@ -262,7 +261,7 @@ func (c UserController) Login(ctx *gin.Context) {
 	}
 
 	roles := make([]string, 0)
-	for _, role := range user.Roles {
+	for _, role := range user.Edges.Roles {
 		roles = append(roles, role.Name)
 	}
 

@@ -3,15 +3,16 @@ package repositories
 import (
 	"context"
 
+	"github.com/shunwuse/go-hris/domains"
+	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/lib"
-	"github.com/shunwuse/go-hris/models"
 )
 
 type RoleRepository struct {
 	logger lib.Logger
 	lib.Database
 
-	Roles []models.Role
+	Roles []*entgen.Role
 }
 
 func NewRoleRepository(
@@ -19,8 +20,11 @@ func NewRoleRepository(
 	db lib.Database,
 ) RoleRepository {
 	// Initialize roles
-	var roles []models.Role
-	db.Find(&roles)
+	// var roles []models.Role
+	// db.Find(&roles)
+	roles, _ := db.Client.Role.
+		Query().
+		All(context.Background())
 
 	return RoleRepository{
 		logger:   logger,
@@ -30,30 +34,37 @@ func NewRoleRepository(
 }
 
 func (r RoleRepository) getAllRoles(ctx context.Context) error {
-	result := r.Find(&r.Roles)
-	if result.Error != nil {
-		r.logger.Errorf("Error getting roles: %v", result.Error)
-		return result.Error
+	roles, err := r.Client.Role.
+		Query().
+		All(ctx)
+	if err != nil {
+		r.logger.Errorf("Error getting roles: %v", err)
+		return err
 	}
+
+	r.Roles = roles
 
 	return nil
 }
 
-func (r RoleRepository) GetRoleByName(ctx context.Context, name string) *models.Role {
+func (r RoleRepository) GetRoleByName(ctx context.Context, name string) *entgen.Role {
 	for _, role := range r.Roles {
 		if role.Name == name {
-			return &role
+			return role
 		}
 	}
 
 	return nil
 }
 
-func (r RoleRepository) AddRole(ctx context.Context, role *models.Role) error {
-	result := r.Create(role)
-	if result.Error != nil {
-		r.logger.Errorf("Error adding role: %v", result.Error)
-		return result.Error
+func (r RoleRepository) AddRole(ctx context.Context, role *domains.RoleCreate) error {
+	_, err := r.Client.Role.
+		Create().
+		SetName(role.Name).
+		Save(ctx)
+	if err != nil {
+		r.logger.Errorf("Error adding role: %v", err)
+		return err
 	}
 
 	if err := r.getAllRoles(ctx); err != nil {

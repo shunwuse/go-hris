@@ -1,29 +1,30 @@
 package api_utils
 
 import (
+	"context"
 	"sync"
 
 	"github.com/gin-gonic/gin"
 	"github.com/shunwuse/go-hris/constants"
+	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/lib"
-	"gorm.io/gorm"
 )
 
 type LazyDatabaseTransaction struct {
 	logger lib.Logger
 	db     *lib.Database
-	trx    *gorm.DB
+	trx    *entgen.Tx
 
 	once sync.Once
 }
 
 func NewLazyDatabaseTransaction(
 	logger lib.Logger,
-	db *lib.Database,
+	client *lib.Database,
 ) LazyDatabaseTransaction {
 	return LazyDatabaseTransaction{
 		logger: logger,
-		db:     db,
+		db:     client,
 	}
 }
 
@@ -34,7 +35,11 @@ func (l *LazyDatabaseTransaction) IsTransactionOpen() bool {
 func (l *LazyDatabaseTransaction) beginTransaction() {
 	l.once.Do(func() {
 		// Begin database transaction
-		trx := l.db.Begin()
+		trx, err := l.db.Client.Tx(context.Background())
+		if err != nil {
+			l.logger.Errorf("Failed to begin transaction: %v", err)
+		}
+
 		l.logger.Info("Begin database transaction")
 
 		// Set transaction into struct
@@ -42,7 +47,7 @@ func (l *LazyDatabaseTransaction) beginTransaction() {
 	})
 }
 
-func (l *LazyDatabaseTransaction) getTransaction() *gorm.DB {
+func (l *LazyDatabaseTransaction) getTransaction() *entgen.Tx {
 	if !l.IsTransactionOpen() {
 		l.beginTransaction()
 	}
@@ -54,7 +59,7 @@ func SetLazyTransactionToContext(ctx *gin.Context, lazyTrx *LazyDatabaseTransact
 	ctx.Set(constants.DBTransaction, lazyTrx)
 }
 
-func GetTransactionFromContext(ctx *gin.Context) *gorm.DB {
+func GetTransactionFromContext(ctx *gin.Context) *entgen.Tx {
 	lazyTrx, exists := ctx.Get(constants.DBTransaction)
 	if !exists {
 		return nil

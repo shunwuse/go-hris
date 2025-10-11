@@ -2,11 +2,12 @@ package services
 
 import (
 	"context"
-	"errors"
 
 	"github.com/shunwuse/go-hris/constants"
+	"github.com/shunwuse/go-hris/domains"
+	"github.com/shunwuse/go-hris/ent/entgen"
+	"github.com/shunwuse/go-hris/ent/entgen/approval"
 	"github.com/shunwuse/go-hris/lib"
-	"github.com/shunwuse/go-hris/models"
 	"github.com/shunwuse/go-hris/ports/service"
 	"github.com/shunwuse/go-hris/repositories"
 )
@@ -26,43 +27,55 @@ func NewApprovalService(
 	}
 }
 
-func (s approvalService) GetApprovals(ctx context.Context) ([]models.Approval, error) {
-	var approvals []models.Approval
+func (s approvalService) GetApprovals(ctx context.Context) ([]*entgen.Approval, error) {
+	// var approvals []*entgen.Approval
 
-	result := s.approvalRepository.Preload("Creator").Preload("Approver").Find(&approvals)
-	if result.Error != nil {
-		s.logger.Errorf("Error getting approvals: %v", result.Error)
-		return nil, result.Error
+	approvals, err := s.approvalRepository.Client.Approval.
+		Query().
+		WithCreator().
+		WithApprover().
+		All(ctx)
+	if err != nil {
+		s.logger.Errorf("Error getting approvals: %v", err)
+		return nil, err
 	}
 
 	return approvals, nil
 }
 
-func (s approvalService) AddApproval(ctx context.Context, approval models.Approval) error {
-	result := s.approvalRepository.Create(&approval)
-	if result.Error != nil {
-		s.logger.Errorf("Error adding approval: %v", result.Error)
-		return result.Error
+func (s approvalService) AddApproval(ctx context.Context, approval domains.ApprovalCreate) error {
+	_, err := s.approvalRepository.Client.Approval.
+		Create().
+		SetStatus(approval.Status).
+		SetCreatorID(approval.CreatorID).
+		Save(ctx)
+	if err != nil {
+		s.logger.Errorf("Error adding approval: %v", err)
+		return err
 	}
 
 	return nil
 }
 
 func (s approvalService) ActionApproval(ctx context.Context, approvalID uint, action constants.ApprovalStatus, approverID uint) error {
-	result := s.approvalRepository.Where("id = ?", approvalID).Where("status = ?", constants.ApprovalStatusPending).Updates(models.Approval{
-		Status:     action,
-		ApproverID: &approverID,
-	})
-
-	if result.Error != nil {
-		s.logger.Errorf("Error updating approval: %v", result.Error)
-		return result.Error
+	err := s.approvalRepository.Client.Approval.
+		Update().
+		Where(
+			approval.IDEQ(approvalID),
+			approval.StatusEQ(constants.ApprovalStatusPending),
+		).
+		SetStatus(action).
+		SetApproverID(approverID).
+		Exec(ctx)
+	if err != nil {
+		s.logger.Errorf("Error updating approval: %v", err)
+		return err
 	}
 
-	if result.RowsAffected == 0 {
-		s.logger.Errorf("Error updating approval: approval not found or already actioned")
-		return errors.New("approval not found or already actioned")
-	}
+	// if result.RowsAffected == 0 {
+	// 	s.logger.Errorf("Error updating approval: approval not found or already actioned")
+	// 	return errors.New("approval not found or already actioned")
+	// }
 
 	return nil
 }

@@ -1,15 +1,17 @@
 package repositories
 
 import (
+	"context"
+
+	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/lib"
-	"github.com/shunwuse/go-hris/models"
 )
 
 type UserRoleRepository struct {
 	logger lib.Logger
 	lib.Database
 
-	UserRoleMap []models.UserRole
+	UserRoleMap []*entgen.UserRole
 }
 
 func NewUserRoleRepository(
@@ -17,8 +19,9 @@ func NewUserRoleRepository(
 	db lib.Database,
 ) UserRoleRepository {
 	// Initialize user roles
-	var userRoles []models.UserRole
-	db.Find(&userRoles)
+	userRoles, _ := db.Client.UserRole.
+		Query().
+		All(context.Background())
 
 	return UserRoleRepository{
 		logger:      logger,

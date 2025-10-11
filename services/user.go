@@ -6,8 +6,10 @@ import (
 	"slices"
 
 	"github.com/shunwuse/go-hris/constants"
+	"github.com/shunwuse/go-hris/domains"
+	"github.com/shunwuse/go-hris/ent/entgen"
+	"github.com/shunwuse/go-hris/ent/entgen/user"
 	"github.com/shunwuse/go-hris/lib"
-	"github.com/shunwuse/go-hris/models"
 	"github.com/shunwuse/go-hris/ports/service"
 	"github.com/shunwuse/go-hris/repositories"
 )
@@ -36,34 +38,48 @@ func NewUserService(
 	}
 }
 
-func (s userService) GetUsers(ctx context.Context) ([]models.User, error) {
-	var users []models.User
-
-	result := s.userRepository.Find(&users)
-	if result.Error != nil {
-		s.logger.Errorf("Error getting users: %v", result.Error)
-		return nil, result.Error
+func (s userService) GetUsers(ctx context.Context) ([]*entgen.User, error) {
+	users, err := s.userRepository.Client.User.
+		Query().
+		All(ctx)
+	if err != nil {
+		s.logger.Errorf("Error getting users: %v", err)
+		return nil, err
 	}
 
 	return users, nil
 }
 
-func (s userService) CreateUser(ctx context.Context, user *models.User, role constants.Role) error {
-	result := s.userRepository.Create(user)
-	if result.Error != nil {
-		s.logger.Errorf("Error creating user: %v", result.Error)
-		return result.Error
+func (s userService) CreateUser(ctx context.Context, user *domains.UserCreate, role constants.Role) error {
+	u, err := s.userRepository.Client.User.
+		Create().
+		SetUsername(user.Username).
+		SetName(user.Name).
+		Save(ctx)
+	if err != nil {
+		s.logger.Errorf("Error creating user: %v", err)
+		return err
+	}
+
+	_, err = s.userRepository.Client.Password.
+		Create().
+		SetHash(user.Password.Hash).
+		SetOwner(u).
+		Save(ctx)
+	if err != nil {
+		s.logger.Errorf("Error creating password: %v", err)
+		return err
 	}
 
 	roleModel := s.roleRepository.GetRoleByName(ctx, role.String())
 	if roleModel == nil {
 		// s.logger.Infof("Role not found, creating role: %v", role)
 
-		// roleModel = &models.Role{
+		// roleCreate := &domains.RoleCreate{
 		// 	Name: constants.Staff.String(),
 		// }
 
-		// if err := s.roleRepository.AddRole(roleModel); err != nil {
+		// if err := s.roleRepository.AddRole(ctx, roleCreate); err != nil {
 		// 	s.logger.Errorf("add role error: %v", err)
 		// 	return err
 		// }
@@ -72,37 +88,38 @@ func (s userService) CreateUser(ctx context.Context, user *models.User, role con
 		return errors.New("role not found")
 	}
 
-	// Add user role
-	userRole := &models.UserRole{
-		UserID: user.ID,
-		RoleID: roleModel.ID,
-	}
-
 	// Create user role
-	result = s.userRoleRepository.Create(userRole)
-	if result.Error != nil {
-		s.logger.Errorf("creating user role error: %v", result.Error)
-		return result.Error
+	_, err = s.userRepository.Client.UserRole.
+		Create().
+		SetUserID(u.ID).
+		SetRoleID(roleModel.ID).
+		Save(ctx)
+	if err != nil {
+		s.logger.Errorf("creating user role error: %v", err)
+		return err
 	}
 
 	return nil
 }
 
-func (s userService) GetUserByUsername(ctx context.Context, username string) (*models.User, error) {
-	var user *models.User
-
-	result := s.userRepository.Preload("Password").Preload("Roles").First(&user, "username = ?", username)
-	if result.Error != nil {
-		s.logger.Errorf("Error getting user by username: %v", result.Error)
-		return nil, result.Error
+func (s userService) GetUserByUsername(ctx context.Context, username string) (*domains.UserWithPermissions, error) {
+	user, err := s.userRepository.Client.User.
+		Query().
+		WithPassword().
+		WithRoles().
+		Where(user.UsernameEQ(username)).
+		Only(ctx)
+	if err != nil {
+		s.logger.Errorf("Error getting user by username: %v", err)
+		return nil, err
 	}
 
 	// Get permissions
 	permissions := make(constants.Permissions, 0)
-	roles := user.Roles
+	// roles := user.Roles
 
 	// Get permissions by role
-	for _, role := range roles {
+	for _, role := range user.Edges.Roles {
 		rolePermissions := s.rolePermissionRepository.GetPermissionsByRole(ctx, constants.Role(role.Name))
 
 		// Add permissions to user
@@ -114,16 +131,23 @@ func (s userService) GetUserByUsername(ctx context.Context, username string) (*m
 	}
 
 	// Set permissions to user
-	user.Permissions = permissions
+	u := domains.UserWithPermissions{
+		User:        user,
+		Permissions: permissions,
+	}
 
-	return user, nil
+	return &u, nil
 }
 
-func (s userService) UpdateUser(ctx context.Context, user *models.User) error {
-	result := s.userRepository.Updates(user)
-	if result.Error != nil {
-		s.logger.Errorf("Error updating user: %v", result.Error)
-		return result.Error
+func (s userService) UpdateUser(ctx context.Context, update *domains.UserUpdate) error {
+	err := s.userRepository.Client.User.
+		Update().
+		Where(user.IDEQ(update.ID)).
+		SetName(update.Name).
+		Exec(ctx)
+	if err != nil {
+		s.logger.Errorf("Error updating user: %v", err)
+		return err
 	}
 
 	return nil
