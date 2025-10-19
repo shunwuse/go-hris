@@ -1,11 +1,14 @@
 package middlewares
 
-import "github.com/gin-gonic/gin"
+import (
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+)
 
 type CommonMiddlewares []ICommonMiddleware
 
 type ICommonMiddleware interface {
-	Setup(router *gin.Engine)
+	Setup(router chi.Router)
 }
 
 func NewCommonMiddlewares(
@@ -16,7 +19,11 @@ func NewCommonMiddlewares(
 	}
 }
 
-func (m CommonMiddlewares) Setup(router *gin.Engine) {
+func (m CommonMiddlewares) Setup(router chi.Router) {
+	// Built-in middlewares
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
+
 	for _, middleware := range m {
 		middleware.Setup(router)
 	}

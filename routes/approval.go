@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/chi/v5"
 	"github.com/shunwuse/go-hris/controllers"
 	"github.com/shunwuse/go-hris/lib"
 	"github.com/shunwuse/go-hris/middlewares"
@@ -25,11 +25,13 @@ func NewApprovalRoute(
 	}
 }
 
-func (r ApprovalRoute) Setup(router *gin.Engine) {
+func (r ApprovalRoute) Setup(router chi.Router) {
 	r.logger.Info("Setting up approval routes")
 
-	approvalRouter := router.Group("/approvals", r.jwtMiddleware.Handler())
-	approvalRouter.GET("", r.approvalController.GetApprovals)
-	approvalRouter.POST("", r.approvalController.AddApproval)
-	approvalRouter.PUT("/action", r.approvalController.ActionApproval)
+	router.Route("/approvals", func(approvalRouter chi.Router) {
+		approvalRouter.Use(r.jwtMiddleware.Handler())
+		approvalRouter.Get("/", r.approvalController.GetApprovals)
+		approvalRouter.Post("/", r.approvalController.AddApproval)
+		approvalRouter.Put("/action", r.approvalController.ActionApproval)
+	})
 }

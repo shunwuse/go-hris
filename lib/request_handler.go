@@ -1,18 +1,18 @@
 package lib
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/chi/v5"
 )
 
 // RequestHandler structure
 type RequestHandler struct {
-	Gin *gin.Engine
+	Router chi.Router
 }
 
 func NewRequestHandler() RequestHandler {
-	engine := gin.Default()
+	router := chi.NewRouter()
 
 	return RequestHandler{
-		Gin: engine,
+		Router: router,
 	}
 }

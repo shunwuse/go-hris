@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/render"
 	"github.com/shunwuse/go-hris/constants"
 	"github.com/shunwuse/go-hris/domains"
 	"github.com/shunwuse/go-hris/dtos"
@@ -42,23 +42,25 @@ func NewUserController(
 // @Produce json
 // @Success 200 {array} dtos.GetUserResponse
 // @Router /users [get]
-func (c UserController) GetUsers(ctx *gin.Context) {
-	token := ctx.MustGet(constants.JWTClaims).(domains.TokenPayload)
+func (c UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
+	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions
 
 	// check all permissions
 	if hasPermission := permissions.Contains(constants.PermissionReadUser); !hasPermission {
 		c.logger.Errorf("Error user not authorized to get users")
-		ctx.JSON(http.StatusUnauthorized, gin.H{
+		render.Status(r, http.StatusUnauthorized)
+		render.JSON(w, r, map[string]string{
 			"error": "User not authorized to get users",
 		})
 		return
 	}
 
-	users, err := c.userService.GetUsers(ctx)
+	users, err := c.userService.GetUsers(r.Context())
 	if err != nil {
 		c.logger.Errorf("Error getting users: %v", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, map[string]string{
 			"error": "Error getting users",
 		})
 		return
@@ -75,10 +77,9 @@ func (c UserController) GetUsers(ctx *gin.Context) {
 		})
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
+	render.JSON(w, r, map[string]any{
 		"data": usersResponse,
 	})
-
 }
 
 // CreateUser godoc
@@ -92,23 +93,25 @@ func (c UserController) GetUsers(ctx *gin.Context) {
 // @Param user body dtos.UserCreate true "User object that needs to be created"
 // @Success 201 {string} string "create successfully"
 // @Router /users [post]
-func (c UserController) CreateUser(ctx *gin.Context) {
-	token := ctx.MustGet(constants.JWTClaims).(domains.TokenPayload)
+func (c UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
+	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions
 
 	// check all permissions
 	if hasPermission := permissions.Contains(constants.PermissionCreateUser); !hasPermission {
 		c.logger.Errorf("Error user not authorized to create user")
-		ctx.JSON(http.StatusUnauthorized, gin.H{
+		render.Status(r, http.StatusUnauthorized)
+		render.JSON(w, r, map[string]string{
 			"error": "User not authorized to create user",
 		})
 		return
 	}
 
 	var userCreate dtos.UserCreate
-	if err := ctx.ShouldBindJSON(&userCreate); err != nil {
+	if err := render.DecodeJSON(r.Body, &userCreate); err != nil {
 		c.logger.Errorf("Error binding user: %v", err)
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{
 			"error": "Invalid request",
 		})
 		return
@@ -120,7 +123,8 @@ func (c UserController) CreateUser(ctx *gin.Context) {
 	// cannot create user with role admin
 	if userCreate.Role == constants.Admin {
 		c.logger.Errorf("Error user not authorized to create admin user")
-		ctx.JSON(http.StatusUnauthorized, gin.H{
+		render.Status(r, http.StatusUnauthorized)
+		render.JSON(w, r, map[string]string{
 			"error": "User not authorized to create admin user",
 		})
 		return
@@ -129,7 +133,8 @@ func (c UserController) CreateUser(ctx *gin.Context) {
 	hashedPassword, err := utils.HashPassword(userCreate.Password)
 	if err != nil {
 		c.logger.Errorf("Error hashing password: %v", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, map[string]string{
 			"error": "Error hashing password",
 		})
 	}
@@ -143,15 +148,17 @@ func (c UserController) CreateUser(ctx *gin.Context) {
 		},
 	}
 
-	if err := c.userService.CreateUser(ctx, user, userCreate.Role); err != nil {
+	if err := c.userService.CreateUser(r.Context(), user, userCreate.Role); err != nil {
 		c.logger.Errorf("Error creating user: %v", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, map[string]string{
 			"error": "Error creating user",
 		})
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, gin.H{
+	render.Status(r, http.StatusCreated)
+	render.JSON(w, r, map[string]string{
 		"message": "create successfully",
 	})
 }
@@ -167,23 +174,25 @@ func (c UserController) CreateUser(ctx *gin.Context) {
 // @Param user body dtos.UserUpdate true "User object that needs to be updated"
 // @Success 200 {string} string "update successfully"
 // @Router /users [put]
-func (c UserController) UpdateUser(ctx *gin.Context) {
-	token := ctx.MustGet(constants.JWTClaims).(domains.TokenPayload)
+func (c UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
+	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions
 
 	// check all permissions
 	if hasPermission := permissions.Contains(constants.PermissionUpdateUser); !hasPermission {
 		c.logger.Errorf("Error user not authorized to update user")
-		ctx.JSON(http.StatusUnauthorized, gin.H{
+		render.Status(r, http.StatusUnauthorized)
+		render.JSON(w, r, map[string]string{
 			"error": "User not authorized to update user",
 		})
 		return
 	}
 
 	var userUpdate dtos.UserUpdate
-	if err := ctx.ShouldBindJSON(&userUpdate); err != nil {
+	if err := render.DecodeJSON(r.Body, &userUpdate); err != nil {
 		c.logger.Errorf("Error binding user: %v", err)
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{
 			"error": "Invalid request",
 		})
 		return
@@ -194,15 +203,16 @@ func (c UserController) UpdateUser(ctx *gin.Context) {
 		Name: userUpdate.Name,
 	}
 
-	if err := c.userService.UpdateUser(ctx, user); err != nil {
+	if err := c.userService.UpdateUser(r.Context(), user); err != nil {
 		c.logger.Errorf("Error updating user: %v", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, map[string]string{
 			"error": "Error updating user",
 		})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
+	render.JSON(w, r, map[string]string{
 		"message": "update successfully",
 	})
 }
@@ -217,12 +227,13 @@ func (c UserController) UpdateUser(ctx *gin.Context) {
 // @Param user body dtos.UserLogin true "User object that needs to login"
 // @Success 200 {object} dtos.LoginResponse
 // @Router /login [post]
-func (c UserController) Login(ctx *gin.Context) {
+func (c UserController) Login(w http.ResponseWriter, r *http.Request) {
 	var userLogin dtos.UserLogin
 
-	if err := ctx.ShouldBindJSON(&userLogin); err != nil {
+	if err := render.DecodeJSON(r.Body, &userLogin); err != nil {
 		c.logger.Errorf("Error binding user: %v", err)
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{
 			"error": "Invalid request",
 		})
 		return
@@ -231,10 +242,11 @@ func (c UserController) Login(ctx *gin.Context) {
 	// lower case username
 	userLogin.Username = strings.ToLower(userLogin.Username)
 
-	user, err := c.userService.GetUserByUsername(ctx, userLogin.Username)
+	user, err := c.userService.GetUserByUsername(r.Context(), userLogin.Username)
 	if err != nil {
 		c.logger.Errorf("Error getting user(%s): %v", userLogin.Username, err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, map[string]string{
 			"error": "user not found",
 		})
 		return
@@ -244,17 +256,19 @@ func (c UserController) Login(ctx *gin.Context) {
 	passwordMatch := utils.CheckPasswordHash(userLogin.Password, user.Edges.Password.Hash)
 	if !passwordMatch {
 		c.logger.Errorf("Error password not match")
-		ctx.JSON(http.StatusUnauthorized, gin.H{
+		render.Status(r, http.StatusUnauthorized)
+		render.JSON(w, r, map[string]string{
 			"error": "Password not match",
 		})
 		return
 	}
 
 	// generate token
-	token, err := c.authService.GenerateToken(ctx, user)
+	token, err := c.authService.GenerateToken(r.Context(), user)
 	if err != nil {
 		c.logger.Errorf("generating token failed: %v", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, map[string]string{
 			"error": "Error generating token",
 		})
 		return
@@ -271,7 +285,7 @@ func (c UserController) Login(ctx *gin.Context) {
 		Token:    token,
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
+	render.JSON(w, r, map[string]any{
 		"data": response,
 	})
 }

@@ -1,9 +1,11 @@
 package middlewares
 
 import (
+	"context"
+	"net/http"
 	"strings"
 
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/render"
 	"github.com/shunwuse/go-hris/constants"
 	"github.com/shunwuse/go-hris/lib"
 	"github.com/shunwuse/go-hris/ports/service"
@@ -24,49 +26,50 @@ func NewJWTMiddleware(
 	}
 }
 
-func (m JWTMiddleware) Handler() gin.HandlerFunc {
-	return func(ctx *gin.Context) {
-		authHeader := ctx.GetHeader("Authorization")
+func (m JWTMiddleware) Handler() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			authHeader := r.Header.Get("Authorization")
 
-		if authHeader == "" {
-			ctx.JSON(401, gin.H{
-				"error": "Authorization header required",
-			})
-			ctx.Abort()
-			return
-		}
+			if authHeader == "" {
+				render.Status(r, http.StatusUnauthorized)
+				render.JSON(w, r, map[string]string{
+					"error": "Authorization header required",
+				})
+				return
+			}
 
-		texts := strings.Split(authHeader, " ")
-		if len(texts) != 2 {
-			ctx.JSON(401, gin.H{
-				"error": "Invalid Authorization header",
-			})
-			ctx.Abort()
-			return
-		}
+			texts := strings.Split(authHeader, " ")
+			if len(texts) != 2 {
+				render.Status(r, http.StatusUnauthorized)
+				render.JSON(w, r, map[string]string{
+					"error": "Invalid Authorization header",
+				})
+				return
+			}
 
-		if texts[0] != "Bearer" {
-			ctx.JSON(401, gin.H{
-				"error": "Bearer token required",
-			})
-			ctx.Abort()
-			return
-		}
+			if texts[0] != "Bearer" {
+				render.Status(r, http.StatusUnauthorized)
+				render.JSON(w, r, map[string]string{
+					"error": "Bearer token required",
+				})
+				return
+			}
 
-		token := texts[1]
+			token := texts[1]
 
-		claims, err := m.authService.AuthenticateToken(ctx, token)
-		if err != nil {
-			m.logger.Errorf("authenticating token failed: %v", err)
+			claims, err := m.authService.AuthenticateToken(r.Context(), token)
+			if err != nil {
+				m.logger.Errorf("authenticating token failed: %v", err)
+				render.Status(r, http.StatusUnauthorized)
+				render.JSON(w, r, map[string]string{
+					"error": "Invalid token",
+				})
+				return
+			}
 
-			ctx.JSON(401, gin.H{
-				"error": "Invalid token",
-			})
-			ctx.Abort()
-			return
-		}
-
-		ctx.Set(constants.JWTClaims, claims.TokenPayload)
-		ctx.Next()
+			ctx := context.WithValue(r.Context(), constants.JWTClaims, claims.TokenPayload)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
 	}
 }
