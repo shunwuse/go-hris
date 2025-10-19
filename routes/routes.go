@@ -1,13 +1,13 @@
 package routes
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/chi/v5"
 )
 
 type Routes []IRoute
 
 type IRoute interface {
-	Setup(router *gin.Engine)
+	Setup(router chi.Router)
 }
 
 func NewRoutes(
@@ -24,7 +24,7 @@ func NewRoutes(
 	}
 }
 
-func (r Routes) Setup(router *gin.Engine) {
+func (r Routes) Setup(router chi.Router) {
 	for _, route := range r {
 		route.Setup(router)
 	}

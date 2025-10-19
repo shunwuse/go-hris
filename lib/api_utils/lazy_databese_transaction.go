@@ -4,7 +4,6 @@ import (
 	"context"
 	"sync"
 
-	"github.com/gin-gonic/gin"
 	"github.com/shunwuse/go-hris/constants"
 	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/lib"
@@ -55,15 +54,15 @@ func (l *LazyDatabaseTransaction) getTransaction() *entgen.Tx {
 	return l.trx
 }
 
-func SetLazyTransactionToContext(ctx *gin.Context, lazyTrx *LazyDatabaseTransaction) {
-	ctx.Set(constants.DBTransaction, lazyTrx)
+func SetLazyTransactionToContext(ctx context.Context, lazyTrx *LazyDatabaseTransaction) context.Context {
+	return context.WithValue(ctx, constants.DBTransaction, lazyTrx)
 }
 
-func GetTransactionFromContext(ctx *gin.Context) *entgen.Tx {
-	lazyTrx, exists := ctx.Get(constants.DBTransaction)
-	if !exists {
+func GetTransactionFromContext(ctx context.Context) *entgen.Tx {
+	lazyTrx, ok := ctx.Value(constants.DBTransaction).(*LazyDatabaseTransaction)
+	if !ok || lazyTrx == nil {
 		return nil
 	}
 
-	return lazyTrx.(*LazyDatabaseTransaction).getTransaction()
+	return lazyTrx.getTransaction()
 }

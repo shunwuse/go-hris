@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/chi/v5"
 	"github.com/shunwuse/go-hris/controllers"
 	"github.com/shunwuse/go-hris/lib"
 )
@@ -12,10 +12,10 @@ type ExampleRoute struct {
 	exampleController controllers.ExampleController
 }
 
-func (r ExampleRoute) Setup(router *gin.Engine) {
+func (r ExampleRoute) Setup(router chi.Router) {
 	r.logger.Info("Setting up example routes")
 
-	router.GET("/ping", r.exampleController.Ping)
+	router.Get("/ping", r.exampleController.Ping)
 }
 
 func NewExampleRoute(

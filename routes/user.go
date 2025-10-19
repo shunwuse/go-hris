@@ -1,7 +1,7 @@
 package routes
 
 import (
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/chi/v5"
 	"github.com/shunwuse/go-hris/controllers"
 	"github.com/shunwuse/go-hris/lib"
 	"github.com/shunwuse/go-hris/middlewares"
@@ -25,13 +25,15 @@ func NewUserRoute(
 	}
 }
 
-func (r UserRoute) Setup(router *gin.Engine) {
+func (r UserRoute) Setup(router chi.Router) {
 	r.logger.Info("Setting up user routes")
 
-	userRouter := router.Group("/users", r.jwtMiddleware.Handler())
-	userRouter.GET("", r.userController.GetUsers)
-	userRouter.POST("", r.userController.CreateUser)
-	userRouter.PUT("", r.userController.UpdateUser)
+	router.Route("/users", func(userRouter chi.Router) {
+		userRouter.Use(r.jwtMiddleware.Handler())
+		userRouter.Get("/", r.userController.GetUsers)
+		userRouter.Post("/", r.userController.CreateUser)
+		userRouter.Put("/", r.userController.UpdateUser)
+	})
 
-	router.POST("/login", r.userController.Login)
+	router.Post("/login", r.userController.Login)
 }

@@ -1,13 +1,10 @@
 package routes
 
 import (
-	"github.com/gin-gonic/gin"
-
+	"github.com/go-chi/chi/v5"
 	_ "github.com/shunwuse/go-hris/docs/swagger"
 	"github.com/shunwuse/go-hris/lib"
-
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 type SwaggerRoute struct {
@@ -22,8 +19,10 @@ func NewSwaggerRoute(
 	}
 }
 
-func (r SwaggerRoute) Setup(router *gin.Engine) {
+func (r SwaggerRoute) Setup(router chi.Router) {
 	r.logger.Info("Setting up swagger routes")
 
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	router.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL("/swagger/doc.json"),
+	))
 }

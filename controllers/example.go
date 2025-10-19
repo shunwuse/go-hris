@@ -3,7 +3,7 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/render"
 	"github.com/shunwuse/go-hris/lib"
 	"github.com/shunwuse/go-hris/ports/service"
 )
@@ -24,12 +24,12 @@ func NewExampleController(
 	}
 }
 
-func (c ExampleController) Ping(ctx *gin.Context) {
+func (c ExampleController) Ping(w http.ResponseWriter, r *http.Request) {
 	c.logger.Info("Ping controller")
 
-	message := c.exampleService.Ping(ctx)
+	message := c.exampleService.Ping(r.Context())
 
-	ctx.JSON(http.StatusOK, gin.H{
+	render.JSON(w, r, map[string]any{
 		"message": message,
 	})
 }

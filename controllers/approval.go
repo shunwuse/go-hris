@@ -3,7 +3,7 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/go-chi/render"
 	"github.com/shunwuse/go-hris/constants"
 	"github.com/shunwuse/go-hris/domains"
 	"github.com/shunwuse/go-hris/dtos"
@@ -36,23 +36,25 @@ func NewApprovalController(
 // @Produce json
 // @Success 200 {array} dtos.ApprovalResponse
 // @Router /approvals [get]
-func (c ApprovalController) GetApprovals(ctx *gin.Context) {
-	token := ctx.MustGet(constants.JWTClaims).(domains.TokenPayload)
+func (c ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request) {
+	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions
 
 	// check all permissions
 	if hasPermission := permissions.Contains(constants.PermissionReadApproval); !hasPermission {
 		c.logger.Errorf("Error user not authorized to get approvals")
-		ctx.JSON(http.StatusUnauthorized, gin.H{
+		render.Status(r, http.StatusUnauthorized)
+		render.JSON(w, r, map[string]string{
 			"error": "User not authorized to get approvals",
 		})
 		return
 	}
 
-	approvals, err := c.approvalService.GetApprovals(ctx)
+	approvals, err := c.approvalService.GetApprovals(r.Context())
 	if err != nil {
 		c.logger.Errorf("Error getting approvals: %v", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, map[string]string{
 			"error": "Error getting approvals",
 		})
 		return
@@ -74,7 +76,7 @@ func (c ApprovalController) GetApprovals(ctx *gin.Context) {
 
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
+	render.JSON(w, r, map[string]any{
 		"data": approvalsResponse,
 	})
 }
@@ -89,14 +91,15 @@ func (c ApprovalController) GetApprovals(ctx *gin.Context) {
 // @Produce json
 // @Success 200 {string} message "Approval added successfully"
 // @Router /approvals [post]
-func (c ApprovalController) AddApproval(ctx *gin.Context) {
-	token := ctx.MustGet(constants.JWTClaims).(domains.TokenPayload)
+func (c ApprovalController) AddApproval(w http.ResponseWriter, r *http.Request) {
+	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions
 
 	// check all permissions
 	if hasPermission := permissions.Contains(constants.PermissionCreateApproval); !hasPermission {
 		c.logger.Errorf("Error user not authorized to add approval")
-		ctx.JSON(http.StatusUnauthorized, gin.H{
+		render.Status(r, http.StatusUnauthorized)
+		render.JSON(w, r, map[string]string{
 			"error": "User not authorized to add approval",
 		})
 		return
@@ -109,16 +112,17 @@ func (c ApprovalController) AddApproval(ctx *gin.Context) {
 		Status:    constants.ApprovalStatusPending,
 	}
 
-	err := c.approvalService.AddApproval(ctx, approval)
+	err := c.approvalService.AddApproval(r.Context(), approval)
 	if err != nil {
 		c.logger.Errorf("Error adding approval: %v", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, map[string]string{
 			"error": "Error adding approval",
 		})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
+	render.JSON(w, r, map[string]string{
 		"message": "Approval added successfully",
 	})
 }
@@ -134,8 +138,8 @@ func (c ApprovalController) AddApproval(ctx *gin.Context) {
 // @Param action body dtos.ApprovalAction true "Approval action object"
 // @Success 200 {string} message "Approval actioned successfully"
 // @Router /approvals/action [put]
-func (c ApprovalController) ActionApproval(ctx *gin.Context) {
-	token := ctx.MustGet(constants.JWTClaims).(domains.TokenPayload)
+func (c ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Request) {
+	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions
 
 	// check all permissions
@@ -144,7 +148,8 @@ func (c ApprovalController) ActionApproval(ctx *gin.Context) {
 		constants.PermissionActionApproval,
 	}); !hasPermission {
 		c.logger.Errorf("Error user not authorized to action approval")
-		ctx.JSON(http.StatusUnauthorized, gin.H{
+		render.Status(r, http.StatusUnauthorized)
+		render.JSON(w, r, map[string]string{
 			"error": "User not authorized to action approval",
 		})
 		return
@@ -153,10 +158,11 @@ func (c ApprovalController) ActionApproval(ctx *gin.Context) {
 	userID := token.UserID
 
 	var actionRequest dtos.ApprovalAction
-	err := ctx.ShouldBindJSON(&actionRequest)
+	err := render.DecodeJSON(r.Body, &actionRequest)
 	if err != nil {
 		c.logger.Errorf("Error binding action request: %v", err)
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{
 			"error": "Invalid request",
 		})
 		return
@@ -167,22 +173,24 @@ func (c ApprovalController) ActionApproval(ctx *gin.Context) {
 
 	if !isActionValid(action) {
 		c.logger.Errorf("Error invalid action: %v", action)
-		ctx.JSON(http.StatusBadRequest, gin.H{
+		render.Status(r, http.StatusBadRequest)
+		render.JSON(w, r, map[string]string{
 			"error": "Invalid action",
 		})
 		return
 	}
 
-	err = c.approvalService.ActionApproval(ctx, approvalID, action, userID)
+	err = c.approvalService.ActionApproval(r.Context(), approvalID, action, userID)
 	if err != nil {
 		c.logger.Errorf("Error actioning approval: %v", err)
-		ctx.JSON(http.StatusInternalServerError, gin.H{
+		render.Status(r, http.StatusInternalServerError)
+		render.JSON(w, r, map[string]string{
 			"error": err.Error(),
 		})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
+	render.JSON(w, r, map[string]string{
 		"message": "Approval actioned successfully",
 	})
 }

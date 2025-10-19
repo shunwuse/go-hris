@@ -1,6 +1,8 @@
 package main
 
 import (
+	"net/http"
+
 	"github.com/shunwuse/go-hris/lib"
 	"github.com/shunwuse/go-hris/middlewares"
 	"github.com/shunwuse/go-hris/routes"
@@ -37,11 +39,19 @@ func (server *Server) Run() {
 	server.logger.Info("Starting to run server...")
 
 	// setup common middlewares
-	server.commonMiddlewares.Setup(server.router.Gin)
+	server.commonMiddlewares.Setup(server.router.Router)
 
 	// setup routes
-	server.routes.Setup(server.router.Gin)
+	server.routes.Setup(server.router.Router)
 
-	// listen and serve on 0.0.0.0:8080 (for windows "localhost:8080")
-	server.router.Gin.Run(":" + server.env.ServerPort)
+	port := server.env.ServerPort
+
+	if port == "" {
+		port = "8080" // default port
+	}
+
+	server.logger.Info("Running server on :" + port)
+	if err := http.ListenAndServe(":"+port, server.router.Router); err != nil {
+		server.logger.Fatalf("Error running server: %v", err)
+	}
 }
