@@ -31,6 +31,59 @@ username: admin
 password: password
 ```
 
+## Testing
+
+### Quick Start
+
+```bash
+# Unit tests
+make test
+
+# Integration tests (recommended for full validation)
+make test-integration
+
+# Quick smoke test (server must be running)
+make test-integration-quick
+
+# Detailed endpoint tests (server must be running)
+make test-integration-endpoints
+```
+
+### Test Commands
+
+| Command | Description | Auto-starts Server? |
+|---------|-------------|---------------------|
+| `make test` | Go unit tests (`go test ./...`) | N/A |
+| `make test-coverage` | Unit tests with coverage report | N/A |
+| `make test-integration` | Full integration test suite | ✅ Yes |
+| `make test-integration-quick` | Fast smoke test (4 core endpoints) | ❌ No |
+| `make test-integration-endpoints` | Comprehensive tests (10 test cases) | ❌ No |
+
+### Output Example
+
+```
+Building server...
+Server built successfully
+Starting server on port 8080...
+Server is ready!
+
+Running tests...
+✓ Ping returns 200
+✓ Login returns 200
+✓ Get users returns 200
+...
+
+Total tests:  10
+Passed:       10
+Failed:       0
+
+All tests passed! 🎉
+```
+
+### Documentation
+
+- 📖 **[TESTING.md](TESTING.md)** - Quick testing guide
+
 ## Features
 - [x] Create user
 - [x] Login
