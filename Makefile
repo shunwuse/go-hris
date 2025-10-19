@@ -37,9 +37,29 @@ docker-build:
 docker-run:
 	docker run --rm -p 8080:8080 go-hris:latest
 
+# Integration Testing
+test-integration:
+	./scripts/run_tests_with_server.sh
+
+test-integration-quick:
+	./scripts/quick_test.sh
+
+test-integration-endpoints:
+	./scripts/test_endpoints.sh
+
+# Unit Testing
+test:
+	go test -v ./...
+
+test-coverage:
+	go test -v -coverprofile=coverage.out ./...
+	go tool cover -html=coverage.out -o coverage.html
+
 .PHONY: server \
 	wire \
 	migrate-create migrate-up migrate-down \
 	go-migrate-up go-migrate-down \
 	swagger \
-	docker-build docker-run
+	docker-build docker-run \
+	test test-coverage \
+	test-integration test-integration-quick test-integration-endpoints
