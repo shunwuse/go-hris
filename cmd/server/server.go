@@ -3,27 +3,27 @@ package main
 import (
 	"net/http"
 
-	"github.com/shunwuse/go-hris/lib"
-	"github.com/shunwuse/go-hris/middlewares"
-	"github.com/shunwuse/go-hris/routes"
+	"github.com/shunwuse/go-hris/internal/http/middlewares"
+	"github.com/shunwuse/go-hris/internal/http/routes"
+	"github.com/shunwuse/go-hris/internal/infra"
 )
 
 type Server struct {
-	env               lib.Env
-	router            lib.RequestHandler
+	env               infra.Env
+	router            infra.RequestHandler
 	routes            routes.Routes
 	commonMiddlewares middlewares.CommonMiddlewares
-	logger            lib.Logger
-	database          lib.Database
+	logger            infra.Logger
+	database          infra.Database
 }
 
 func NewServer(
-	env lib.Env,
-	router lib.RequestHandler,
+	env infra.Env,
+	router infra.RequestHandler,
 	routes routes.Routes,
 	commonMiddlewares middlewares.CommonMiddlewares,
-	logger lib.Logger,
-	database lib.Database,
+	logger infra.Logger,
+	database infra.Database,
 ) Server {
 	return Server{
 		env:               env,

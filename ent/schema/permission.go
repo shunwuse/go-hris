@@ -6,8 +6,8 @@ import (
 	"entgo.io/ent/schema"
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
-	"github.com/shunwuse/go-hris/constants"
 	"github.com/shunwuse/go-hris/ent/schema/mixin"
+	"github.com/shunwuse/go-hris/internal/constants"
 )
 
 type Permission struct {

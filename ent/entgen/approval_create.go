@@ -10,9 +10,9 @@ import (
 
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/shunwuse/go-hris/constants"
 	"github.com/shunwuse/go-hris/ent/entgen/approval"
 	"github.com/shunwuse/go-hris/ent/entgen/user"
+	"github.com/shunwuse/go-hris/internal/constants"
 )
 
 // ApprovalCreate is the builder for creating a Approval entity.

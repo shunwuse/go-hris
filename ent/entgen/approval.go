@@ -9,9 +9,9 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/shunwuse/go-hris/constants"
 	"github.com/shunwuse/go-hris/ent/entgen/approval"
 	"github.com/shunwuse/go-hris/ent/entgen/user"
+	"github.com/shunwuse/go-hris/internal/constants"
 )
 
 // Approval is the model entity for the Approval schema.
