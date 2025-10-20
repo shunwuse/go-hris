@@ -11,10 +11,10 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/shunwuse/go-hris/constants"
 	"github.com/shunwuse/go-hris/ent/entgen/approval"
 	"github.com/shunwuse/go-hris/ent/entgen/predicate"
 	"github.com/shunwuse/go-hris/ent/entgen/user"
+	"github.com/shunwuse/go-hris/internal/constants"
 )
 
 // ApprovalUpdate is the builder for updating Approval entities.

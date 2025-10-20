@@ -11,11 +11,11 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/shunwuse/go-hris/constants"
 	"github.com/shunwuse/go-hris/ent/entgen/permission"
 	"github.com/shunwuse/go-hris/ent/entgen/predicate"
 	"github.com/shunwuse/go-hris/ent/entgen/role"
 	"github.com/shunwuse/go-hris/ent/entgen/rolepermission"
+	"github.com/shunwuse/go-hris/internal/constants"
 )
 
 // PermissionUpdate is the builder for updating Permission entities.

@@ -7,8 +7,8 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/shunwuse/go-hris/constants"
 	"github.com/shunwuse/go-hris/ent/entgen/predicate"
+	"github.com/shunwuse/go-hris/internal/constants"
 )
 
 // ID filters vertices based on their ID field.
