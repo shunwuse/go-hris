@@ -18,13 +18,13 @@ type authService struct {
 }
 
 func NewAuthService(
-	env infra.Env,
+	config infra.Config,
 	logger infra.Logger,
 ) service.AuthService {
 	return authService{
 		logger: logger,
 
-		secreteKey: env.JWTSecret,
+		secreteKey: config.JWTSecret,
 	}
 }
 

@@ -9,7 +9,7 @@ import (
 )
 
 type Server struct {
-	env               infra.Env
+	config            infra.Config
 	router            infra.RequestHandler
 	routes            routes.Routes
 	commonMiddlewares middlewares.CommonMiddlewares
@@ -18,7 +18,7 @@ type Server struct {
 }
 
 func NewServer(
-	env infra.Env,
+	config infra.Config,
 	router infra.RequestHandler,
 	routes routes.Routes,
 	commonMiddlewares middlewares.CommonMiddlewares,
@@ -26,7 +26,7 @@ func NewServer(
 	database infra.Database,
 ) Server {
 	return Server{
-		env:               env,
+		config:            config,
 		router:            router,
 		routes:            routes,
 		commonMiddlewares: commonMiddlewares,
@@ -44,7 +44,7 @@ func (server *Server) Run() {
 	// setup routes
 	server.routes.Setup(server.router.Router)
 
-	port := server.env.ServerPort
+	port := server.config.ServerPort
 
 	if port == "" {
 		port = "8080" // default port
