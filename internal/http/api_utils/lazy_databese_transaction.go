@@ -7,6 +7,7 @@ import (
 	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/infra"
+	"go.uber.org/zap"
 )
 
 type LazyDatabaseTransaction struct {
@@ -36,7 +37,7 @@ func (l *LazyDatabaseTransaction) beginTransaction() {
 		// Begin database transaction
 		trx, err := l.db.Client.Tx(context.Background())
 		if err != nil {
-			l.logger.Errorf("Failed to begin transaction: %v", err)
+			l.logger.Error("Failed to begin transaction", zap.Error(err))
 		}
 
 		l.logger.Info("Begin database transaction")

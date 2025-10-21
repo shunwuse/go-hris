@@ -12,6 +12,7 @@ import (
 	"github.com/shunwuse/go-hris/internal/infra"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"github.com/shunwuse/go-hris/internal/utils"
+	"go.uber.org/zap"
 )
 
 type UserController struct {
@@ -48,7 +49,7 @@ func (c UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
 
 	// check all permissions
 	if hasPermission := permissions.Contains(constants.PermissionReadUser); !hasPermission {
-		c.logger.Errorf("Error user not authorized to get users")
+		c.logger.Error("Error user not authorized to get users")
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, map[string]string{
 			"error": "User not authorized to get users",
@@ -58,7 +59,7 @@ func (c UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
 
 	users, err := c.userService.GetUsers(r.Context())
 	if err != nil {
-		c.logger.Errorf("Error getting users: %v", err)
+		c.logger.Error("Error getting users", zap.Error(err))
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
 			"error": "Error getting users",
@@ -99,7 +100,7 @@ func (c UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	// check all permissions
 	if hasPermission := permissions.Contains(constants.PermissionCreateUser); !hasPermission {
-		c.logger.Errorf("Error user not authorized to create user")
+		c.logger.Error("Error user not authorized to create user")
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, map[string]string{
 			"error": "User not authorized to create user",
@@ -109,7 +110,7 @@ func (c UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	var userCreate dtos.UserCreate
 	if err := render.DecodeJSON(r.Body, &userCreate); err != nil {
-		c.logger.Errorf("Error binding user: %v", err)
+		c.logger.Error("Error binding user", zap.Error(err))
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, map[string]string{
 			"error": "Invalid request",
@@ -122,7 +123,7 @@ func (c UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	// cannot create user with role admin
 	if userCreate.Role == constants.Admin {
-		c.logger.Errorf("Error user not authorized to create admin user")
+		c.logger.Error("Error user not authorized to create admin user")
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, map[string]string{
 			"error": "User not authorized to create admin user",
@@ -132,7 +133,7 @@ func (c UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	hashedPassword, err := utils.HashPassword(userCreate.Password)
 	if err != nil {
-		c.logger.Errorf("Error hashing password: %v", err)
+		c.logger.Error("Error hashing password", zap.Error(err))
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
 			"error": "Error hashing password",
@@ -149,7 +150,7 @@ func (c UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := c.userService.CreateUser(r.Context(), user, userCreate.Role); err != nil {
-		c.logger.Errorf("Error creating user: %v", err)
+		c.logger.Error("Error creating user", zap.Error(err))
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
 			"error": "Error creating user",
@@ -180,7 +181,7 @@ func (c UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	// check all permissions
 	if hasPermission := permissions.Contains(constants.PermissionUpdateUser); !hasPermission {
-		c.logger.Errorf("Error user not authorized to update user")
+		c.logger.Error("Error user not authorized to update user")
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, map[string]string{
 			"error": "User not authorized to update user",
@@ -190,7 +191,7 @@ func (c UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	var userUpdate dtos.UserUpdate
 	if err := render.DecodeJSON(r.Body, &userUpdate); err != nil {
-		c.logger.Errorf("Error binding user: %v", err)
+		c.logger.Error("Error binding user", zap.Error(err))
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, map[string]string{
 			"error": "Invalid request",
@@ -204,7 +205,7 @@ func (c UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := c.userService.UpdateUser(r.Context(), user); err != nil {
-		c.logger.Errorf("Error updating user: %v", err)
+		c.logger.Error("Error updating user", zap.Error(err))
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
 			"error": "Error updating user",
@@ -231,7 +232,7 @@ func (c UserController) Login(w http.ResponseWriter, r *http.Request) {
 	var userLogin dtos.UserLogin
 
 	if err := render.DecodeJSON(r.Body, &userLogin); err != nil {
-		c.logger.Errorf("Error binding user: %v", err)
+		c.logger.Error("Error binding user", zap.Error(err))
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, map[string]string{
 			"error": "Invalid request",
@@ -244,7 +245,7 @@ func (c UserController) Login(w http.ResponseWriter, r *http.Request) {
 
 	user, err := c.userService.GetUserByUsername(r.Context(), userLogin.Username)
 	if err != nil {
-		c.logger.Errorf("Error getting user(%s): %v", userLogin.Username, err)
+		c.logger.Error("error getting user", zap.String("username", userLogin.Username), zap.Error(err))
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
 			"error": "user not found",
@@ -255,7 +256,7 @@ func (c UserController) Login(w http.ResponseWriter, r *http.Request) {
 	// check password
 	passwordMatch := utils.CheckPasswordHash(userLogin.Password, user.Edges.Password.Hash)
 	if !passwordMatch {
-		c.logger.Errorf("Error password not match")
+		c.logger.Error("Error password not match")
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, map[string]string{
 			"error": "Password not match",
@@ -266,7 +267,7 @@ func (c UserController) Login(w http.ResponseWriter, r *http.Request) {
 	// generate token
 	token, err := c.authService.GenerateToken(r.Context(), user)
 	if err != nil {
-		c.logger.Errorf("generating token failed: %v", err)
+		c.logger.Error("generating token failed", zap.Error(err))
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
 			"error": "Error generating token",

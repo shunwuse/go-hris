@@ -9,6 +9,7 @@ import (
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/infra"
 	"github.com/shunwuse/go-hris/internal/ports/service"
+	"go.uber.org/zap"
 )
 
 type authService struct {
@@ -45,7 +46,7 @@ func (s authService) GenerateToken(ctx context.Context, user *domains.UserWithPe
 	// convert payload to json
 	payloadJson, err := json.Marshal(payload)
 	if err != nil {
-		s.logger.Errorf("marshalling payload failed: %v", err)
+		s.logger.Error("marshalling payload failed", zap.Error(err))
 		return "", err
 	}
 
@@ -53,7 +54,7 @@ func (s authService) GenerateToken(ctx context.Context, user *domains.UserWithPe
 	// unmarshal json payload
 	err = json.Unmarshal(payloadJson, &claims)
 	if err != nil {
-		s.logger.Errorf("unmarshalling payload failed: %v", err)
+		s.logger.Error("unmarshalling payload failed", zap.Error(err))
 		return "", err
 	}
 
@@ -62,7 +63,7 @@ func (s authService) GenerateToken(ctx context.Context, user *domains.UserWithPe
 
 	tokenString, err := token.SignedString([]byte(s.secreteKey))
 	if err != nil {
-		s.logger.Errorf("signing token failed: %v", err)
+		s.logger.Error("signing token failed", zap.Error(err))
 		return "", err
 	}
 
@@ -74,13 +75,13 @@ func (s authService) AuthenticateToken(ctx context.Context, tokenString string) 
 		return []byte(s.secreteKey), nil
 	})
 	if err != nil {
-		s.logger.Errorf("parsing token failed: %v", err)
+		s.logger.Error("parsing token failed", zap.Error(err))
 		return nil, err
 	}
 
 	claims, ok := token.Claims.(*domains.Claims)
 	if !ok || !token.Valid {
-		s.logger.Errorf("invalid token")
+		s.logger.Error("invalid token")
 		return nil, err
 	}
 
