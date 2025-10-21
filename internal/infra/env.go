@@ -2,51 +2,49 @@ package infra
 
 import (
 	"log"
-	"strings"
+	"sync"
 
 	"github.com/knadh/koanf/parsers/dotenv"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/v2"
 )
 
-type SqliteConfig struct {
-	Database string `koanf:"DB_PATH"`
-}
-
 type Env struct {
-	Environment string `koanf:"ENV"`
-	ServerPort  string `koanf:"SERVER_PORT"`
-	LogOutput   string `koanf:"LOG_OUTPUT"`
+	Environment string `koanf:"env"`
+	ServerPort  string `koanf:"server_port"`
+	LogOutput   string `koanf:"log_output"`
 
-	Sqlite SqliteConfig `koanf:"SQLITE"`
+	SqliteDBPath string `koanf:"sqlite_db_path"`
 
-	JWTSecret string `koanf:"JWT_SECRET"`
+	JWTSecret string `koanf:"jwt_secret"`
 }
 
-func NewEnv() Env {
-	env := Env{}
+var (
+	globalEnv   *Env
+	loadEnvOnce sync.Once
+)
+
+// GetEnv returns a copy of the config
+func GetEnv() Env {
+	loadEnvOnce.Do(func() {
+		globalEnv = loadEnv()
+	})
+	return *globalEnv
+}
+
+func loadEnv() *Env {
+	env := &Env{}
 
 	k := koanf.New(".")
 
 	// read env file
-	err := k.Load(file.Provider(".env"), dotenv.Parser())
-	if err != nil {
-		log.Fatalf("Error reading env file, %s", err)
-	}
-
-	// convert flat keys with dot(.) to nested structure
-	for _, key := range k.Keys() {
-		if strings.Contains(key, ".") {
-			v := k.String(key)
-			k.Delete(key)
-			k.Set(key, v)
-		}
+	if err := k.Load(file.Provider(".env"), dotenv.Parser()); err != nil {
+		log.Fatalf("Error reading .env file: %v", err)
 	}
 
 	// unmarshal env
-	err = k.Unmarshal("", &env)
-	if err != nil {
-		log.Fatalf("Unable to decode into struct, %v", err)
+	if err := k.Unmarshal("", env); err != nil {
+		log.Fatalf("Unable to unmarshal env: %v", err)
 	}
 
 	return env
