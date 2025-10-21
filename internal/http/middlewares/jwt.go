@@ -9,6 +9,7 @@ import (
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/infra"
 	"github.com/shunwuse/go-hris/internal/ports/service"
+	"go.uber.org/zap"
 )
 
 type JWTMiddleware struct {
@@ -60,7 +61,7 @@ func (m JWTMiddleware) Handler() func(http.Handler) http.Handler {
 
 			claims, err := m.authService.AuthenticateToken(r.Context(), token)
 			if err != nil {
-				m.logger.Errorf("authenticating token failed: %v", err)
+				m.logger.Error("authenticating token failed", zap.Error(err))
 				render.Status(r, http.StatusUnauthorized)
 				render.JSON(w, r, map[string]string{
 					"error": "Invalid token",

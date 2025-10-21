@@ -2,6 +2,7 @@ package infra
 
 import (
 	ent "github.com/shunwuse/go-hris/ent/entgen"
+	"go.uber.org/zap"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -24,7 +25,7 @@ func GetDatabase() Database {
 func newDatabase(config Config, logger Logger) Database {
 	client, err := ent.Open("sqlite3", config.SqliteDBPath)
 	if err != nil {
-		logger.Fatalf("Error connecting to database, %v", err)
+		logger.Fatal("Error connecting to database", zap.Error(err))
 	}
 
 	logger.Info("Database connected")

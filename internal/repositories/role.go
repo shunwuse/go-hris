@@ -6,6 +6,7 @@ import (
 	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/infra"
+	"go.uber.org/zap"
 )
 
 type RoleRepository struct {
@@ -38,7 +39,7 @@ func (r RoleRepository) getAllRoles(ctx context.Context) error {
 		Query().
 		All(ctx)
 	if err != nil {
-		r.logger.Errorf("Error getting roles: %v", err)
+		r.logger.Error("Error getting roles", zap.Error(err))
 		return err
 	}
 
@@ -63,7 +64,7 @@ func (r RoleRepository) AddRole(ctx context.Context, role *domains.RoleCreate) e
 		SetName(role.Name).
 		Save(ctx)
 	if err != nil {
-		r.logger.Errorf("Error adding role: %v", err)
+		r.logger.Error("Error adding role", zap.Error(err))
 		return err
 	}
 

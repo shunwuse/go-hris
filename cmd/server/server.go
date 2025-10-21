@@ -6,6 +6,7 @@ import (
 	"github.com/shunwuse/go-hris/internal/http/middlewares"
 	"github.com/shunwuse/go-hris/internal/http/routes"
 	"github.com/shunwuse/go-hris/internal/infra"
+	"go.uber.org/zap"
 )
 
 type Server struct {
@@ -52,6 +53,6 @@ func (server *Server) Run() {
 
 	server.logger.Info("Running server on :" + port)
 	if err := http.ListenAndServe(":"+port, server.router.Router); err != nil {
-		server.logger.Fatalf("Error running server: %v", err)
+		server.logger.Fatal("Error running server", zap.Error(err))
 	}
 }
