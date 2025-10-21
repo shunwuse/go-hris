@@ -2,27 +2,24 @@ package services
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/ent/entgen/approval"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
-	"github.com/shunwuse/go-hris/internal/infra"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"github.com/shunwuse/go-hris/internal/repositories"
 )
 
 type approvalService struct {
-	logger             infra.Logger
 	approvalRepository repositories.ApprovalRepository
 }
 
 func NewApprovalService(
-	logger infra.Logger,
 	approvalRepository repositories.ApprovalRepository,
 ) service.ApprovalService {
 	return approvalService{
-		logger:             logger,
 		approvalRepository: approvalRepository,
 	}
 }
@@ -36,7 +33,7 @@ func (s approvalService) GetApprovals(ctx context.Context) ([]*entgen.Approval, 
 		WithApprover().
 		All(ctx)
 	if err != nil {
-		s.logger.Errorf("Error getting approvals: %v", err)
+		slog.Error("Error getting approvals", "error", err)
 		return nil, err
 	}
 
@@ -50,7 +47,7 @@ func (s approvalService) AddApproval(ctx context.Context, approval domains.Appro
 		SetCreatorID(approval.CreatorID).
 		Save(ctx)
 	if err != nil {
-		s.logger.Errorf("Error adding approval: %v", err)
+		slog.Error("Error adding approval", "error", err)
 		return err
 	}
 
@@ -68,12 +65,12 @@ func (s approvalService) ActionApproval(ctx context.Context, approvalID uint, ac
 		SetApproverID(approverID).
 		Exec(ctx)
 	if err != nil {
-		s.logger.Errorf("Error updating approval: %v", err)
+		slog.Error("Error updating approval", "error", err)
 		return err
 	}
 
 	// if result.RowsAffected == 0 {
-	// 	s.logger.Errorf("Error updating approval: approval not found or already actioned")
+	// 	slog.Error("Error updating approval: approval not found or already actioned")
 	// 	return errors.New("approval not found or already actioned")
 	// }
 

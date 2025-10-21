@@ -2,6 +2,7 @@ package api_utils
 
 import (
 	"context"
+	"log/slog"
 	"sync"
 
 	"github.com/shunwuse/go-hris/ent/entgen"
@@ -10,20 +11,17 @@ import (
 )
 
 type LazyDatabaseTransaction struct {
-	logger infra.Logger
-	db     *infra.Database
-	trx    *entgen.Tx
+	db  *infra.Database
+	trx *entgen.Tx
 
 	once sync.Once
 }
 
 func NewLazyDatabaseTransaction(
-	logger infra.Logger,
 	client *infra.Database,
 ) LazyDatabaseTransaction {
 	return LazyDatabaseTransaction{
-		logger: logger,
-		db:     client,
+		db: client,
 	}
 }
 
@@ -36,10 +34,10 @@ func (l *LazyDatabaseTransaction) beginTransaction() {
 		// Begin database transaction
 		trx, err := l.db.Client.Tx(context.Background())
 		if err != nil {
-			l.logger.Errorf("Failed to begin transaction: %v", err)
+			slog.Error("Failed to begin transaction", "error", err)
 		}
 
-		l.logger.Info("Begin database transaction")
+		slog.Info("Begin database transaction")
 
 		// Set transaction into struct
 		l.trx = trx

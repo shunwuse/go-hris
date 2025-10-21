@@ -2,26 +2,23 @@ package middlewares
 
 import (
 	"context"
+	"log/slog"
 	"net/http"
 	"strings"
 
 	"github.com/go-chi/render"
 	"github.com/shunwuse/go-hris/internal/constants"
-	"github.com/shunwuse/go-hris/internal/infra"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 )
 
 type JWTMiddleware struct {
-	logger      infra.Logger
 	authService service.AuthService
 }
 
 func NewJWTMiddleware(
-	logger infra.Logger,
 	authService service.AuthService,
 ) JWTMiddleware {
 	return JWTMiddleware{
-		logger:      logger,
 		authService: authService,
 	}
 }
@@ -60,7 +57,7 @@ func (m JWTMiddleware) Handler() func(http.Handler) http.Handler {
 
 			claims, err := m.authService.AuthenticateToken(r.Context(), token)
 			if err != nil {
-				m.logger.Errorf("authenticating token failed: %v", err)
+				slog.Error("authenticating token failed", "error", err)
 				render.Status(r, http.StatusUnauthorized)
 				render.JSON(w, r, map[string]string{
 					"error": "Invalid token",

@@ -3,19 +3,18 @@ package services
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"slices"
 
 	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/ent/entgen/user"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
-	"github.com/shunwuse/go-hris/internal/infra"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"github.com/shunwuse/go-hris/internal/repositories"
 )
 
 type userService struct {
-	logger                   infra.Logger
 	userRepository           repositories.UserRepository
 	roleRepository           repositories.RoleRepository
 	userRoleRepository       repositories.UserRoleRepository
@@ -23,14 +22,12 @@ type userService struct {
 }
 
 func NewUserService(
-	logger infra.Logger,
 	userRepository repositories.UserRepository,
 	roleRepository repositories.RoleRepository,
 	userRoleRepository repositories.UserRoleRepository,
 	rolePermissionRepository repositories.RolePermissionRepository,
 ) service.UserService {
 	return userService{
-		logger:                   logger,
 		userRepository:           userRepository,
 		roleRepository:           roleRepository,
 		userRoleRepository:       userRoleRepository,
@@ -43,7 +40,7 @@ func (s userService) GetUsers(ctx context.Context) ([]*entgen.User, error) {
 		Query().
 		All(ctx)
 	if err != nil {
-		s.logger.Errorf("Error getting users: %v", err)
+		slog.Error("Error getting users", "error", err)
 		return nil, err
 	}
 
@@ -57,7 +54,7 @@ func (s userService) CreateUser(ctx context.Context, user *domains.UserCreate, r
 		SetName(user.Name).
 		Save(ctx)
 	if err != nil {
-		s.logger.Errorf("Error creating user: %v", err)
+		slog.Error("Error creating user", "error", err)
 		return err
 	}
 
@@ -67,24 +64,24 @@ func (s userService) CreateUser(ctx context.Context, user *domains.UserCreate, r
 		SetOwner(u).
 		Save(ctx)
 	if err != nil {
-		s.logger.Errorf("Error creating password: %v", err)
+		slog.Error("Error creating password", "error", err)
 		return err
 	}
 
 	roleModel := s.roleRepository.GetRoleByName(ctx, role.String())
 	if roleModel == nil {
-		// s.logger.Infof("Role not found, creating role: %v", role)
+		// slog.Info("Role not found, creating role", "role", role)
 
 		// roleCreate := &domains.RoleCreate{
 		// 	Name: constants.Staff.String(),
 		// }
 
 		// if err := s.roleRepository.AddRole(ctx, roleCreate); err != nil {
-		// 	s.logger.Errorf("add role error: %v", err)
+		// 	slog.Error("add role error", "error", err)
 		// 	return err
 		// }
 
-		s.logger.Errorf("Role not found: %v", role)
+		slog.Error("Role not found", "role", role)
 		return errors.New("role not found")
 	}
 
@@ -95,7 +92,7 @@ func (s userService) CreateUser(ctx context.Context, user *domains.UserCreate, r
 		SetRoleID(roleModel.ID).
 		Save(ctx)
 	if err != nil {
-		s.logger.Errorf("creating user role error: %v", err)
+		slog.Error("creating user role error", "error", err)
 		return err
 	}
 
@@ -110,7 +107,7 @@ func (s userService) GetUserByUsername(ctx context.Context, username string) (*d
 		Where(user.UsernameEQ(username)).
 		Only(ctx)
 	if err != nil {
-		s.logger.Errorf("Error getting user by username: %v", err)
+		slog.Error("Error getting user by username", "error", err)
 		return nil, err
 	}
 
@@ -146,7 +143,7 @@ func (s userService) UpdateUser(ctx context.Context, update *domains.UserUpdate)
 		SetName(update.Name).
 		Exec(ctx)
 	if err != nil {
-		s.logger.Errorf("Error updating user: %v", err)
+		slog.Error("Error updating user", "error", err)
 		return err
 	}
 

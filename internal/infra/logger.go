@@ -1,15 +1,13 @@
 package infra
 
 import (
+	"log/slog"
 	"os"
 	"path/filepath"
-
-	"github.com/sirupsen/logrus"
 )
 
 // Logger structure
 type Logger struct {
-	*logrus.Logger
 }
 
 var globalLogger *Logger
@@ -24,11 +22,6 @@ func GetLogger() Logger {
 }
 
 func newLogger(env Env) Logger {
-	logger := logrus.New()
-
-	logger.SetFormatter(&logrus.JSONFormatter{})
-	logger.SetLevel(logrus.DebugLevel)
-
 	// get directory path
 	dir := filepath.Dir(env.LogOutput)
 
@@ -38,11 +31,19 @@ func newLogger(env Env) Logger {
 	}
 
 	file, err := os.OpenFile(env.LogOutput, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	if err == nil {
-		logger.Out = file
-	} else {
-		logger.Info("Failed to log to file, using default stderr")
+	if err != nil {
+		slog.Warn("Failed to open log file, using stderr", "error", err)
+		file = os.Stderr
 	}
 
-	return Logger{logger}
+	// create JSON handler with debug level
+	handler := slog.NewJSONHandler(file, &slog.HandlerOptions{
+		Level:     slog.LevelDebug,
+		AddSource: false,
+	})
+
+	// set as the global default logger
+	slog.SetDefault(slog.New(handler))
+
+	return Logger{}
 }

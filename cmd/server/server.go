@@ -1,7 +1,9 @@
 package main
 
 import (
+	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/shunwuse/go-hris/internal/http/middlewares"
 	"github.com/shunwuse/go-hris/internal/http/routes"
@@ -36,7 +38,7 @@ func NewServer(
 }
 
 func (server *Server) Run() {
-	server.logger.Info("Starting to run server...")
+	slog.Info("Starting to run server...")
 
 	// setup common middlewares
 	server.commonMiddlewares.Setup(server.router.Router)
@@ -50,8 +52,9 @@ func (server *Server) Run() {
 		port = "8080" // default port
 	}
 
-	server.logger.Info("Running server on :" + port)
+	slog.Info("Running server on :" + port)
 	if err := http.ListenAndServe(":"+port, server.router.Router); err != nil {
-		server.logger.Fatalf("Error running server: %v", err)
+		slog.Error("Error running server", "error", err)
+		os.Exit(1)
 	}
 }

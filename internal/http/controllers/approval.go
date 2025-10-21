@@ -1,27 +1,24 @@
 package controllers
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/go-chi/render"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/dtos"
-	"github.com/shunwuse/go-hris/internal/infra"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 )
 
 type ApprovalController struct {
-	logger          infra.Logger
 	approvalService service.ApprovalService
 }
 
 func NewApprovalController(
-	logger infra.Logger,
 	approvalService service.ApprovalService,
 ) ApprovalController {
 	return ApprovalController{
-		logger:          logger,
 		approvalService: approvalService,
 	}
 }
@@ -42,7 +39,7 @@ func (c ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request)
 
 	// check all permissions
 	if hasPermission := permissions.Contains(constants.PermissionReadApproval); !hasPermission {
-		c.logger.Errorf("Error user not authorized to get approvals")
+		slog.Error("Error user not authorized to get approvals")
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, map[string]string{
 			"error": "User not authorized to get approvals",
@@ -52,7 +49,7 @@ func (c ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request)
 
 	approvals, err := c.approvalService.GetApprovals(r.Context())
 	if err != nil {
-		c.logger.Errorf("Error getting approvals: %v", err)
+		slog.Error("Error getting approvals", "error", err)
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
 			"error": "Error getting approvals",
@@ -97,7 +94,7 @@ func (c ApprovalController) AddApproval(w http.ResponseWriter, r *http.Request) 
 
 	// check all permissions
 	if hasPermission := permissions.Contains(constants.PermissionCreateApproval); !hasPermission {
-		c.logger.Errorf("Error user not authorized to add approval")
+		slog.Error("Error user not authorized to add approval")
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, map[string]string{
 			"error": "User not authorized to add approval",
@@ -114,7 +111,7 @@ func (c ApprovalController) AddApproval(w http.ResponseWriter, r *http.Request) 
 
 	err := c.approvalService.AddApproval(r.Context(), approval)
 	if err != nil {
-		c.logger.Errorf("Error adding approval: %v", err)
+		slog.Error("Error adding approval", "error", err)
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
 			"error": "Error adding approval",
@@ -147,7 +144,7 @@ func (c ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Reques
 		constants.PermissionReadApproval,
 		constants.PermissionActionApproval,
 	}); !hasPermission {
-		c.logger.Errorf("Error user not authorized to action approval")
+		slog.Error("Error user not authorized to action approval")
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, map[string]string{
 			"error": "User not authorized to action approval",
@@ -160,7 +157,7 @@ func (c ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Reques
 	var actionRequest dtos.ApprovalAction
 	err := render.DecodeJSON(r.Body, &actionRequest)
 	if err != nil {
-		c.logger.Errorf("Error binding action request: %v", err)
+		slog.Error("Error binding action request", "error", err)
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, map[string]string{
 			"error": "Invalid request",
@@ -172,7 +169,7 @@ func (c ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Reques
 	action := actionRequest.Action
 
 	if !isActionValid(action) {
-		c.logger.Errorf("Error invalid action: %v", action)
+		slog.Error("Error invalid action", "error", action)
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, map[string]string{
 			"error": "Invalid action",
@@ -182,7 +179,7 @@ func (c ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Reques
 
 	err = c.approvalService.ActionApproval(r.Context(), approvalID, action, userID)
 	if err != nil {
-		c.logger.Errorf("Error actioning approval: %v", err)
+		slog.Error("Error actioning approval", "error", err)
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
 			"error": err.Error(),

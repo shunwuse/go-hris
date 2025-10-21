@@ -1,6 +1,9 @@
 package infra
 
 import (
+	"log/slog"
+	"os"
+
 	ent "github.com/shunwuse/go-hris/ent/entgen"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -14,20 +17,21 @@ var globalDatabase *Database
 
 func GetDatabase() Database {
 	if globalDatabase == nil {
-		db := newDatabase(NewEnv(), GetLogger())
+		db := newDatabase(NewEnv())
 		globalDatabase = &db
 	}
 
 	return *globalDatabase
 }
 
-func newDatabase(env Env, logger Logger) Database {
+func newDatabase(env Env) Database {
 	client, err := ent.Open("sqlite3", env.Sqlite.Database)
 	if err != nil {
-		logger.Fatalf("Error connecting to database, %v", err)
+		slog.Error("Error connecting to database", "error", err)
+		os.Exit(1)
 	}
 
-	logger.Info("Database connected")
+	slog.Info("Database connected")
 
 	return Database{
 		Client: client,

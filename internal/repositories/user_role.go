@@ -8,14 +8,12 @@ import (
 )
 
 type UserRoleRepository struct {
-	logger infra.Logger
 	infra.Database
 
 	UserRoleMap []*entgen.UserRole
 }
 
 func NewUserRoleRepository(
-	logger infra.Logger,
 	db infra.Database,
 ) UserRoleRepository {
 	// Initialize user roles
@@ -24,7 +22,6 @@ func NewUserRoleRepository(
 		All(context.Background())
 
 	return UserRoleRepository{
-		logger:      logger,
 		Database:    db,
 		UserRoleMap: userRoles,
 	}
