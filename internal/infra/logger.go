@@ -16,28 +16,28 @@ var globalLogger *Logger
 
 func GetLogger() Logger {
 	if globalLogger == nil {
-		logger := newLogger(GetEnv())
+		logger := newLogger(GetConfig())
 		globalLogger = &logger
 	}
 
 	return *globalLogger
 }
 
-func newLogger(env Env) Logger {
+func newLogger(config Config) Logger {
 	logger := logrus.New()
 
 	logger.SetFormatter(&logrus.JSONFormatter{})
 	logger.SetLevel(logrus.DebugLevel)
 
 	// get directory path
-	dir := filepath.Dir(env.LogOutput)
+	dir := filepath.Dir(config.LogOutput)
 
 	// check directory logs exists, if not create it
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		os.MkdirAll(dir, os.ModePerm)
 	}
 
-	file, err := os.OpenFile(env.LogOutput, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
+	file, err := os.OpenFile(config.LogOutput, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err == nil {
 		logger.Out = file
 	} else {

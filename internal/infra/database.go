@@ -14,15 +14,15 @@ var globalDatabase *Database
 
 func GetDatabase() Database {
 	if globalDatabase == nil {
-		db := newDatabase(GetEnv(), GetLogger())
+		db := newDatabase(GetConfig(), GetLogger())
 		globalDatabase = &db
 	}
 
 	return *globalDatabase
 }
 
-func newDatabase(env Env, logger Logger) Database {
-	client, err := ent.Open("sqlite3", env.SqliteDBPath)
+func newDatabase(config Config, logger Logger) Database {
+	client, err := ent.Open("sqlite3", config.SqliteDBPath)
 	if err != nil {
 		logger.Fatalf("Error connecting to database, %v", err)
 	}

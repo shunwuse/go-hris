@@ -9,7 +9,7 @@ import (
 	"github.com/knadh/koanf/v2"
 )
 
-type Env struct {
+type Config struct {
 	Environment string `koanf:"env"`
 	ServerPort  string `koanf:"server_port"`
 	LogOutput   string `koanf:"log_output"`
@@ -20,20 +20,20 @@ type Env struct {
 }
 
 var (
-	globalEnv   *Env
-	loadEnvOnce sync.Once
+	globalConfig   *Config
+	loadConfigOnce sync.Once
 )
 
-// GetEnv returns a copy of the config
-func GetEnv() Env {
-	loadEnvOnce.Do(func() {
-		globalEnv = loadEnv()
+// GetConfig returns a copy of the config
+func GetConfig() Config {
+	loadConfigOnce.Do(func() {
+		globalConfig = loadConfig()
 	})
-	return *globalEnv
+	return *globalConfig
 }
 
-func loadEnv() *Env {
-	env := &Env{}
+func loadConfig() *Config {
+	config := &Config{}
 
 	k := koanf.New(".")
 
@@ -42,10 +42,10 @@ func loadEnv() *Env {
 		log.Fatalf("Error reading .env file: %v", err)
 	}
 
-	// unmarshal env
-	if err := k.Unmarshal("", env); err != nil {
-		log.Fatalf("Unable to unmarshal env: %v", err)
+	// unmarshal config
+	if err := k.Unmarshal("", config); err != nil {
+		log.Fatalf("Unable to unmarshal config: %v", err)
 	}
 
-	return env
+	return config
 }
