@@ -16,7 +16,7 @@ var globalLogger *Logger
 
 func GetLogger() Logger {
 	if globalLogger == nil {
-		logger := newLogger(NewEnv())
+		logger := newLogger(GetEnv())
 		globalLogger = &logger
 	}
 

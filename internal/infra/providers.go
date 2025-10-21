@@ -5,7 +5,7 @@ import (
 )
 
 var ProvideSet = wire.NewSet(
-	NewEnv,
+	GetEnv,
 	GetLogger,
 	GetDatabase,
 	NewRequestHandler,
