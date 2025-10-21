@@ -2,38 +2,49 @@ package infra
 
 import (
 	"log"
+	"strings"
 
-	"github.com/spf13/viper"
+	"github.com/knadh/koanf/parsers/dotenv"
+	"github.com/knadh/koanf/providers/file"
+	"github.com/knadh/koanf/v2"
 )
 
 type SqliteConfig struct {
-	Database string `mapstructure:"DB_PATH"`
+	Database string `koanf:"DB_PATH"`
 }
 
 type Env struct {
-	Environment string `mapstructure:"ENV"`
-	ServerPort  string `mapstructure:"SERVER_PORT"`
-	LogOutput   string `mapstructure:"LOG_OUTPUT"`
+	Environment string `koanf:"ENV"`
+	ServerPort  string `koanf:"SERVER_PORT"`
+	LogOutput   string `koanf:"LOG_OUTPUT"`
 
-	Sqlite SqliteConfig `mapstructure:"SQLITE"`
+	Sqlite SqliteConfig `koanf:"SQLITE"`
 
-	JWTSecret string `mapsctructure:"JWT_SECRET"`
+	JWTSecret string `koanf:"JWT_SECRET"`
 }
 
 func NewEnv() Env {
 	env := Env{}
 
-	// env file path
-	viper.SetConfigFile(".env")
+	k := koanf.New(".")
 
 	// read env file
-	err := viper.ReadInConfig()
+	err := k.Load(file.Provider(".env"), dotenv.Parser())
 	if err != nil {
 		log.Fatalf("Error reading env file, %s", err)
 	}
 
+	// convert flat keys with dot(.) to nested structure
+	for _, key := range k.Keys() {
+		if strings.Contains(key, ".") {
+			v := k.String(key)
+			k.Delete(key)
+			k.Set(key, v)
+		}
+	}
+
 	// unmarshal env
-	err = viper.Unmarshal(&env)
+	err = k.Unmarshal("", &env)
 	if err != nil {
 		log.Fatalf("Unable to decode into struct, %v", err)
 	}
