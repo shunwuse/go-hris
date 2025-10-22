@@ -22,7 +22,7 @@ func NewExampleRepository(
 }
 
 func (r ExampleRepository) Ping(ctx context.Context) string {
-	r.logger.WithContext(ctx).Info("Ping repository")
+	r.logger.WithContext(ctx).Info("ping repository invoked")
 
 	return "pong"
 }

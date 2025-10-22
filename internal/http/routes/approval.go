@@ -26,7 +26,7 @@ func NewApprovalRoute(
 }
 
 func (r ApprovalRoute) Setup(router chi.Router) {
-	r.logger.Info("Setting up approval routes")
+	r.logger.Info("setting up approval routes")
 
 	router.Route("/approvals", func(approvalRouter chi.Router) {
 		approvalRouter.Use(r.jwtMiddleware.Handler())

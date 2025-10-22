@@ -20,9 +20,8 @@ type UserCreate struct {
 }
 
 type UserUpdate struct {
-	ID uint `json:"id" binding:"required"`
-	// name is optional
-	Name string `json:"name" binding:"omitempty"`
+	ID   uint   `json:"id" binding:"required"`
+	Name string `json:"name" binding:"omitempty"` // name is optional
 }
 
 type UserLogin struct {

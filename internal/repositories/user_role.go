@@ -18,7 +18,7 @@ func NewUserRoleRepository(
 	logger infra.Logger,
 	db infra.Database,
 ) UserRoleRepository {
-	// Initialize user roles
+	// Initialize user roles.
 	userRoles, _ := db.Client.UserRole.
 		Query().
 		All(context.Background())

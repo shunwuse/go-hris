@@ -4,7 +4,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-// RequestHandler structure
+// RequestHandler structure.
 type RequestHandler struct {
 	Router chi.Router
 }

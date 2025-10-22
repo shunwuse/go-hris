@@ -25,7 +25,7 @@ func NewExampleController(
 }
 
 func (c ExampleController) Ping(w http.ResponseWriter, r *http.Request) {
-	c.logger.WithContext(r.Context()).Info("Ping controller")
+	c.logger.WithContext(r.Context()).Info("ping controller invoked")
 
 	message := c.exampleService.Ping(r.Context())
 

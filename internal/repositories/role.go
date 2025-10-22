@@ -20,9 +20,6 @@ func NewRoleRepository(
 	logger infra.Logger,
 	db infra.Database,
 ) RoleRepository {
-	// Initialize roles
-	// var roles []models.Role
-	// db.Find(&roles)
 	roles, _ := db.Client.Role.
 		Query().
 		All(context.Background())
@@ -39,7 +36,7 @@ func (r RoleRepository) getAllRoles(ctx context.Context) error {
 		Query().
 		All(ctx)
 	if err != nil {
-		r.logger.WithContext(ctx).Error("Error getting roles", zap.Error(err))
+		r.logger.WithContext(ctx).Error("failed to query roles", zap.Error(err))
 		return err
 	}
 
@@ -64,7 +61,7 @@ func (r RoleRepository) AddRole(ctx context.Context, role *domains.RoleCreate) e
 		SetName(role.Name).
 		Save(ctx)
 	if err != nil {
-		r.logger.WithContext(ctx).Error("Error adding role", zap.Error(err))
+		r.logger.WithContext(ctx).Error("failed to create role", zap.Error(err))
 		return err
 	}
 

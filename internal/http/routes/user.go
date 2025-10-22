@@ -26,7 +26,7 @@ func NewUserRoute(
 }
 
 func (r UserRoute) Setup(router chi.Router) {
-	r.logger.Info("Setting up user routes")
+	r.logger.Info("setting up user routes")
 
 	router.Route("/users", func(userRouter chi.Router) {
 		userRouter.Use(r.jwtMiddleware.Handler())
