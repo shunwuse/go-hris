@@ -34,15 +34,15 @@ func (l *LazyDatabaseTransaction) IsTransactionOpen() bool {
 
 func (l *LazyDatabaseTransaction) beginTransaction() {
 	l.once.Do(func() {
-		// Begin database transaction
+		// Begin database transaction.
 		trx, err := l.db.Client.Tx(context.Background())
 		if err != nil {
-			l.logger.Error("Failed to begin transaction", zap.Error(err))
+			l.logger.Error("failed to begin transaction", zap.Error(err))
 		}
 
-		l.logger.Info("Begin database transaction")
+		l.logger.Info("begin database transaction")
 
-		// Set transaction into struct
+		// Set transaction into struct.
 		l.trx = trx
 	})
 }

@@ -13,7 +13,7 @@ type ExampleRoute struct {
 }
 
 func (r ExampleRoute) Setup(router chi.Router) {
-	r.logger.Info("Setting up example routes")
+	r.logger.Info("setting up example routes")
 
 	router.Get("/ping", r.exampleController.Ping)
 }

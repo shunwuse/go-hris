@@ -46,14 +46,14 @@ func (m TraceMiddleware) Handler() func(http.Handler) http.Handler {
 
 				traceID = ulid.MustNew(ulid.Now(), entropy).String()
 
-				// return entropy to pool for reuse
+				// Return entropy to pool for reuse.
 				m.entropyPool.Put(entropy)
 			}
 
-			// set trace ID in response header
+			// Set trace ID in response header.
 			w.Header().Set("X-Trace-Id", traceID)
 
-			// store trace ID in context
+			// Store trace ID in context.
 			ctx := context.WithValue(r.Context(), constants.TraceID, traceID)
 
 			next.ServeHTTP(w, r.WithContext(ctx))

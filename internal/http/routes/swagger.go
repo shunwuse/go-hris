@@ -20,7 +20,7 @@ func NewSwaggerRoute(
 }
 
 func (r SwaggerRoute) Setup(router chi.Router) {
-	r.logger.Info("Setting up swagger routes")
+	r.logger.Info("setting up swagger routes")
 
 	router.Get("/swagger/*", httpSwagger.Handler(
 		httpSwagger.URL("/swagger/doc.json"),

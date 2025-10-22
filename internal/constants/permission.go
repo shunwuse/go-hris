@@ -17,7 +17,7 @@ func (p Permission) String() string {
 	return string(p)
 }
 
-// Contains checks if the Permissions contains the specified permission
+// Contains checks if the permissions contain the specified permission.
 func (p Permissions) Contains(permission Permission) bool {
 	for _, p := range p {
 		if p == permission {
@@ -28,7 +28,7 @@ func (p Permissions) Contains(permission Permission) bool {
 	return false
 }
 
-// ContainsAll checks if the Permissions contains all specified permissions
+// ContainsAll checks if the permissions contain all specified permissions.
 func (p Permissions) ContainsAll(permissions Permissions) bool {
 	for _, permission := range permissions {
 		if !p.Contains(permission) {

@@ -37,12 +37,12 @@ func NewServer(
 }
 
 func (server *Server) Run() {
-	server.logger.Info("Starting to run server...")
+	server.logger.Info("starting server initialization")
 
-	// setup common middlewares
+	// Setup common middlewares.
 	server.commonMiddlewares.Setup(server.router.Router)
 
-	// setup routes
+	// Setup routes.
 	server.routes.Setup(server.router.Router)
 
 	port := server.config.ServerPort
@@ -51,8 +51,8 @@ func (server *Server) Run() {
 		port = "8080" // default port
 	}
 
-	server.logger.Info("Running server on :" + port)
+	server.logger.Info("starting HTTP server", zap.String("port", port))
 	if err := http.ListenAndServe(":"+port, server.router.Router); err != nil {
-		server.logger.Fatal("Error running server", zap.Error(err))
+		server.logger.Fatal("failed to start HTTP server", zap.Error(err))
 	}
 }

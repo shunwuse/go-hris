@@ -41,22 +41,22 @@ func (c ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request)
 	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions
 
-	// check all permissions
+	// Check if user has permission to read approvals.
 	if hasPermission := permissions.Contains(constants.PermissionReadApproval); !hasPermission {
-		c.logger.WithContext(r.Context()).Error("Error user not authorized to get approvals")
+		c.logger.WithContext(r.Context()).Error("user not authorized to get approvals")
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, map[string]string{
-			"error": "User not authorized to get approvals",
+			"error": "user not authorized to get approvals",
 		})
 		return
 	}
 
 	approvals, err := c.approvalService.GetApprovals(r.Context())
 	if err != nil {
-		c.logger.WithContext(r.Context()).Error("Error getting approvals", zap.Error(err))
+		c.logger.WithContext(r.Context()).Error("failed to get approvals", zap.Error(err))
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
-			"error": "Error getting approvals",
+			"error": "failed to get approvals",
 		})
 		return
 	}
@@ -96,12 +96,12 @@ func (c ApprovalController) AddApproval(w http.ResponseWriter, r *http.Request) 
 	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions
 
-	// check all permissions
+	// Check if user has permission to create approvals.
 	if hasPermission := permissions.Contains(constants.PermissionCreateApproval); !hasPermission {
-		c.logger.WithContext(r.Context()).Error("Error user not authorized to add approval")
+		c.logger.WithContext(r.Context()).Error("user not authorized to add approval")
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, map[string]string{
-			"error": "User not authorized to add approval",
+			"error": "user not authorized to add approval",
 		})
 		return
 	}
@@ -115,16 +115,16 @@ func (c ApprovalController) AddApproval(w http.ResponseWriter, r *http.Request) 
 
 	err := c.approvalService.AddApproval(r.Context(), approval)
 	if err != nil {
-		c.logger.WithContext(r.Context()).Error("Error adding approval", zap.Error(err))
+		c.logger.WithContext(r.Context()).Error("failed to add approval", zap.Error(err))
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
-			"error": "Error adding approval",
+			"error": "failed to add approval",
 		})
 		return
 	}
 
 	render.JSON(w, r, map[string]string{
-		"message": "Approval added successfully",
+		"message": "approval added successfully",
 	})
 }
 
@@ -143,15 +143,15 @@ func (c ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Reques
 	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions
 
-	// check all permissions
+	// Check if user has permission to action approvals.
 	if hasPermission := permissions.ContainsAll(constants.Permissions{
 		constants.PermissionReadApproval,
 		constants.PermissionActionApproval,
 	}); !hasPermission {
-		c.logger.WithContext(r.Context()).Error("Error user not authorized to action approval")
+		c.logger.WithContext(r.Context()).Error("user not authorized to action approval")
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, map[string]string{
-			"error": "User not authorized to action approval",
+			"error": "user not authorized to action approval",
 		})
 		return
 	}
@@ -161,10 +161,10 @@ func (c ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Reques
 	var actionRequest dtos.ApprovalAction
 	err := render.DecodeJSON(r.Body, &actionRequest)
 	if err != nil {
-		c.logger.WithContext(r.Context()).Error("Error binding action request", zap.Error(err))
+		c.logger.WithContext(r.Context()).Error("failed to decode action request", zap.Error(err))
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, map[string]string{
-			"error": "Invalid request",
+			"error": "invalid request",
 		})
 		return
 	}
@@ -173,17 +173,17 @@ func (c ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Reques
 	action := actionRequest.Action
 
 	if !isActionValid(action) {
-		c.logger.WithContext(r.Context()).Error("Invalid action", zap.String("action", string(action)))
+		c.logger.WithContext(r.Context()).Error("invalid approval action", zap.String("action", string(action)))
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, map[string]string{
-			"error": "Invalid action",
+			"error": "invalid action",
 		})
 		return
 	}
 
 	err = c.approvalService.ActionApproval(r.Context(), approvalID, action, userID)
 	if err != nil {
-		c.logger.WithContext(r.Context()).Error("Error actioning approval", zap.Error(err))
+		c.logger.WithContext(r.Context()).Error("failed to action approval", zap.Error(err))
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
 			"error": err.Error(),
@@ -192,7 +192,7 @@ func (c ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Reques
 	}
 
 	render.JSON(w, r, map[string]string{
-		"message": "Approval actioned successfully",
+		"message": "approval actioned successfully",
 	})
 }
 

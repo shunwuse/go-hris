@@ -11,12 +11,12 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
-// Logger structure
+// Logger structure.
 type Logger struct {
 	*zap.Logger
 }
 
-// WithContext returns a logger with trace ID from context if available
+// WithContext returns a logger with trace ID from context if available.
 func (l Logger) WithContext(ctx context.Context) *zap.Logger {
 	if traceID, ok := ctx.Value(constants.TraceID).(string); ok {
 		return l.Logger.With(zap.String("trace_id", traceID))
@@ -30,7 +30,7 @@ var (
 	newLoggerOnce sync.Once
 )
 
-// GetLogger returns the global logger instance
+// GetLogger returns the global logger instance.
 func GetLogger() Logger {
 	newLoggerOnce.Do(func() {
 		logger := newLogger(GetConfig())
@@ -41,15 +41,15 @@ func GetLogger() Logger {
 }
 
 func newLogger(config Config) Logger {
-	// get directory path
+	// Get directory path.
 	dir := filepath.Dir(config.LogOutput)
 
-	// check directory logs exists, if not create it
+	// Check if logs directory exists, if not create it.
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
 		os.MkdirAll(dir, os.ModePerm)
 	}
 
-	// create logger core based on environment
+	// Create logger core based on environment.
 	var core zapcore.Core
 	if config.Environment == "development" {
 		core = createDevelopmentCore(config)
@@ -57,10 +57,10 @@ func newLogger(config Config) Logger {
 		core = createProductionCore(config)
 	}
 
-	// create logger with caller
+	// Create logger with caller.
 	logger := zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))
 
-	// set global logger
+	// Set global logger.
 	zap.ReplaceGlobals(logger)
 
 	return Logger{logger}
@@ -70,21 +70,21 @@ func createDevelopmentCore(config Config) zapcore.Core {
 	encoderConfig := createEncoderConfig()
 	file := createFileWriter(config.LogOutput)
 
-	// file core with JSON format
+	// File core with JSON format.
 	fileCore := zapcore.NewCore(
 		zapcore.NewJSONEncoder(encoderConfig),
 		zapcore.AddSync(file),
 		zapcore.DebugLevel,
 	)
 
-	// console core with colored output
+	// Console core with colored output.
 	consoleCore := zapcore.NewCore(
 		zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig()),
 		zapcore.AddSync(os.Stdout),
 		zapcore.DebugLevel,
 	)
 
-	// combine both cores
+	// Combine both cores.
 	return zapcore.NewTee(fileCore, consoleCore)
 }
 
@@ -92,7 +92,7 @@ func createProductionCore(config Config) zapcore.Core {
 	encoderConfig := createEncoderConfig()
 	file := createFileWriter(config.LogOutput)
 
-	// only file output with JSON format
+	// Only file output with JSON format.
 	return zapcore.NewCore(
 		zapcore.NewJSONEncoder(encoderConfig),
 		zapcore.AddSync(file),
@@ -120,7 +120,7 @@ func createEncoderConfig() zapcore.EncoderConfig {
 func createFileWriter(logOutput string) *os.File {
 	file, err := os.OpenFile(logOutput, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
 	if err != nil {
-		// fallback to stderr if file cannot be opened
+		// Fallback to stderr if file cannot be opened.
 		return os.Stderr
 	}
 	return file

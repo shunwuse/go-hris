@@ -22,7 +22,7 @@ func NewCommonMiddlewares(
 }
 
 func (m CommonMiddlewares) Setup(router chi.Router) {
-	// Built-in middlewares
+	// Setup built-in middlewares.
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
 

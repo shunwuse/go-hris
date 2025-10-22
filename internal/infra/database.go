@@ -25,10 +25,10 @@ func GetDatabase() Database {
 func newDatabase(config Config, logger Logger) Database {
 	client, err := ent.Open("sqlite3", config.SqliteDBPath)
 	if err != nil {
-		logger.Fatal("Error connecting to database", zap.Error(err))
+		logger.Fatal("failed to connect to database", zap.Error(err))
 	}
 
-	logger.Info("Database connected")
+	logger.Info("database connected successfully")
 
 	return Database{
 		Client: client,

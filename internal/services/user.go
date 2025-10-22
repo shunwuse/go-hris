@@ -44,7 +44,7 @@ func (s userService) GetUsers(ctx context.Context) ([]*entgen.User, error) {
 		Query().
 		All(ctx)
 	if err != nil {
-		s.logger.WithContext(ctx).Error("Error getting users", zap.Error(err))
+		s.logger.WithContext(ctx).Error("failed to query users", zap.Error(err))
 		return nil, err
 	}
 
@@ -58,7 +58,7 @@ func (s userService) CreateUser(ctx context.Context, user *domains.UserCreate, r
 		SetName(user.Name).
 		Save(ctx)
 	if err != nil {
-		s.logger.WithContext(ctx).Error("Error creating user", zap.Error(err))
+		s.logger.WithContext(ctx).Error("failed to create user", zap.Error(err))
 		return err
 	}
 
@@ -68,35 +68,24 @@ func (s userService) CreateUser(ctx context.Context, user *domains.UserCreate, r
 		SetOwner(u).
 		Save(ctx)
 	if err != nil {
-		s.logger.WithContext(ctx).Error("Error creating password", zap.Error(err))
+		s.logger.WithContext(ctx).Error("failed to create password", zap.Error(err))
 		return err
 	}
 
 	roleModel := s.roleRepository.GetRoleByName(ctx, role.String())
 	if roleModel == nil {
-		// s.logger.WithContext(ctx).Info("Role not found, creating role", zap.String("role", role.String()))
-
-		// roleCreate := &domains.RoleCreate{
-		// 	Name: constants.Staff.String(),
-		// }
-
-		// if err := s.roleRepository.AddRole(ctx, roleCreate); err != nil {
-		// 	s.logger.WithContext(ctx).Error("add role error", zap.Error(err))
-		// 	return err
-		// }
-
-		s.logger.WithContext(ctx).Error("Role not found", zap.String("role", role.String()))
+		s.logger.WithContext(ctx).Error("role not found", zap.String("role", role.String()))
 		return errors.New("role not found")
 	}
 
-	// Create user role
+	// Create user-role association.
 	_, err = s.userRepository.Client.UserRole.
 		Create().
 		SetUserID(u.ID).
 		SetRoleID(roleModel.ID).
 		Save(ctx)
 	if err != nil {
-		s.logger.WithContext(ctx).Error("creating user role error", zap.Error(err))
+		s.logger.WithContext(ctx).Error("failed to create user role association", zap.Error(err))
 		return err
 	}
 
@@ -111,19 +100,18 @@ func (s userService) GetUserByUsername(ctx context.Context, username string) (*d
 		Where(user.UsernameEQ(username)).
 		Only(ctx)
 	if err != nil {
-		s.logger.WithContext(ctx).Error("Error getting user by username", zap.Error(err))
+		s.logger.WithContext(ctx).Error("failed to get user by username", zap.Error(err), zap.String("username", username))
 		return nil, err
 	}
 
-	// Get permissions
+	// Get permissions based on user's roles.
 	permissions := make(constants.Permissions, 0)
-	// roles := user.Roles
 
-	// Get permissions by role
+	// Collect permissions from all roles.
 	for _, role := range user.Edges.Roles {
 		rolePermissions := s.rolePermissionRepository.GetPermissionsByRole(ctx, constants.Role(role.Name))
 
-		// Add permissions to user
+		// Add unique permissions to user.
 		for _, permission := range rolePermissions {
 			if !slices.Contains(permissions, permission) {
 				permissions = append(permissions, permission)
@@ -131,7 +119,7 @@ func (s userService) GetUserByUsername(ctx context.Context, username string) (*d
 		}
 	}
 
-	// Set permissions to user
+	// Construct user with permissions.
 	u := domains.UserWithPermissions{
 		User:        user,
 		Permissions: permissions,
@@ -147,7 +135,7 @@ func (s userService) UpdateUser(ctx context.Context, update *domains.UserUpdate)
 		SetName(update.Name).
 		Exec(ctx)
 	if err != nil {
-		s.logger.WithContext(ctx).Error("Error updating user", zap.Error(err))
+		s.logger.WithContext(ctx).Error("failed to update user", zap.Error(err), zap.Uint("user_id", update.ID))
 		return err
 	}
 

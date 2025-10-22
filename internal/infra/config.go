@@ -37,14 +37,14 @@ func loadConfig() *Config {
 
 	k := koanf.New(".")
 
-	// read env file
+	// Read dotenv file.
 	if err := k.Load(file.Provider(".env"), dotenv.Parser()); err != nil {
-		log.Fatalf("Error reading .env file: %v", err)
+		log.Fatalf("failed to read .env file: %v", err)
 	}
 
-	// unmarshal config
+	// Unmarshal configuration.
 	if err := k.Unmarshal("", config); err != nil {
-		log.Fatalf("Unable to unmarshal config: %v", err)
+		log.Fatalf("failed to unmarshal config: %v", err)
 	}
 
 	return config
