@@ -1,5 +1,9 @@
 package constants
 
+import (
+	"slices"
+)
+
 type Permission string
 
 type Permissions []Permission
@@ -19,13 +23,7 @@ func (p Permission) String() string {
 
 // Contains checks if the permissions contain the specified permission.
 func (p Permissions) Contains(permission Permission) bool {
-	for _, p := range p {
-		if p == permission {
-			return true
-		}
-	}
-
-	return false
+	return slices.Contains(p, permission)
 }
 
 // ContainsAll checks if the permissions contain all specified permissions.

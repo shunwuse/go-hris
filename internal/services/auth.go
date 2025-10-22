@@ -71,7 +71,7 @@ func (s authService) GenerateToken(ctx context.Context, user *domains.UserWithPe
 }
 
 func (s authService) AuthenticateToken(ctx context.Context, tokenString string) (*domains.Claims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &domains.Claims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &domains.Claims{}, func(token *jwt.Token) (any, error) {
 		return []byte(s.secreteKey), nil
 	})
 	if err != nil {
