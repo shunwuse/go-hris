@@ -5,6 +5,7 @@ import (
 )
 
 var ProvideSet = wire.NewSet(
+	NewTraceMiddleware,
 	NewJWTMiddleware,
 	NewDBTrxMiddleware,
 

@@ -39,7 +39,7 @@ func (r RoleRepository) getAllRoles(ctx context.Context) error {
 		Query().
 		All(ctx)
 	if err != nil {
-		r.logger.Error("Error getting roles", zap.Error(err))
+		r.logger.WithContext(ctx).Error("Error getting roles", zap.Error(err))
 		return err
 	}
 
@@ -64,7 +64,7 @@ func (r RoleRepository) AddRole(ctx context.Context, role *domains.RoleCreate) e
 		SetName(role.Name).
 		Save(ctx)
 	if err != nil {
-		r.logger.Error("Error adding role", zap.Error(err))
+		r.logger.WithContext(ctx).Error("Error adding role", zap.Error(err))
 		return err
 	}
 

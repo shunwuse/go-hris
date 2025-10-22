@@ -49,13 +49,13 @@ func (m DBTrxMiddleware) Handler() func(http.Handler) http.Handler {
 			// Check status code to decide commit or rollback
 			if writer.Status() >= 400 {
 				// Rollback transaction on error
-				m.logger.Info("Rollback database transaction")
+				m.logger.WithContext(ctx).Info("Rollback database transaction")
 				trx.Rollback()
 				return
 			}
 
 			// Commit transaction
-			m.logger.Info("Commit database transaction")
+			m.logger.WithContext(ctx).Info("Commit database transaction")
 			trx.Commit()
 		})
 	}
