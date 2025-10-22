@@ -1,9 +1,14 @@
 package constants
 
+type contextKey string
+
 const (
-	TraceID = "trace_id"
+	// TraceID is the context key for storing trace ID.
+	TraceID contextKey = "trace_id"
 
-	JWTClaims = "claims"
+	// JWTClaims is the context key for storing JWT claims.
+	JWTClaims contextKey = "claims"
 
-	DBTransaction = "db_transaction"
+	// DBTransaction is the context key for storing database transaction.
+	DBTransaction contextKey = "db_transaction"
 )
