@@ -61,7 +61,7 @@ func (m JWTMiddleware) Handler() func(http.Handler) http.Handler {
 
 			claims, err := m.authService.AuthenticateToken(r.Context(), token)
 			if err != nil {
-				m.logger.Error("authenticating token failed", zap.Error(err))
+				m.logger.WithContext(r.Context()).Error("authenticating token failed", zap.Error(err))
 				render.Status(r, http.StatusUnauthorized)
 				render.JSON(w, r, map[string]string{
 					"error": "Invalid token",

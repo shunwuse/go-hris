@@ -24,7 +24,7 @@ func NewExampleService(
 }
 
 func (s exampleService) Ping(ctx context.Context) string {
-	s.logger.Info("Ping service")
+	s.logger.WithContext(ctx).Info("Ping service")
 
 	pong := s.exampleRepository.Ping(ctx)
 

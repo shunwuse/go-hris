@@ -37,7 +37,7 @@ func (s approvalService) GetApprovals(ctx context.Context) ([]*entgen.Approval, 
 		WithApprover().
 		All(ctx)
 	if err != nil {
-		s.logger.Error("Error getting approvals", zap.Error(err))
+		s.logger.WithContext(ctx).Error("Error getting approvals", zap.Error(err))
 		return nil, err
 	}
 
@@ -51,7 +51,7 @@ func (s approvalService) AddApproval(ctx context.Context, approval domains.Appro
 		SetCreatorID(approval.CreatorID).
 		Save(ctx)
 	if err != nil {
-		s.logger.Error("Error adding approval", zap.Error(err))
+		s.logger.WithContext(ctx).Error("Error adding approval", zap.Error(err))
 		return err
 	}
 
@@ -69,12 +69,12 @@ func (s approvalService) ActionApproval(ctx context.Context, approvalID uint, ac
 		SetApproverID(approverID).
 		Exec(ctx)
 	if err != nil {
-		s.logger.Error("Error updating approval", zap.Error(err))
+		s.logger.WithContext(ctx).Error("Error updating approval", zap.Error(err))
 		return err
 	}
 
 	// if result.RowsAffected == 0 {
-	// 	s.logger.Error("Error updating approval: approval not found or already actioned")
+	// 	s.logger.WithContext(ctx).Error("Error updating approval: approval not found or already actioned")
 	// 	return errors.New("approval not found or already actioned")
 	// }
 

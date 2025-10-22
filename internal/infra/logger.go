@@ -1,10 +1,12 @@
 package infra
 
 import (
+	"context"
 	"os"
 	"path/filepath"
 	"sync"
 
+	"github.com/shunwuse/go-hris/internal/constants"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )
@@ -12,6 +14,15 @@ import (
 // Logger structure
 type Logger struct {
 	*zap.Logger
+}
+
+// WithContext returns a logger with trace ID from context if available
+func (l Logger) WithContext(ctx context.Context) *zap.Logger {
+	if traceID, ok := ctx.Value(constants.TraceID).(string); ok {
+		return l.Logger.With(zap.String("trace_id", traceID))
+	}
+
+	return l.Logger
 }
 
 var (
