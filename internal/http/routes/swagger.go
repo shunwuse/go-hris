@@ -8,13 +8,13 @@ import (
 )
 
 type SwaggerRoute struct {
-	logger infra.Logger
+	logger *infra.Logger
 }
 
 func NewSwaggerRoute(
-	logger infra.Logger,
-) SwaggerRoute {
-	return SwaggerRoute{
+	logger *infra.Logger,
+) *SwaggerRoute {
+	return &SwaggerRoute{
 		logger: logger,
 	}
 }

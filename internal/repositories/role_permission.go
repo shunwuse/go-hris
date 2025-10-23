@@ -8,16 +8,16 @@ import (
 )
 
 type RolePermissionRepository struct {
-	logger infra.Logger
-	infra.Database
+	logger *infra.Logger
+	*infra.Database
 
 	rolePermissionMap map[constants.Role]constants.Permissions
 }
 
 func NewRolePermissionRepository(
-	logger infra.Logger,
-	db infra.Database,
-) RolePermissionRepository {
+	logger *infra.Logger,
+	db *infra.Database,
+) *RolePermissionRepository {
 	roles, _ := db.Client.Role.
 		Query().
 		WithPermissions().
@@ -35,7 +35,7 @@ func NewRolePermissionRepository(
 		rolePermissionMap[roleKey] = permissions
 	}
 
-	return RolePermissionRepository{
+	return &RolePermissionRepository{
 		logger:            logger,
 		Database:          db,
 		rolePermissionMap: rolePermissionMap,

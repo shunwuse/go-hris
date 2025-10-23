@@ -16,17 +16,17 @@ import (
 )
 
 type UserController struct {
-	logger      infra.Logger
+	logger      *infra.Logger
 	userService service.UserService
 	authService service.AuthService
 }
 
 func NewUserController(
-	logger infra.Logger,
+	logger *infra.Logger,
 	userService service.UserService,
 	authService service.AuthService,
-) UserController {
-	return UserController{
+) *UserController {
+	return &UserController{
 		logger:      logger,
 		userService: userService,
 		authService: authService,

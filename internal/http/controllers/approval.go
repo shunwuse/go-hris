@@ -13,15 +13,15 @@ import (
 )
 
 type ApprovalController struct {
-	logger          infra.Logger
+	logger          *infra.Logger
 	approvalService service.ApprovalService
 }
 
 func NewApprovalController(
-	logger infra.Logger,
+	logger *infra.Logger,
 	approvalService service.ApprovalService,
-) ApprovalController {
-	return ApprovalController{
+) *ApprovalController {
+	return &ApprovalController{
 		logger:          logger,
 		approvalService: approvalService,
 	}

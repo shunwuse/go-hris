@@ -16,21 +16,21 @@ import (
 )
 
 type userService struct {
-	logger                   infra.Logger
-	userRepository           repositories.UserRepository
-	roleRepository           repositories.RoleRepository
-	userRoleRepository       repositories.UserRoleRepository
-	rolePermissionRepository repositories.RolePermissionRepository
+	logger                   *infra.Logger
+	userRepository           *repositories.UserRepository
+	roleRepository           *repositories.RoleRepository
+	userRoleRepository       *repositories.UserRoleRepository
+	rolePermissionRepository *repositories.RolePermissionRepository
 }
 
 func NewUserService(
-	logger infra.Logger,
-	userRepository repositories.UserRepository,
-	roleRepository repositories.RoleRepository,
-	userRoleRepository repositories.UserRoleRepository,
-	rolePermissionRepository repositories.RolePermissionRepository,
+	logger *infra.Logger,
+	userRepository *repositories.UserRepository,
+	roleRepository *repositories.RoleRepository,
+	userRoleRepository *repositories.UserRoleRepository,
+	rolePermissionRepository *repositories.RolePermissionRepository,
 ) service.UserService {
-	return userService{
+	return &userService{
 		logger:                   logger,
 		userRepository:           userRepository,
 		roleRepository:           roleRepository,

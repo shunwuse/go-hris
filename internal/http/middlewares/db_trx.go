@@ -11,15 +11,15 @@ import (
 )
 
 type DBTrxMiddleware struct {
-	logger infra.Logger
-	db     infra.Database
+	logger *infra.Logger
+	db     *infra.Database
 }
 
 func NewDBTrxMiddleware(
-	logger infra.Logger,
-	db infra.Database,
-) DBTrxMiddleware {
-	return DBTrxMiddleware{
+	logger *infra.Logger,
+	db *infra.Database,
+) *DBTrxMiddleware {
+	return &DBTrxMiddleware{
 		logger: logger,
 		db:     db,
 	}
@@ -29,7 +29,7 @@ func (m DBTrxMiddleware) Handler() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Create lazy database transaction.
-			lazyTrx := api_utils.NewLazyDatabaseTransaction(m.logger, &m.db)
+			lazyTrx := api_utils.NewLazyDatabaseTransaction(m.logger, m.db)
 
 			// Set lazy transaction to context.
 			ctx := api_utils.SetLazyTransactionToContext(r.Context(), &lazyTrx)

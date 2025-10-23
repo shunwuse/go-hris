@@ -7,15 +7,15 @@ import (
 )
 
 type ExampleRepository struct {
-	logger infra.Logger
-	infra.Database
+	logger *infra.Logger
+	*infra.Database
 }
 
 func NewExampleRepository(
-	logger infra.Logger,
-	db infra.Database,
-) ExampleRepository {
-	return ExampleRepository{
+	logger *infra.Logger,
+	db *infra.Database,
+) *ExampleRepository {
+	return &ExampleRepository{
 		logger:   logger,
 		Database: db,
 	}

@@ -31,13 +31,13 @@ var (
 )
 
 // GetLogger returns the global logger instance.
-func GetLogger() Logger {
+func GetLogger() *Logger {
 	newLoggerOnce.Do(func() {
 		logger := newLogger(GetConfig())
 		globalLogger = &logger
 	})
 
-	return *globalLogger
+	return globalLogger
 }
 
 func newLogger(config Config) Logger {

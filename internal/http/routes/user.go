@@ -8,17 +8,17 @@ import (
 )
 
 type UserRoute struct {
-	logger         infra.Logger
-	jwtMiddleware  middlewares.JWTMiddleware
-	userController controllers.UserController
+	logger         *infra.Logger
+	jwtMiddleware  *middlewares.JWTMiddleware
+	userController *controllers.UserController
 }
 
 func NewUserRoute(
-	logger infra.Logger,
-	jwtMiddleware middlewares.JWTMiddleware,
-	userController controllers.UserController,
-) UserRoute {
-	return UserRoute{
+	logger *infra.Logger,
+	jwtMiddleware *middlewares.JWTMiddleware,
+	userController *controllers.UserController,
+) *UserRoute {
+	return &UserRoute{
 		logger:         logger,
 		jwtMiddleware:  jwtMiddleware,
 		userController: userController,

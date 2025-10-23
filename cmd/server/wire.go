@@ -13,7 +13,7 @@ import (
 	"github.com/shunwuse/go-hris/internal/services"
 )
 
-func InitializeServer() Server {
+func InitializeServer() *Server {
 	wire.Build(
 		infra.ProvideSet,
 		repositories.ProvideSet,
@@ -24,5 +24,5 @@ func InitializeServer() Server {
 		NewServer,
 	)
 
-	return Server{}
+	return &Server{}
 }

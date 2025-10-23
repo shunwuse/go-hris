@@ -9,15 +9,15 @@ import (
 )
 
 type exampleService struct {
-	logger            infra.Logger
-	exampleRepository repositories.ExampleRepository
+	logger            *infra.Logger
+	exampleRepository *repositories.ExampleRepository
 }
 
 func NewExampleService(
-	logger infra.Logger,
-	exampleRepository repositories.ExampleRepository,
+	logger *infra.Logger,
+	exampleRepository *repositories.ExampleRepository,
 ) service.ExampleService {
-	return exampleService{
+	return &exampleService{
 		logger:            logger,
 		exampleRepository: exampleRepository,
 	}

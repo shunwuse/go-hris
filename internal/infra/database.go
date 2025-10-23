@@ -13,16 +13,16 @@ type Database struct {
 
 var globalDatabase *Database
 
-func GetDatabase() Database {
+func GetDatabase() *Database {
 	if globalDatabase == nil {
 		db := newDatabase(GetConfig(), GetLogger())
 		globalDatabase = &db
 	}
 
-	return *globalDatabase
+	return globalDatabase
 }
 
-func newDatabase(config Config, logger Logger) Database {
+func newDatabase(config Config, logger *Logger) Database {
 	client, err := ent.Open("sqlite3", config.SqliteDBPath)
 	if err != nil {
 		logger.Fatal("failed to connect to database", zap.Error(err))

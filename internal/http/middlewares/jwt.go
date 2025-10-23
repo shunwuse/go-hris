@@ -13,15 +13,15 @@ import (
 )
 
 type JWTMiddleware struct {
-	logger      infra.Logger
+	logger      *infra.Logger
 	authService service.AuthService
 }
 
 func NewJWTMiddleware(
-	logger infra.Logger,
+	logger *infra.Logger,
 	authService service.AuthService,
-) JWTMiddleware {
-	return JWTMiddleware{
+) *JWTMiddleware {
+	return &JWTMiddleware{
 		logger:      logger,
 		authService: authService,
 	}
