@@ -42,6 +42,6 @@ func NewRolePermissionRepository(
 	}
 }
 
-func (r RolePermissionRepository) GetPermissionsByRole(ctx context.Context, role constants.Role) constants.Permissions {
+func (r *RolePermissionRepository) GetPermissionsByRole(ctx context.Context, role constants.Role) constants.Permissions {
 	return r.rolePermissionMap[role]
 }

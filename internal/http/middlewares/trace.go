@@ -33,11 +33,11 @@ func NewTraceMiddleware(
 	}
 }
 
-func (m TraceMiddleware) Setup(router chi.Router) {
+func (m *TraceMiddleware) Setup(router chi.Router) {
 	router.Use(m.Handler())
 }
 
-func (m TraceMiddleware) Handler() func(http.Handler) http.Handler {
+func (m *TraceMiddleware) Handler() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			traceID := r.Header.Get("X-Trace-Id")

@@ -28,7 +28,7 @@ func NewApprovalService(
 	}
 }
 
-func (s approvalService) GetApprovals(ctx context.Context) ([]*entgen.Approval, error) {
+func (s *approvalService) GetApprovals(ctx context.Context) ([]*entgen.Approval, error) {
 	approvals, err := s.approvalRepository.Client.Approval.
 		Query().
 		WithCreator().
@@ -42,7 +42,7 @@ func (s approvalService) GetApprovals(ctx context.Context) ([]*entgen.Approval, 
 	return approvals, nil
 }
 
-func (s approvalService) AddApproval(ctx context.Context, approval domains.ApprovalCreate) error {
+func (s *approvalService) AddApproval(ctx context.Context, approval domains.ApprovalCreate) error {
 	_, err := s.approvalRepository.Client.Approval.
 		Create().
 		SetStatus(approval.Status).
@@ -56,7 +56,7 @@ func (s approvalService) AddApproval(ctx context.Context, approval domains.Appro
 	return nil
 }
 
-func (s approvalService) ActionApproval(ctx context.Context, approvalID uint, action constants.ApprovalStatus, approverID uint) error {
+func (s *approvalService) ActionApproval(ctx context.Context, approvalID uint, action constants.ApprovalStatus, approverID uint) error {
 	err := s.approvalRepository.Client.Approval.
 		Update().
 		Where(

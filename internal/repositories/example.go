@@ -21,7 +21,7 @@ func NewExampleRepository(
 	}
 }
 
-func (r ExampleRepository) Ping(ctx context.Context) string {
+func (r *ExampleRepository) Ping(ctx context.Context) string {
 	r.logger.WithContext(ctx).Info("ping repository invoked")
 
 	return "pong"

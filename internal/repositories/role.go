@@ -31,7 +31,7 @@ func NewRoleRepository(
 	}
 }
 
-func (r RoleRepository) getAllRoles(ctx context.Context) error {
+func (r *RoleRepository) getAllRoles(ctx context.Context) error {
 	roles, err := r.Client.Role.
 		Query().
 		All(ctx)
@@ -45,7 +45,7 @@ func (r RoleRepository) getAllRoles(ctx context.Context) error {
 	return nil
 }
 
-func (r RoleRepository) GetRoleByName(ctx context.Context, name string) *entgen.Role {
+func (r *RoleRepository) GetRoleByName(ctx context.Context, name string) *entgen.Role {
 	for _, role := range r.Roles {
 		if role.Name == name {
 			return role
@@ -55,7 +55,7 @@ func (r RoleRepository) GetRoleByName(ctx context.Context, name string) *entgen.
 	return nil
 }
 
-func (r RoleRepository) AddRole(ctx context.Context, role *domains.RoleCreate) error {
+func (r *RoleRepository) AddRole(ctx context.Context, role *domains.RoleCreate) error {
 	_, err := r.Client.Role.
 		Create().
 		SetName(role.Name).

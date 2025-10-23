@@ -37,7 +37,7 @@ func NewApprovalController(
 // @Produce json
 // @Success 200 {array} dtos.ApprovalResponse
 // @Router /approvals [get]
-func (c ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request) {
+func (c *ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request) {
 	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions
 
@@ -92,7 +92,7 @@ func (c ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request)
 // @Produce json
 // @Success 200 {string} message "Approval added successfully"
 // @Router /approvals [post]
-func (c ApprovalController) AddApproval(w http.ResponseWriter, r *http.Request) {
+func (c *ApprovalController) AddApproval(w http.ResponseWriter, r *http.Request) {
 	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions
 
@@ -139,7 +139,7 @@ func (c ApprovalController) AddApproval(w http.ResponseWriter, r *http.Request) 
 // @Param action body dtos.ApprovalAction true "Approval action object"
 // @Success 200 {string} message "Approval actioned successfully"
 // @Router /approvals/action [put]
-func (c ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Request) {
+func (c *ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Request) {
 	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions
 

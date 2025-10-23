@@ -25,7 +25,7 @@ func NewApprovalRoute(
 	}
 }
 
-func (r ApprovalRoute) Setup(router chi.Router) {
+func (r *ApprovalRoute) Setup(router chi.Router) {
 	r.logger.Info("setting up approval routes")
 
 	router.Route("/approvals", func(approvalRouter chi.Router) {
