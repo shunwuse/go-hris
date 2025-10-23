@@ -30,7 +30,7 @@ func NewAuthService(
 	}
 }
 
-func (s authService) GenerateToken(ctx context.Context, user *domains.UserWithPermissions) (string, error) {
+func (s *authService) GenerateToken(ctx context.Context, user *domains.UserWithPermissions) (string, error) {
 	roles := make([]constants.Role, 0)
 	for _, role := range user.Edges.Roles {
 		roles = append(roles, constants.Role(role.Name))
@@ -71,7 +71,7 @@ func (s authService) GenerateToken(ctx context.Context, user *domains.UserWithPe
 	return tokenString, nil
 }
 
-func (s authService) AuthenticateToken(ctx context.Context, tokenString string) (*domains.Claims, error) {
+func (s *authService) AuthenticateToken(ctx context.Context, tokenString string) (*domains.Claims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &domains.Claims{}, func(token *jwt.Token) (any, error) {
 		return []byte(s.secreteKey), nil
 	})

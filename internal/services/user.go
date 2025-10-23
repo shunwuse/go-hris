@@ -39,7 +39,7 @@ func NewUserService(
 	}
 }
 
-func (s userService) GetUsers(ctx context.Context) ([]*entgen.User, error) {
+func (s *userService) GetUsers(ctx context.Context) ([]*entgen.User, error) {
 	users, err := s.userRepository.Client.User.
 		Query().
 		All(ctx)
@@ -51,7 +51,7 @@ func (s userService) GetUsers(ctx context.Context) ([]*entgen.User, error) {
 	return users, nil
 }
 
-func (s userService) CreateUser(ctx context.Context, user *domains.UserCreate, role constants.Role) error {
+func (s *userService) CreateUser(ctx context.Context, user *domains.UserCreate, role constants.Role) error {
 	u, err := s.userRepository.Client.User.
 		Create().
 		SetUsername(user.Username).
@@ -92,7 +92,7 @@ func (s userService) CreateUser(ctx context.Context, user *domains.UserCreate, r
 	return nil
 }
 
-func (s userService) GetUserByUsername(ctx context.Context, username string) (*domains.UserWithPermissions, error) {
+func (s *userService) GetUserByUsername(ctx context.Context, username string) (*domains.UserWithPermissions, error) {
 	user, err := s.userRepository.Client.User.
 		Query().
 		WithPassword().
@@ -128,7 +128,7 @@ func (s userService) GetUserByUsername(ctx context.Context, username string) (*d
 	return &u, nil
 }
 
-func (s userService) UpdateUser(ctx context.Context, update *domains.UserUpdate) error {
+func (s *userService) UpdateUser(ctx context.Context, update *domains.UserUpdate) error {
 	err := s.userRepository.Client.User.
 		Update().
 		Where(user.IDEQ(update.ID)).

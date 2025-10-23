@@ -43,7 +43,7 @@ func NewUserController(
 // @Produce json
 // @Success 200 {array} dtos.GetUserResponse
 // @Router /users [get]
-func (c UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
+func (c *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
 	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions
 
@@ -94,7 +94,7 @@ func (c UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
 // @Param user body dtos.UserCreate true "User object that needs to be created"
 // @Success 201 {string} string "create successfully"
 // @Router /users [post]
-func (c UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
+func (c *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions
 
@@ -176,7 +176,7 @@ func (c UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 // @Param user body dtos.UserUpdate true "User object that needs to be updated"
 // @Success 200 {string} string "update successfully"
 // @Router /users [put]
-func (c UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
+func (c *UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions
 
@@ -229,7 +229,7 @@ func (c UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 // @Param user body dtos.UserLogin true "User object that needs to login"
 // @Success 200 {object} dtos.LoginResponse
 // @Router /login [post]
-func (c UserController) Login(w http.ResponseWriter, r *http.Request) {
+func (c *UserController) Login(w http.ResponseWriter, r *http.Request) {
 	var userLogin dtos.UserLogin
 
 	if err := render.DecodeJSON(r.Body, &userLogin); err != nil {

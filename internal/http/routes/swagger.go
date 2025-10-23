@@ -19,7 +19,7 @@ func NewSwaggerRoute(
 	}
 }
 
-func (r SwaggerRoute) Setup(router chi.Router) {
+func (r *SwaggerRoute) Setup(router chi.Router) {
 	r.logger.Info("setting up swagger routes")
 
 	router.Get("/swagger/*", httpSwagger.Handler(

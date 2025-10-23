@@ -25,7 +25,7 @@ func NewDBTrxMiddleware(
 	}
 }
 
-func (m DBTrxMiddleware) Handler() func(http.Handler) http.Handler {
+func (m *DBTrxMiddleware) Handler() func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			// Create lazy database transaction.
@@ -66,7 +66,7 @@ func (m DBTrxMiddleware) Handler() func(http.Handler) http.Handler {
 	}
 }
 
-func (m DBTrxMiddleware) Setup(router chi.Router) {
+func (m *DBTrxMiddleware) Setup(router chi.Router) {
 	m.logger.Info("setting up database transaction middleware")
 
 	router.Use(m.Handler())
