@@ -46,7 +46,9 @@ func newLogger(config Config) Logger {
 
 	// Check if logs directory exists, if not create it.
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
-		os.MkdirAll(dir, os.ModePerm)
+		if mkErr := os.MkdirAll(dir, os.ModePerm); mkErr != nil {
+			_, _ = os.Stderr.WriteString("failed to create log directory: " + mkErr.Error() + "\n")
+		}
 	}
 
 	// Create logger core based on environment.

@@ -138,6 +138,7 @@ func (c UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 		render.JSON(w, r, map[string]string{
 			"error": "failed to hash password",
 		})
+		return
 	}
 
 	var user = &domains.UserCreate{

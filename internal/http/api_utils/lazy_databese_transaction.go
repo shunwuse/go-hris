@@ -38,6 +38,7 @@ func (l *LazyDatabaseTransaction) beginTransaction() {
 		trx, err := l.db.Client.Tx(context.Background())
 		if err != nil {
 			l.logger.Error("failed to begin transaction", zap.Error(err))
+			return
 		}
 
 		l.logger.Info("begin database transaction")
