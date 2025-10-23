@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/shunwuse/go-hris/internal/http/api_utils"
 	"github.com/shunwuse/go-hris/internal/infra"
+	"go.uber.org/zap"
 )
 
 type DBTrxMiddleware struct {
@@ -50,13 +51,17 @@ func (m DBTrxMiddleware) Handler() func(http.Handler) http.Handler {
 			if writer.Status() >= 400 {
 				// Rollback transaction on error.
 				m.logger.WithContext(ctx).Info("rollback database transaction")
-				trx.Rollback()
+				if err := trx.Rollback(); err != nil {
+					m.logger.WithContext(ctx).Error("failed to rollback transaction", zap.Error(err))
+				}
 				return
 			}
 
 			// Commit transaction.
 			m.logger.WithContext(ctx).Info("commit database transaction")
-			trx.Commit()
+			if err := trx.Commit(); err != nil {
+				m.logger.WithContext(ctx).Error("failed to commit transaction", zap.Error(err))
+			}
 		})
 	}
 }

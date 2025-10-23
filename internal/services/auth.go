@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/shunwuse/go-hris/internal/constants"
@@ -80,9 +81,14 @@ func (s authService) AuthenticateToken(ctx context.Context, tokenString string) 
 	}
 
 	claims, ok := token.Claims.(*domains.Claims)
-	if !ok || !token.Valid {
-		s.logger.WithContext(ctx).Error("invalid JWT token")
-		return nil, err
+	if !ok {
+		s.logger.WithContext(ctx).Error("failed to convert token claims")
+		return nil, fmt.Errorf("invalid token claims")
+	}
+
+	if !token.Valid {
+		s.logger.WithContext(ctx).Error("JWT token is not valid")
+		return nil, fmt.Errorf("invalid token")
 	}
 
 	return claims, nil
