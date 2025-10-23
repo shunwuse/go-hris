@@ -8,8 +8,8 @@ import (
 
 // ExampleRoute struct
 type ExampleRoute struct {
-	logger            infra.Logger
-	exampleController controllers.ExampleController
+	logger            *infra.Logger
+	exampleController *controllers.ExampleController
 }
 
 func (r ExampleRoute) Setup(router chi.Router) {
@@ -19,10 +19,10 @@ func (r ExampleRoute) Setup(router chi.Router) {
 }
 
 func NewExampleRoute(
-	logger infra.Logger,
-	exampleController controllers.ExampleController,
-) ExampleRoute {
-	return ExampleRoute{
+	logger *infra.Logger,
+	exampleController *controllers.ExampleController,
+) *ExampleRoute {
+	return &ExampleRoute{
 		logger:            logger,
 		exampleController: exampleController,
 	}

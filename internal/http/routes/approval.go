@@ -8,17 +8,17 @@ import (
 )
 
 type ApprovalRoute struct {
-	logger             infra.Logger
-	jwtMiddleware      middlewares.JWTMiddleware
-	approvalController controllers.ApprovalController
+	logger             *infra.Logger
+	jwtMiddleware      *middlewares.JWTMiddleware
+	approvalController *controllers.ApprovalController
 }
 
 func NewApprovalRoute(
-	logger infra.Logger,
-	jwtMiddleware middlewares.JWTMiddleware,
-	approvalController controllers.ApprovalController,
-) ApprovalRoute {
-	return ApprovalRoute{
+	logger *infra.Logger,
+	jwtMiddleware *middlewares.JWTMiddleware,
+	approvalController *controllers.ApprovalController,
+) *ApprovalRoute {
+	return &ApprovalRoute{
 		logger:             logger,
 		jwtMiddleware:      jwtMiddleware,
 		approvalController: approvalController,

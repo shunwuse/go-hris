@@ -10,15 +10,15 @@ import (
 
 // ExampleController struct
 type ExampleController struct {
-	logger         infra.Logger
+	logger         *infra.Logger
 	exampleService service.ExampleService
 }
 
 func NewExampleController(
-	logger infra.Logger,
+	logger *infra.Logger,
 	exampleService service.ExampleService,
-) ExampleController {
-	return ExampleController{
+) *ExampleController {
+	return &ExampleController{
 		logger:         logger,
 		exampleService: exampleService,
 	}

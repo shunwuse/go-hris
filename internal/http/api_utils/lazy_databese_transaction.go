@@ -11,7 +11,7 @@ import (
 )
 
 type LazyDatabaseTransaction struct {
-	logger infra.Logger
+	logger *infra.Logger
 	db     *infra.Database
 	trx    *entgen.Tx
 
@@ -19,7 +19,7 @@ type LazyDatabaseTransaction struct {
 }
 
 func NewLazyDatabaseTransaction(
-	logger infra.Logger,
+	logger *infra.Logger,
 	client *infra.Database,
 ) LazyDatabaseTransaction {
 	return LazyDatabaseTransaction{

@@ -10,21 +10,21 @@ import (
 )
 
 type RoleRepository struct {
-	logger infra.Logger
-	infra.Database
+	logger *infra.Logger
+	*infra.Database
 
 	Roles []*entgen.Role
 }
 
 func NewRoleRepository(
-	logger infra.Logger,
-	db infra.Database,
-) RoleRepository {
+	logger *infra.Logger,
+	db *infra.Database,
+) *RoleRepository {
 	roles, _ := db.Client.Role.
 		Query().
 		All(context.Background())
 
-	return RoleRepository{
+	return &RoleRepository{
 		logger:   logger,
 		Database: db,
 		Roles:    roles,

@@ -8,22 +8,22 @@ import (
 )
 
 type UserRoleRepository struct {
-	logger infra.Logger
-	infra.Database
+	logger *infra.Logger
+	*infra.Database
 
 	UserRoleMap []*entgen.UserRole
 }
 
 func NewUserRoleRepository(
-	logger infra.Logger,
-	db infra.Database,
-) UserRoleRepository {
+	logger *infra.Logger,
+	db *infra.Database,
+) *UserRoleRepository {
 	// Initialize user roles.
 	userRoles, _ := db.Client.UserRole.
 		Query().
 		All(context.Background())
 
-	return UserRoleRepository{
+	return &UserRoleRepository{
 		logger:      logger,
 		Database:    db,
 		UserRoleMap: userRoles,

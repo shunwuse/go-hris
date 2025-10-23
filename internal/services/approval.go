@@ -14,15 +14,15 @@ import (
 )
 
 type approvalService struct {
-	logger             infra.Logger
-	approvalRepository repositories.ApprovalRepository
+	logger             *infra.Logger
+	approvalRepository *repositories.ApprovalRepository
 }
 
 func NewApprovalService(
-	logger infra.Logger,
-	approvalRepository repositories.ApprovalRepository,
+	logger *infra.Logger,
+	approvalRepository *repositories.ApprovalRepository,
 ) service.ApprovalService {
-	return approvalService{
+	return &approvalService{
 		logger:             logger,
 		approvalRepository: approvalRepository,
 	}

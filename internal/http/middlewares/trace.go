@@ -14,20 +14,20 @@ import (
 )
 
 type TraceMiddleware struct {
-	logger      infra.Logger
+	logger      *infra.Logger
 	entropyPool *sync.Pool
 }
 
 func NewTraceMiddleware(
-	logger infra.Logger,
-) TraceMiddleware {
+	logger *infra.Logger,
+) *TraceMiddleware {
 	pool := &sync.Pool{
 		New: func() any {
 			return ulid.Monotonic(rand.Reader, 0)
 		},
 	}
 
-	return TraceMiddleware{
+	return &TraceMiddleware{
 		logger:      logger,
 		entropyPool: pool,
 	}

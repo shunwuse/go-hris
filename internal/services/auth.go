@@ -14,16 +14,16 @@ import (
 )
 
 type authService struct {
-	logger infra.Logger
+	logger *infra.Logger
 
 	secreteKey string
 }
 
 func NewAuthService(
 	config infra.Config,
-	logger infra.Logger,
+	logger *infra.Logger,
 ) service.AuthService {
-	return authService{
+	return &authService{
 		logger: logger,
 
 		secreteKey: config.JWTSecret,

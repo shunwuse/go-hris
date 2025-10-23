@@ -11,22 +11,22 @@ import (
 
 type Server struct {
 	config            infra.Config
-	router            infra.RequestHandler
+	router            *infra.RequestHandler
 	routes            routes.Routes
 	commonMiddlewares middlewares.CommonMiddlewares
-	logger            infra.Logger
-	database          infra.Database
+	logger            *infra.Logger
+	database          *infra.Database
 }
 
 func NewServer(
 	config infra.Config,
-	router infra.RequestHandler,
+	router *infra.RequestHandler,
 	routes routes.Routes,
 	commonMiddlewares middlewares.CommonMiddlewares,
-	logger infra.Logger,
-	database infra.Database,
-) Server {
-	return Server{
+	logger *infra.Logger,
+	database *infra.Database,
+) *Server {
+	return &Server{
 		config:            config,
 		router:            router,
 		routes:            routes,
