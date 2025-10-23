@@ -113,7 +113,7 @@ func (c *ApprovalController) AddApproval(w http.ResponseWriter, r *http.Request)
 		Status:    constants.ApprovalStatusPending,
 	}
 
-	err := c.approvalService.AddApproval(r.Context(), approval)
+	err := c.approvalService.AddApproval(r.Context(), &approval)
 	if err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to add approval", zap.Error(err))
 		render.Status(r, http.StatusInternalServerError)
