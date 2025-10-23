@@ -1,7 +1,11 @@
 package main
 
 import (
+	"context"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/shunwuse/go-hris/internal/http/middlewares"
@@ -62,9 +66,46 @@ func (server *Server) Run() {
 		IdleTimeout:       60 * time.Second,
 	}
 
-	// Start server.
-	server.logger.Info("starting HTTP server", zap.String("port", port))
-	if err := httpServer.ListenAndServe(); err != nil {
-		server.logger.Fatal("failed to start HTTP server", zap.Error(err))
+	// Channel to capture server startup errors.
+	serverErrors := make(chan error, 1)
+
+	go func() {
+		server.logger.Info("starting HTTP server", zap.String("port", port))
+		serverErrors <- httpServer.ListenAndServe()
+	}()
+
+	// Channel to listen for interrupt signals.
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	gracefulShutdown := func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		server.logger.Info("initiating graceful shutdown", zap.Duration("timeout", 30*time.Second))
+
+		if err := httpServer.Shutdown(ctx); err != nil {
+			server.logger.Error("graceful shutdown failed", zap.Error(err))
+
+			if closeErr := httpServer.Close(); closeErr != nil {
+				server.logger.Error("forced closure failed", zap.Error(closeErr))
+			}
+
+			return
+		}
+
+		server.logger.Info("server stopped gracefully")
+	}
+
+	// Block until we receive an error or interrupt signal.
+	select {
+	case err := <-serverErrors:
+		if err != nil && err != http.ErrServerClosed {
+			server.logger.Fatal("server startup failed", zap.Error(err))
+		}
+
+	case sig := <-quit:
+		server.logger.Info("shutdown signal received", zap.String("signal", sig.String()))
+		gracefulShutdown()
 	}
 }
