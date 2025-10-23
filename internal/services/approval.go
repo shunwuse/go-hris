@@ -42,7 +42,7 @@ func (s *approvalService) GetApprovals(ctx context.Context) ([]*entgen.Approval,
 	return approvals, nil
 }
 
-func (s *approvalService) AddApproval(ctx context.Context, approval domains.ApprovalCreate) error {
+func (s *approvalService) AddApproval(ctx context.Context, approval *domains.ApprovalCreate) error {
 	_, err := s.approvalRepository.Client.Approval.
 		Create().
 		SetStatus(approval.Status).
