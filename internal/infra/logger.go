@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/oklog/ulid/v2"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -61,6 +62,15 @@ func newLogger(config Config) Logger {
 
 	// Create logger with caller.
 	logger := zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))
+
+	// Add instance metadata to all logs.
+	hostname, _ := os.Hostname()
+	logger = logger.With(
+		zap.String("instance_id", ulid.Make().String()),
+		zap.String("hostname", hostname),
+		zap.Int("pid", os.Getpid()),
+		zap.String("environment", config.Environment),
+	)
 
 	// Set global logger.
 	zap.ReplaceGlobals(logger)
