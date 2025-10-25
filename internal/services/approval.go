@@ -7,6 +7,7 @@ import (
 	"github.com/shunwuse/go-hris/ent/entgen/approval"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
+	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/infra"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"github.com/shunwuse/go-hris/internal/repositories"
@@ -36,7 +37,7 @@ func (s *approvalService) GetApprovals(ctx context.Context) ([]*entgen.Approval,
 		All(ctx)
 	if err != nil {
 		s.logger.WithContext(ctx).Error("failed to query approvals", zap.Error(err))
-		return nil, err
+		return nil, errors.ErrDatabaseError
 	}
 
 	return approvals, nil
@@ -50,7 +51,7 @@ func (s *approvalService) AddApproval(ctx context.Context, approval *domains.App
 		Save(ctx)
 	if err != nil {
 		s.logger.WithContext(ctx).Error("failed to create approval", zap.Error(err))
-		return err
+		return errors.ErrDatabaseError
 	}
 
 	return nil
@@ -68,7 +69,7 @@ func (s *approvalService) ActionApproval(ctx context.Context, approvalID uint, a
 		Exec(ctx)
 	if err != nil {
 		s.logger.WithContext(ctx).Error("failed to update approval status", zap.Error(err))
-		return err
+		return errors.ErrDatabaseError
 	}
 
 	// TODO: Check if rows were affected

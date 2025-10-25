@@ -9,6 +9,7 @@ import (
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/dtos"
+	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/infra"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"github.com/shunwuse/go-hris/internal/utils"
@@ -52,7 +53,7 @@ func (c *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
 		c.logger.WithContext(r.Context()).Error("user not authorized to get users")
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, map[string]string{
-			"error": "user not authorized to get users",
+			"error": errors.ErrInsufficientPermissions.Error(),
 		})
 		return
 	}
@@ -62,7 +63,7 @@ func (c *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
 		c.logger.WithContext(r.Context()).Error("failed to get users", zap.Error(err))
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
-			"error": "failed to get users",
+			"error": err.Error(),
 		})
 		return
 	}
@@ -103,7 +104,7 @@ func (c *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 		c.logger.WithContext(r.Context()).Error("user not authorized to create user")
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, map[string]string{
-			"error": "user not authorized to create user",
+			"error": errors.ErrInsufficientPermissions.Error(),
 		})
 		return
 	}
@@ -113,7 +114,7 @@ func (c *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 		c.logger.WithContext(r.Context()).Error("failed to decode user request", zap.Error(err))
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, map[string]string{
-			"error": "invalid request",
+			"error": errors.ErrInvalidInput.Error(),
 		})
 		return
 	}
@@ -123,10 +124,10 @@ func (c *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	// Cannot create user with admin role.
 	if userCreate.Role == constants.Admin {
-		c.logger.WithContext(r.Context()).Error("user not authorized to create admin user")
+		c.logger.WithContext(r.Context()).Error("cannot create user with admin role")
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, map[string]string{
-			"error": "user not authorized to create admin user",
+			"error": errors.ErrOperationNotAllowed.Error(),
 		})
 		return
 	}
@@ -136,7 +137,7 @@ func (c *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 		c.logger.WithContext(r.Context()).Error("failed to hash password", zap.Error(err))
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
-			"error": "failed to hash password",
+			"error": errors.ErrInternalError.Error(),
 		})
 		return
 	}
@@ -154,7 +155,7 @@ func (c *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 		c.logger.WithContext(r.Context()).Error("failed to create user", zap.Error(err))
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
-			"error": "failed to create user",
+			"error": err.Error(),
 		})
 		return
 	}
@@ -185,7 +186,7 @@ func (c *UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		c.logger.WithContext(r.Context()).Error("user not authorized to update user")
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, map[string]string{
-			"error": "user not authorized to update user",
+			"error": errors.ErrInsufficientPermissions.Error(),
 		})
 		return
 	}
@@ -195,7 +196,7 @@ func (c *UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		c.logger.WithContext(r.Context()).Error("failed to decode user request", zap.Error(err))
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, map[string]string{
-			"error": "invalid request",
+			"error": errors.ErrInvalidInput.Error(),
 		})
 		return
 	}
@@ -209,7 +210,7 @@ func (c *UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		c.logger.WithContext(r.Context()).Error("failed to update user", zap.Error(err))
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
-			"error": "failed to update user",
+			"error": err.Error(),
 		})
 		return
 	}
@@ -236,7 +237,7 @@ func (c *UserController) Login(w http.ResponseWriter, r *http.Request) {
 		c.logger.WithContext(r.Context()).Error("failed to decode login request", zap.Error(err))
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, map[string]string{
-			"error": "invalid request",
+			"error": errors.ErrInvalidInput.Error(),
 		})
 		return
 	}
@@ -249,7 +250,7 @@ func (c *UserController) Login(w http.ResponseWriter, r *http.Request) {
 		c.logger.WithContext(r.Context()).Error("failed to get user", zap.String("username", userLogin.Username), zap.Error(err))
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
-			"error": "user not found",
+			"error": err.Error(),
 		})
 		return
 	}
@@ -260,7 +261,7 @@ func (c *UserController) Login(w http.ResponseWriter, r *http.Request) {
 		c.logger.WithContext(r.Context()).Error("password verification failed")
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, map[string]string{
-			"error": "invalid username or password",
+			"error": errors.ErrInvalidCredentials.Error(),
 		})
 		return
 	}
@@ -271,7 +272,7 @@ func (c *UserController) Login(w http.ResponseWriter, r *http.Request) {
 		c.logger.WithContext(r.Context()).Error("failed to generate token", zap.Error(err))
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
-			"error": "failed to generate token",
+			"error": err.Error(),
 		})
 		return
 	}

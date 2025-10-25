@@ -5,6 +5,7 @@ import (
 
 	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/internal/domains"
+	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/infra"
 	"go.uber.org/zap"
 )
@@ -37,7 +38,7 @@ func (r *RoleRepository) getAllRoles(ctx context.Context) error {
 		All(ctx)
 	if err != nil {
 		r.logger.WithContext(ctx).Error("failed to query roles", zap.Error(err))
-		return err
+		return errors.ErrDatabaseError
 	}
 
 	r.Roles = roles
@@ -62,7 +63,7 @@ func (r *RoleRepository) AddRole(ctx context.Context, role *domains.RoleCreate) 
 		Save(ctx)
 	if err != nil {
 		r.logger.WithContext(ctx).Error("failed to create role", zap.Error(err))
-		return err
+		return errors.ErrDatabaseError
 	}
 
 	if err := r.getAllRoles(ctx); err != nil {
