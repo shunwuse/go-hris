@@ -3,11 +3,11 @@ package services
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 
 	"github.com/golang-jwt/jwt"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
+	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/infra"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"go.uber.org/zap"
@@ -48,7 +48,7 @@ func (s *authService) GenerateToken(ctx context.Context, user *domains.UserWithP
 	payloadJson, err := json.Marshal(payload)
 	if err != nil {
 		s.logger.WithContext(ctx).Error("failed to marshal token payload", zap.Error(err))
-		return "", err
+		return "", errors.ErrInternalError
 	}
 
 	var claims jwt.MapClaims
@@ -56,7 +56,7 @@ func (s *authService) GenerateToken(ctx context.Context, user *domains.UserWithP
 	err = json.Unmarshal(payloadJson, &claims)
 	if err != nil {
 		s.logger.WithContext(ctx).Error("failed to unmarshal token payload into claims", zap.Error(err))
-		return "", err
+		return "", errors.ErrInternalError
 	}
 
 	// Generate JWT token with HS256 signing method.
@@ -65,7 +65,7 @@ func (s *authService) GenerateToken(ctx context.Context, user *domains.UserWithP
 	tokenString, err := token.SignedString([]byte(s.secreteKey))
 	if err != nil {
 		s.logger.WithContext(ctx).Error("failed to sign JWT token", zap.Error(err))
-		return "", err
+		return "", errors.ErrInternalError
 	}
 
 	return tokenString, nil
@@ -77,18 +77,18 @@ func (s *authService) AuthenticateToken(ctx context.Context, tokenString string)
 	})
 	if err != nil {
 		s.logger.WithContext(ctx).Error("failed to parse JWT token", zap.Error(err))
-		return nil, err
+		return nil, errors.ErrTokenInvalid
 	}
 
 	claims, ok := token.Claims.(*domains.Claims)
 	if !ok {
 		s.logger.WithContext(ctx).Error("failed to convert token claims")
-		return nil, fmt.Errorf("invalid token claims")
+		return nil, errors.ErrTokenInvalid
 	}
 
 	if !token.Valid {
 		s.logger.WithContext(ctx).Error("JWT token is not valid")
-		return nil, fmt.Errorf("invalid token")
+		return nil, errors.ErrTokenInvalid
 	}
 
 	return claims, nil

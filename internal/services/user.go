@@ -2,13 +2,13 @@ package services
 
 import (
 	"context"
-	"errors"
 	"slices"
 
 	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/ent/entgen/user"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
+	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/infra"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"github.com/shunwuse/go-hris/internal/repositories"
@@ -45,7 +45,7 @@ func (s *userService) GetUsers(ctx context.Context) ([]*entgen.User, error) {
 		All(ctx)
 	if err != nil {
 		s.logger.WithContext(ctx).Error("failed to query users", zap.Error(err))
-		return nil, err
+		return nil, errors.ErrDatabaseError
 	}
 
 	return users, nil
@@ -59,7 +59,7 @@ func (s *userService) CreateUser(ctx context.Context, user *domains.UserCreate, 
 		Save(ctx)
 	if err != nil {
 		s.logger.WithContext(ctx).Error("failed to create user", zap.Error(err))
-		return err
+		return errors.ErrDatabaseError
 	}
 
 	_, err = s.userRepository.Client.Password.
@@ -69,13 +69,13 @@ func (s *userService) CreateUser(ctx context.Context, user *domains.UserCreate, 
 		Save(ctx)
 	if err != nil {
 		s.logger.WithContext(ctx).Error("failed to create password", zap.Error(err))
-		return err
+		return errors.ErrDatabaseError
 	}
 
 	roleModel := s.roleRepository.GetRoleByName(ctx, role.String())
 	if roleModel == nil {
 		s.logger.WithContext(ctx).Error("role not found", zap.String("role", role.String()))
-		return errors.New("role not found")
+		return errors.ErrNotFound
 	}
 
 	// Create user-role association.
@@ -86,7 +86,7 @@ func (s *userService) CreateUser(ctx context.Context, user *domains.UserCreate, 
 		Save(ctx)
 	if err != nil {
 		s.logger.WithContext(ctx).Error("failed to create user role association", zap.Error(err))
-		return err
+		return errors.ErrDatabaseError
 	}
 
 	return nil
@@ -101,7 +101,11 @@ func (s *userService) GetUserByUsername(ctx context.Context, username string) (*
 		Only(ctx)
 	if err != nil {
 		s.logger.WithContext(ctx).Error("failed to get user by username", zap.Error(err), zap.String("username", username))
-		return nil, err
+		if entgen.IsNotFound(err) {
+			return nil, errors.ErrNotFound
+		}
+
+		return nil, errors.ErrDatabaseError
 	}
 
 	// Get permissions based on user's roles.
@@ -136,7 +140,7 @@ func (s *userService) UpdateUser(ctx context.Context, update *domains.UserUpdate
 		Exec(ctx)
 	if err != nil {
 		s.logger.WithContext(ctx).Error("failed to update user", zap.Error(err), zap.Uint("user_id", update.ID))
-		return err
+		return errors.ErrDatabaseError
 	}
 
 	return nil

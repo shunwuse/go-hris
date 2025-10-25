@@ -186,7 +186,7 @@ if [ -n "$TOKEN" ]; then
     
     HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
     
-    test_result "Create approval returns 200" "200" "$HTTP_CODE"
+    test_result "Create approval returns 201" "201" "$HTTP_CODE"
 else
     echo -e "${RED}Skipping protected endpoint tests (no token available)${NC}"
 fi

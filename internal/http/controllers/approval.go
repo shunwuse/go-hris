@@ -7,6 +7,7 @@ import (
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/dtos"
+	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/infra"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"go.uber.org/zap"
@@ -46,7 +47,7 @@ func (c *ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request
 		c.logger.WithContext(r.Context()).Error("user not authorized to get approvals")
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, map[string]string{
-			"error": "user not authorized to get approvals",
+			"error": errors.ErrInsufficientPermissions.Error(),
 		})
 		return
 	}
@@ -56,7 +57,7 @@ func (c *ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request
 		c.logger.WithContext(r.Context()).Error("failed to get approvals", zap.Error(err))
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
-			"error": "failed to get approvals",
+			"error": err.Error(),
 		})
 		return
 	}
@@ -101,7 +102,7 @@ func (c *ApprovalController) AddApproval(w http.ResponseWriter, r *http.Request)
 		c.logger.WithContext(r.Context()).Error("user not authorized to add approval")
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, map[string]string{
-			"error": "user not authorized to add approval",
+			"error": errors.ErrInsufficientPermissions.Error(),
 		})
 		return
 	}
@@ -118,11 +119,12 @@ func (c *ApprovalController) AddApproval(w http.ResponseWriter, r *http.Request)
 		c.logger.WithContext(r.Context()).Error("failed to add approval", zap.Error(err))
 		render.Status(r, http.StatusInternalServerError)
 		render.JSON(w, r, map[string]string{
-			"error": "failed to add approval",
+			"error": err.Error(),
 		})
 		return
 	}
 
+	render.Status(r, http.StatusCreated)
 	render.JSON(w, r, map[string]string{
 		"message": "approval added successfully",
 	})
@@ -151,7 +153,7 @@ func (c *ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Reque
 		c.logger.WithContext(r.Context()).Error("user not authorized to action approval")
 		render.Status(r, http.StatusUnauthorized)
 		render.JSON(w, r, map[string]string{
-			"error": "user not authorized to action approval",
+			"error": errors.ErrInsufficientPermissions.Error(),
 		})
 		return
 	}
@@ -164,7 +166,7 @@ func (c *ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Reque
 		c.logger.WithContext(r.Context()).Error("failed to decode action request", zap.Error(err))
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, map[string]string{
-			"error": "invalid request",
+			"error": errors.ErrInvalidInput.Error(),
 		})
 		return
 	}
@@ -176,7 +178,7 @@ func (c *ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Reque
 		c.logger.WithContext(r.Context()).Error("invalid approval action", zap.String("action", string(action)))
 		render.Status(r, http.StatusBadRequest)
 		render.JSON(w, r, map[string]string{
-			"error": "invalid action",
+			"error": errors.ErrValidationFailed.Error(),
 		})
 		return
 	}
