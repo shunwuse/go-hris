@@ -8,6 +8,7 @@ import (
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/dtos"
 	"github.com/shunwuse/go-hris/internal/errors"
+	"github.com/shunwuse/go-hris/internal/http/response"
 	"github.com/shunwuse/go-hris/internal/infra"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"go.uber.org/zap"
@@ -45,20 +46,14 @@ func (c *ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request
 	// Check if user has permission to read approvals.
 	if hasPermission := permissions.Contains(constants.PermissionReadApproval); !hasPermission {
 		c.logger.WithContext(r.Context()).Error("user not authorized to get approvals")
-		render.Status(r, http.StatusUnauthorized)
-		render.JSON(w, r, map[string]string{
-			"error": errors.ErrInsufficientPermissions.Error(),
-		})
+		response.Error(w, errors.ErrInsufficientPermissions)
 		return
 	}
 
 	approvals, err := c.approvalService.GetApprovals(r.Context())
 	if err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to get approvals", zap.Error(err))
-		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, map[string]string{
-			"error": err.Error(),
-		})
+		response.Error(w, err)
 		return
 	}
 
@@ -78,9 +73,7 @@ func (c *ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request
 
 	}
 
-	render.JSON(w, r, map[string]any{
-		"data": approvalsResponse,
-	})
+	response.List(w, approvalsResponse)
 }
 
 // AddApproval godoc
@@ -100,10 +93,7 @@ func (c *ApprovalController) AddApproval(w http.ResponseWriter, r *http.Request)
 	// Check if user has permission to create approvals.
 	if hasPermission := permissions.Contains(constants.PermissionCreateApproval); !hasPermission {
 		c.logger.WithContext(r.Context()).Error("user not authorized to add approval")
-		render.Status(r, http.StatusUnauthorized)
-		render.JSON(w, r, map[string]string{
-			"error": errors.ErrInsufficientPermissions.Error(),
-		})
+		response.Error(w, errors.ErrInsufficientPermissions)
 		return
 	}
 
@@ -117,17 +107,11 @@ func (c *ApprovalController) AddApproval(w http.ResponseWriter, r *http.Request)
 	err := c.approvalService.AddApproval(r.Context(), &approval)
 	if err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to add approval", zap.Error(err))
-		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, map[string]string{
-			"error": err.Error(),
-		})
+		response.Error(w, err)
 		return
 	}
 
-	render.Status(r, http.StatusCreated)
-	render.JSON(w, r, map[string]string{
-		"message": "approval added successfully",
-	})
+	response.Created(w, "approval added successfully")
 }
 
 // ActionApproval godoc
@@ -151,10 +135,7 @@ func (c *ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Reque
 		constants.PermissionActionApproval,
 	}); !hasPermission {
 		c.logger.WithContext(r.Context()).Error("user not authorized to action approval")
-		render.Status(r, http.StatusUnauthorized)
-		render.JSON(w, r, map[string]string{
-			"error": errors.ErrInsufficientPermissions.Error(),
-		})
+		response.Error(w, errors.ErrInsufficientPermissions)
 		return
 	}
 
@@ -164,10 +145,7 @@ func (c *ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Reque
 	err := render.DecodeJSON(r.Body, &actionRequest)
 	if err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to decode action request", zap.Error(err))
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, map[string]string{
-			"error": errors.ErrInvalidInput.Error(),
-		})
+		response.Error(w, errors.ErrInvalidInput)
 		return
 	}
 
@@ -176,26 +154,18 @@ func (c *ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Reque
 
 	if !isActionValid(action) {
 		c.logger.WithContext(r.Context()).Error("invalid approval action", zap.String("action", string(action)))
-		render.Status(r, http.StatusBadRequest)
-		render.JSON(w, r, map[string]string{
-			"error": errors.ErrValidationFailed.Error(),
-		})
+		response.Error(w, errors.ErrValidationFailed)
 		return
 	}
 
 	err = c.approvalService.ActionApproval(r.Context(), approvalID, action, userID)
 	if err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to action approval", zap.Error(err))
-		render.Status(r, http.StatusInternalServerError)
-		render.JSON(w, r, map[string]string{
-			"error": err.Error(),
-		})
+		response.Error(w, err)
 		return
 	}
 
-	render.JSON(w, r, map[string]string{
-		"message": "approval actioned successfully",
-	})
+	response.OK(w, "approval actioned successfully")
 }
 
 func isActionValid(action constants.ApprovalStatus) bool {

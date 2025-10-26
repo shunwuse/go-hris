@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/go-chi/render"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/errors"
+	"github.com/shunwuse/go-hris/internal/http/response"
 	"github.com/shunwuse/go-hris/internal/infra"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"go.uber.org/zap"
@@ -34,27 +34,18 @@ func (m *JWTMiddleware) Handler() func(http.Handler) http.Handler {
 			authHeader := r.Header.Get("Authorization")
 
 			if authHeader == "" {
-				render.Status(r, http.StatusUnauthorized)
-				render.JSON(w, r, map[string]string{
-					"error": errors.ErrUnauthorized.Error(),
-				})
+				response.Error(w, errors.ErrUnauthorized)
 				return
 			}
 
 			texts := strings.Split(authHeader, " ")
 			if len(texts) != 2 {
-				render.Status(r, http.StatusUnauthorized)
-				render.JSON(w, r, map[string]string{
-					"error": errors.ErrInvalidCredentials.Error(),
-				})
+				response.Error(w, errors.ErrInvalidCredentials)
 				return
 			}
 
 			if texts[0] != "Bearer" {
-				render.Status(r, http.StatusUnauthorized)
-				render.JSON(w, r, map[string]string{
-					"error": errors.ErrInvalidCredentials.Error(),
-				})
+				response.Error(w, errors.ErrInvalidCredentials)
 				return
 			}
 
@@ -63,10 +54,7 @@ func (m *JWTMiddleware) Handler() func(http.Handler) http.Handler {
 			claims, err := m.authService.AuthenticateToken(r.Context(), token)
 			if err != nil {
 				m.logger.WithContext(r.Context()).Error("failed to authenticate token", zap.Error(err))
-				render.Status(r, http.StatusUnauthorized)
-				render.JSON(w, r, map[string]string{
-					"error": err.Error(),
-				})
+				response.Error(w, err)
 				return
 			}
 
