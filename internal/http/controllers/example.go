@@ -3,7 +3,7 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/go-chi/render"
+	"github.com/shunwuse/go-hris/internal/http/response"
 	"github.com/shunwuse/go-hris/internal/infra"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 )
@@ -29,7 +29,5 @@ func (c *ExampleController) Ping(w http.ResponseWriter, r *http.Request) {
 
 	message := c.exampleService.Ping(r.Context())
 
-	render.JSON(w, r, map[string]any{
-		"message": message,
-	})
+	response.OK(w, message)
 }

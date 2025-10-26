@@ -5,7 +5,9 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/http/api_utils"
+	"github.com/shunwuse/go-hris/internal/http/response"
 	"github.com/shunwuse/go-hris/internal/infra"
 	"go.uber.org/zap"
 )
@@ -53,7 +55,14 @@ func (m *DBTrxMiddleware) Handler() func(http.Handler) http.Handler {
 				m.logger.WithContext(ctx).Info("rollback database transaction")
 				if err := trx.Rollback(); err != nil {
 					m.logger.WithContext(ctx).Error("failed to rollback transaction", zap.Error(err))
+
+					if cerr := trx.Client().Close(); cerr != nil {
+						m.logger.WithContext(ctx).Error("failed to close database after rollback failure", zap.Error(cerr))
+					}
+
+					m.logger.WithContext(ctx).Warn("closed database client after rollback failure")
 				}
+
 				return
 			}
 
@@ -61,6 +70,7 @@ func (m *DBTrxMiddleware) Handler() func(http.Handler) http.Handler {
 			m.logger.WithContext(ctx).Info("commit database transaction")
 			if err := trx.Commit(); err != nil {
 				m.logger.WithContext(ctx).Error("failed to commit transaction", zap.Error(err))
+				response.Error(w, errors.ErrDatabaseError)
 			}
 		})
 	}
