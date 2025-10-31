@@ -4,14 +4,11 @@ import (
 	"context"
 
 	"github.com/shunwuse/go-hris/ent/entgen"
-	"github.com/shunwuse/go-hris/ent/entgen/approval"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
-	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/infra"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"github.com/shunwuse/go-hris/internal/repositories"
-	"go.uber.org/zap"
 )
 
 type approvalService struct {
@@ -30,49 +27,14 @@ func NewApprovalService(
 }
 
 func (s *approvalService) GetApprovals(ctx context.Context) ([]*entgen.Approval, error) {
-	approvals, err := s.approvalRepository.Client.Approval.
-		Query().
-		WithCreator().
-		WithApprover().
-		All(ctx)
-	if err != nil {
-		s.logger.WithContext(ctx).Error("failed to query approvals", zap.Error(err))
-		return nil, errors.ErrDatabaseError
-	}
-
-	return approvals, nil
+	return s.approvalRepository.FindAllWithRelations(ctx)
 }
 
 func (s *approvalService) AddApproval(ctx context.Context, approval *domains.ApprovalCreate) error {
-	_, err := s.approvalRepository.Client.Approval.
-		Create().
-		SetStatus(approval.Status).
-		SetCreatorID(approval.CreatorID).
-		Save(ctx)
-	if err != nil {
-		s.logger.WithContext(ctx).Error("failed to create approval", zap.Error(err))
-		return errors.ErrDatabaseError
-	}
-
-	return nil
+	_, err := s.approvalRepository.Create(ctx, approval.Status, approval.CreatorID)
+	return err
 }
 
 func (s *approvalService) ActionApproval(ctx context.Context, approvalID uint, action constants.ApprovalStatus, approverID uint) error {
-	err := s.approvalRepository.Client.Approval.
-		Update().
-		Where(
-			approval.IDEQ(approvalID),
-			approval.StatusEQ(constants.ApprovalStatusPending),
-		).
-		SetStatus(action).
-		SetApproverID(approverID).
-		Exec(ctx)
-	if err != nil {
-		s.logger.WithContext(ctx).Error("failed to update approval status", zap.Error(err))
-		return errors.ErrDatabaseError
-	}
-
-	// TODO: Check if rows were affected
-
-	return nil
+	return s.approvalRepository.UpdateStatusByID(ctx, approvalID, action, approverID)
 }

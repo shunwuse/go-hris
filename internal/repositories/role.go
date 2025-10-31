@@ -4,7 +4,6 @@ import (
 	"context"
 
 	"github.com/shunwuse/go-hris/ent/entgen"
-	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/infra"
 	"go.uber.org/zap"
@@ -32,21 +31,20 @@ func NewRoleRepository(
 	}
 }
 
-func (r *RoleRepository) getAllRoles(ctx context.Context) error {
-	roles, err := r.Client.Role.
-		Query().
+func (r *RoleRepository) FindAll(ctx context.Context) error {
+	roles, err := r.Client.Role.Query().
 		All(ctx)
 	if err != nil {
-		r.logger.WithContext(ctx).Error("failed to query roles", zap.Error(err))
+		r.logger.WithContext(ctx).Error("failed to find all roles", zap.Error(err))
 		return errors.ErrDatabaseError
 	}
 
-	r.Roles = roles
+	r.Roles = roles // update cached roles
 
 	return nil
 }
 
-func (r *RoleRepository) GetRoleByName(ctx context.Context, name string) *entgen.Role {
+func (r *RoleRepository) FindByName(ctx context.Context, name string) *entgen.Role {
 	for _, role := range r.Roles {
 		if role.Name == name {
 			return role
@@ -56,19 +54,18 @@ func (r *RoleRepository) GetRoleByName(ctx context.Context, name string) *entgen
 	return nil
 }
 
-func (r *RoleRepository) AddRole(ctx context.Context, role *domains.RoleCreate) error {
-	_, err := r.Client.Role.
-		Create().
-		SetName(role.Name).
+func (r *RoleRepository) Create(ctx context.Context, name string) (*entgen.Role, error) {
+	role, err := r.Client.Role.Create().
+		SetName(name).
 		Save(ctx)
 	if err != nil {
 		r.logger.WithContext(ctx).Error("failed to create role", zap.Error(err))
-		return errors.ErrDatabaseError
+		return nil, errors.ErrDatabaseError
 	}
 
-	if err := r.getAllRoles(ctx); err != nil {
-		return err
+	if err := r.FindAll(ctx); err != nil {
+		return nil, err
 	}
 
-	return nil
+	return role, nil
 }
