@@ -5,7 +5,6 @@ import (
 	"slices"
 
 	"github.com/shunwuse/go-hris/ent/entgen"
-	"github.com/shunwuse/go-hris/ent/entgen/user"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/errors"
@@ -18,6 +17,7 @@ import (
 type userService struct {
 	logger                   *infra.Logger
 	userRepository           *repositories.UserRepository
+	passwordRepository       *repositories.PasswordRepository
 	roleRepository           *repositories.RoleRepository
 	userRoleRepository       *repositories.UserRoleRepository
 	rolePermissionRepository *repositories.RolePermissionRepository
@@ -26,6 +26,7 @@ type userService struct {
 func NewUserService(
 	logger *infra.Logger,
 	userRepository *repositories.UserRepository,
+	passwordRepository *repositories.PasswordRepository,
 	roleRepository *repositories.RoleRepository,
 	userRoleRepository *repositories.UserRoleRepository,
 	rolePermissionRepository *repositories.RolePermissionRepository,
@@ -33,6 +34,7 @@ func NewUserService(
 	return &userService{
 		logger:                   logger,
 		userRepository:           userRepository,
+		passwordRepository:       passwordRepository,
 		roleRepository:           roleRepository,
 		userRoleRepository:       userRoleRepository,
 		rolePermissionRepository: rolePermissionRepository,
@@ -40,72 +42,38 @@ func NewUserService(
 }
 
 func (s *userService) GetUsers(ctx context.Context) ([]*entgen.User, error) {
-	users, err := s.userRepository.Client.User.
-		Query().
-		All(ctx)
-	if err != nil {
-		s.logger.WithContext(ctx).Error("failed to query users", zap.Error(err))
-		return nil, errors.ErrDatabaseError
-	}
-
-	return users, nil
+	return s.userRepository.FindAll(ctx)
 }
 
 func (s *userService) CreateUser(ctx context.Context, user *domains.UserCreate, role constants.Role) error {
-	u, err := s.userRepository.Client.User.
-		Create().
-		SetUsername(user.Username).
-		SetName(user.Name).
-		Save(ctx)
+	u, err := s.userRepository.Create(ctx, user.Username, user.Name)
 	if err != nil {
-		s.logger.WithContext(ctx).Error("failed to create user", zap.Error(err))
-		return errors.ErrDatabaseError
+		return err
 	}
 
-	_, err = s.userRepository.Client.Password.
-		Create().
-		SetHash(user.Password.Hash).
-		SetOwner(u).
-		Save(ctx)
+	_, err = s.passwordRepository.Create(ctx, user.Password.Hash, u)
 	if err != nil {
-		s.logger.WithContext(ctx).Error("failed to create password", zap.Error(err))
-		return errors.ErrDatabaseError
+		return err
 	}
 
-	roleModel := s.roleRepository.GetRoleByName(ctx, role.String())
+	roleModel := s.roleRepository.FindByName(ctx, role.String())
 	if roleModel == nil {
 		s.logger.WithContext(ctx).Error("role not found", zap.String("role", role.String()))
 		return errors.ErrNotFound
 	}
 
-	// Create user-role association.
-	_, err = s.userRepository.Client.UserRole.
-		Create().
-		SetUserID(u.ID).
-		SetRoleID(roleModel.ID).
-		Save(ctx)
+	_, err = s.userRoleRepository.Create(ctx, u.ID, roleModel.ID)
 	if err != nil {
-		s.logger.WithContext(ctx).Error("failed to create user role association", zap.Error(err))
-		return errors.ErrDatabaseError
+		return err
 	}
 
 	return nil
 }
 
 func (s *userService) GetUserByUsername(ctx context.Context, username string) (*domains.UserWithPermissions, error) {
-	user, err := s.userRepository.Client.User.
-		Query().
-		WithPassword().
-		WithRoles().
-		Where(user.UsernameEQ(username)).
-		Only(ctx)
+	user, err := s.userRepository.FindByUsername(ctx, username)
 	if err != nil {
-		s.logger.WithContext(ctx).Error("failed to get user by username", zap.Error(err), zap.String("username", username))
-		if entgen.IsNotFound(err) {
-			return nil, errors.ErrNotFound
-		}
-
-		return nil, errors.ErrDatabaseError
+		return nil, err
 	}
 
 	// Get permissions based on user's roles.
@@ -133,15 +101,5 @@ func (s *userService) GetUserByUsername(ctx context.Context, username string) (*
 }
 
 func (s *userService) UpdateUser(ctx context.Context, update *domains.UserUpdate) error {
-	err := s.userRepository.Client.User.
-		Update().
-		Where(user.IDEQ(update.ID)).
-		SetName(update.Name).
-		Exec(ctx)
-	if err != nil {
-		s.logger.WithContext(ctx).Error("failed to update user", zap.Error(err), zap.Uint("user_id", update.ID))
-		return errors.ErrDatabaseError
-	}
-
-	return nil
+	return s.userRepository.Update(ctx, update.ID, update.Name)
 }
