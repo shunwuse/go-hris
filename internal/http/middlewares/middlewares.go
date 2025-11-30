@@ -22,6 +22,8 @@ func NewCommonMiddlewares(
 }
 
 func (m CommonMiddlewares) Setup(router chi.Router) {
+	NewCORSMiddleware().Setup(router) // setup CORS middleware
+
 	// Setup built-in middlewares.
 	router.Use(middleware.Logger)
 	router.Use(middleware.Recoverer)
