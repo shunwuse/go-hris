@@ -16,7 +16,8 @@ type Config struct {
 
 	SqliteDBPath string `koanf:"sqlite_db_path"`
 
-	JWTSecret string `koanf:"jwt_secret"`
+	JWTSecret        string `koanf:"jwt_secret"`
+	JWTExpireMinutes int    `koanf:"jwt_expire_minutes"`
 }
 
 var (

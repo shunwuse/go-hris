@@ -20,7 +20,8 @@ import (
 type authService struct {
 	logger *infra.Logger
 
-	jwtKey jwk.Key
+	jwtKey    jwk.Key
+	jwtExpire time.Duration
 }
 
 func NewAuthService(
@@ -38,12 +39,22 @@ func NewAuthService(
 	kid := hex.EncodeToString(hash[:])[:8]
 	_ = key.Set(jwk.KeyIDKey, kid)
 
-	logger.Info("JWT signing key initialized", zap.String("kid", kid))
+	// Set expire hours with default value.
+	expireDuration := time.Duration(config.JWTExpireMinutes) * time.Minute
+	if expireDuration <= 0 {
+		expireDuration = 1 * time.Hour // default to 1 hour
+	}
+
+	logger.Info("Auth service initialized",
+		zap.String("kid", kid),
+		zap.Duration("expire_duration", expireDuration),
+	)
 
 	return &authService{
 		logger: logger,
 
-		jwtKey: key,
+		jwtKey:    key,
+		jwtExpire: expireDuration,
 	}
 }
 
@@ -53,9 +64,13 @@ func (s *authService) GenerateToken(ctx context.Context, user *domains.UserWithP
 		roles = append(roles, constants.Role(role.Name))
 	}
 
+	now := time.Now()
+	expiration := now.Add(s.jwtExpire)
+
 	// Build JWT token with jwx.
 	token, err := jwt.NewBuilder().
-		IssuedAt(time.Now()).
+		IssuedAt(now).
+		Expiration(expiration).
 		Claim(constants.ClaimUserID, user.ID).
 		Claim(constants.ClaimUsername, user.Username).
 		Claim(constants.ClaimCreatedAt, user.CreatedAt).
@@ -82,6 +97,7 @@ func (s *authService) AuthenticateToken(ctx context.Context, tokenString string)
 	token, err := jwt.Parse(
 		[]byte(tokenString),
 		jwt.WithKey(jwa.HS256, s.jwtKey),
+		jwt.WithValidate(true), // validate claims like exp, nbf, iat
 	)
 	if err != nil {
 		s.logger.WithContext(ctx).Error("failed to parse JWT token", zap.Error(err))
