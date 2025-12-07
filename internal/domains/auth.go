@@ -3,7 +3,6 @@ package domains
 import (
 	"time"
 
-	"github.com/golang-jwt/jwt"
 	"github.com/shunwuse/go-hris/internal/constants"
 )
 
@@ -16,7 +15,5 @@ type TokenPayload struct {
 }
 
 type Claims struct {
-	jwt.StandardClaims
-
 	TokenPayload
 }
