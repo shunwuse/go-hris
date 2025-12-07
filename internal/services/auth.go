@@ -2,9 +2,13 @@ package services
 
 import (
 	"context"
-	"encoding/json"
+	"crypto/sha256"
+	"encoding/hex"
+	"time"
 
-	"github.com/golang-jwt/jwt"
+	"github.com/lestrrat-go/jwx/v2/jwa"
+	"github.com/lestrrat-go/jwx/v2/jwk"
+	"github.com/lestrrat-go/jwx/v2/jwt"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/errors"
@@ -16,17 +20,30 @@ import (
 type authService struct {
 	logger *infra.Logger
 
-	secreteKey string
+	jwtKey jwk.Key
 }
 
 func NewAuthService(
 	config infra.Config,
 	logger *infra.Logger,
 ) service.AuthService {
+	key, err := jwk.FromRaw([]byte(config.JWTSecret))
+	if err != nil {
+		logger.Fatal("failed to create JWK from secret", zap.Error(err))
+	}
+
+	_ = key.Set(jwk.AlgorithmKey, jwa.HS256)
+
+	hash := sha256.Sum256([]byte(config.JWTSecret))
+	kid := hex.EncodeToString(hash[:])[:8]
+	_ = key.Set(jwk.KeyIDKey, kid)
+
+	logger.Info("JWT signing key initialized", zap.String("kid", kid))
+
 	return &authService{
 		logger: logger,
 
-		secreteKey: config.JWTSecret,
+		jwtKey: key,
 	}
 }
 
@@ -36,59 +53,78 @@ func (s *authService) GenerateToken(ctx context.Context, user *domains.UserWithP
 		roles = append(roles, constants.Role(role.Name))
 	}
 
-	payload := domains.TokenPayload{
-		UserID:      user.ID,
-		Username:    user.Username,
-		CreatedAt:   user.CreatedAt,
-		Roles:       roles,
-		Permissions: user.Permissions,
-	}
-
-	// Convert payload to JSON for JWT claims.
-	payloadJson, err := json.Marshal(payload)
+	// Build JWT token with jwx.
+	token, err := jwt.NewBuilder().
+		IssuedAt(time.Now()).
+		Claim(constants.ClaimUserID, user.ID).
+		Claim(constants.ClaimUsername, user.Username).
+		Claim(constants.ClaimCreatedAt, user.CreatedAt).
+		Claim(constants.ClaimRoles, roles).
+		Claim(constants.ClaimPermissions, user.Permissions).
+		Build()
 	if err != nil {
-		s.logger.WithContext(ctx).Error("failed to marshal token payload", zap.Error(err))
+		s.logger.WithContext(ctx).Error("failed to build JWT token", zap.Error(err))
 		return "", errors.ErrInternalError
 	}
 
-	var claims jwt.MapClaims
-	// Unmarshal JSON payload into JWT claims.
-	err = json.Unmarshal(payloadJson, &claims)
-	if err != nil {
-		s.logger.WithContext(ctx).Error("failed to unmarshal token payload into claims", zap.Error(err))
-		return "", errors.ErrInternalError
-	}
-
-	// Generate JWT token with HS256 signing method.
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-
-	tokenString, err := token.SignedString([]byte(s.secreteKey))
+	// Sign token with HS256 using JWK.
+	signed, err := jwt.Sign(token, jwt.WithKey(jwa.HS256, s.jwtKey))
 	if err != nil {
 		s.logger.WithContext(ctx).Error("failed to sign JWT token", zap.Error(err))
 		return "", errors.ErrInternalError
 	}
 
-	return tokenString, nil
+	return string(signed), nil
 }
 
 func (s *authService) AuthenticateToken(ctx context.Context, tokenString string) (*domains.Claims, error) {
-	token, err := jwt.ParseWithClaims(tokenString, &domains.Claims{}, func(token *jwt.Token) (any, error) {
-		return []byte(s.secreteKey), nil
-	})
+	// Parse and verify token using JWK.
+	token, err := jwt.Parse(
+		[]byte(tokenString),
+		jwt.WithKey(jwa.HS256, s.jwtKey),
+	)
 	if err != nil {
 		s.logger.WithContext(ctx).Error("failed to parse JWT token", zap.Error(err))
 		return nil, errors.ErrTokenInvalid
 	}
 
-	claims, ok := token.Claims.(*domains.Claims)
-	if !ok {
-		s.logger.WithContext(ctx).Error("failed to convert token claims")
-		return nil, errors.ErrTokenInvalid
+	// Extract claims.
+	claims := &domains.Claims{}
+
+	if userID, ok := token.Get(constants.ClaimUserID); ok {
+		if id, ok := userID.(float64); ok {
+			claims.UserID = uint(id)
+		}
 	}
 
-	if !token.Valid {
-		s.logger.WithContext(ctx).Error("JWT token is not valid")
-		return nil, errors.ErrTokenInvalid
+	if username, ok := token.Get(constants.ClaimUsername); ok {
+		claims.Username, _ = username.(string)
+	}
+
+	if createdAt, ok := token.Get(constants.ClaimCreatedAt); ok {
+		if t, ok := createdAt.(time.Time); ok {
+			claims.CreatedAt = t
+		}
+	}
+
+	if rolesRaw, ok := token.Get(constants.ClaimRoles); ok {
+		if roles, ok := rolesRaw.([]any); ok {
+			for _, r := range roles {
+				if roleStr, ok := r.(string); ok {
+					claims.Roles = append(claims.Roles, constants.Role(roleStr))
+				}
+			}
+		}
+	}
+
+	if permsRaw, ok := token.Get(constants.ClaimPermissions); ok {
+		if perms, ok := permsRaw.([]any); ok {
+			for _, p := range perms {
+				if permStr, ok := p.(string); ok {
+					claims.Permissions = append(claims.Permissions, constants.Permission(permStr))
+				}
+			}
+		}
 	}
 
 	return claims, nil
