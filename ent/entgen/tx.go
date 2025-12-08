@@ -18,6 +18,8 @@ type Tx struct {
 	Password *PasswordClient
 	// Permission is the client for interacting with the Permission builders.
 	Permission *PermissionClient
+	// RefreshToken is the client for interacting with the RefreshToken builders.
+	RefreshToken *RefreshTokenClient
 	// Role is the client for interacting with the Role builders.
 	Role *RoleClient
 	// RolePermission is the client for interacting with the RolePermission builders.
@@ -160,6 +162,7 @@ func (tx *Tx) init() {
 	tx.Approval = NewApprovalClient(tx.config)
 	tx.Password = NewPasswordClient(tx.config)
 	tx.Permission = NewPermissionClient(tx.config)
+	tx.RefreshToken = NewRefreshTokenClient(tx.config)
 	tx.Role = NewRoleClient(tx.config)
 	tx.RolePermission = NewRolePermissionClient(tx.config)
 	tx.User = NewUserClient(tx.config)
