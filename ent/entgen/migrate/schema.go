@@ -76,6 +76,54 @@ var (
 		Columns:    PermissionsColumns,
 		PrimaryKey: []*schema.Column{PermissionsColumns[0]},
 	}
+	// RefreshTokensColumns holds the columns for the "refresh_tokens" table.
+	RefreshTokensColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUint, Increment: true},
+		{Name: "created_at", Type: field.TypeTime},
+		{Name: "updated_at", Type: field.TypeTime},
+		{Name: "deleted_at", Type: field.TypeTime, Nullable: true},
+		{Name: "token_hash", Type: field.TypeString, Unique: true},
+		{Name: "expires_at", Type: field.TypeTime},
+		{Name: "revoked", Type: field.TypeBool, Default: false},
+		{Name: "revoked_at", Type: field.TypeTime, Nullable: true},
+		{Name: "user_id", Type: field.TypeUint},
+	}
+	// RefreshTokensTable holds the schema information for the "refresh_tokens" table.
+	RefreshTokensTable = &schema.Table{
+		Name:       "refresh_tokens",
+		Columns:    RefreshTokensColumns,
+		PrimaryKey: []*schema.Column{RefreshTokensColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "refresh_tokens_users_refresh_tokens",
+				Columns:    []*schema.Column{RefreshTokensColumns[8]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "refreshtoken_token_hash",
+				Unique:  true,
+				Columns: []*schema.Column{RefreshTokensColumns[4]},
+			},
+			{
+				Name:    "refreshtoken_user_id",
+				Unique:  false,
+				Columns: []*schema.Column{RefreshTokensColumns[8]},
+			},
+			{
+				Name:    "refreshtoken_expires_at",
+				Unique:  false,
+				Columns: []*schema.Column{RefreshTokensColumns[5]},
+			},
+			{
+				Name:    "refreshtoken_user_id_revoked",
+				Unique:  false,
+				Columns: []*schema.Column{RefreshTokensColumns[8], RefreshTokensColumns[6]},
+			},
+		},
+	}
 	// RolesColumns holds the columns for the "roles" table.
 	RolesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUint, Increment: true},
@@ -189,6 +237,7 @@ var (
 		ApprovalsTable,
 		PasswordsTable,
 		PermissionsTable,
+		RefreshTokensTable,
 		RolesTable,
 		RolePermissionTable,
 		UsersTable,
@@ -208,6 +257,10 @@ func init() {
 	}
 	PermissionsTable.Annotation = &entsql.Annotation{
 		Table: "permissions",
+	}
+	RefreshTokensTable.ForeignKeys[0].RefTable = UsersTable
+	RefreshTokensTable.Annotation = &entsql.Annotation{
+		Table: "refresh_tokens",
 	}
 	RolesTable.Annotation = &entsql.Annotation{
 		Table: "roles",

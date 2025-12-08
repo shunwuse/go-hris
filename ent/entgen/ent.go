@@ -15,6 +15,7 @@ import (
 	"github.com/shunwuse/go-hris/ent/entgen/approval"
 	"github.com/shunwuse/go-hris/ent/entgen/password"
 	"github.com/shunwuse/go-hris/ent/entgen/permission"
+	"github.com/shunwuse/go-hris/ent/entgen/refreshtoken"
 	"github.com/shunwuse/go-hris/ent/entgen/role"
 	"github.com/shunwuse/go-hris/ent/entgen/rolepermission"
 	"github.com/shunwuse/go-hris/ent/entgen/user"
@@ -82,6 +83,7 @@ func checkColumn(t, c string) error {
 			approval.Table:       approval.ValidColumn,
 			password.Table:       password.ValidColumn,
 			permission.Table:     permission.ValidColumn,
+			refreshtoken.Table:   refreshtoken.ValidColumn,
 			role.Table:           role.ValidColumn,
 			rolepermission.Table: rolepermission.ValidColumn,
 			user.Table:           user.ValidColumn,

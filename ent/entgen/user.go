@@ -40,11 +40,13 @@ type UserEdges struct {
 	Password *Password `json:"password,omitempty"`
 	// Roles holds the value of the roles edge.
 	Roles []*Role `json:"roles,omitempty"`
+	// RefreshTokens holds the value of the refresh_tokens edge.
+	RefreshTokens []*RefreshToken `json:"refresh_tokens,omitempty"`
 	// UserRole holds the value of the user_role edge.
 	UserRole []*UserRole `json:"user_role,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [3]bool
+	loadedTypes [4]bool
 }
 
 // PasswordOrErr returns the Password value or an error if the edge
@@ -67,10 +69,19 @@ func (e UserEdges) RolesOrErr() ([]*Role, error) {
 	return nil, &NotLoadedError{edge: "roles"}
 }
 
+// RefreshTokensOrErr returns the RefreshTokens value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) RefreshTokensOrErr() ([]*RefreshToken, error) {
+	if e.loadedTypes[2] {
+		return e.RefreshTokens, nil
+	}
+	return nil, &NotLoadedError{edge: "refresh_tokens"}
+}
+
 // UserRoleOrErr returns the UserRole value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) UserRoleOrErr() ([]*UserRole, error) {
-	if e.loadedTypes[2] {
+	if e.loadedTypes[3] {
 		return e.UserRole, nil
 	}
 	return nil, &NotLoadedError{edge: "user_role"}
@@ -160,6 +171,11 @@ func (_m *User) QueryPassword() *PasswordQuery {
 // QueryRoles queries the "roles" edge of the User entity.
 func (_m *User) QueryRoles() *RoleQuery {
 	return NewUserClient(_m.config).QueryRoles(_m)
+}
+
+// QueryRefreshTokens queries the "refresh_tokens" edge of the User entity.
+func (_m *User) QueryRefreshTokens() *RefreshTokenQuery {
+	return NewUserClient(_m.config).QueryRefreshTokens(_m)
 }
 
 // QueryUserRole queries the "user_role" edge of the User entity.

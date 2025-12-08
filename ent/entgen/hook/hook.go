@@ -45,6 +45,18 @@ func (f PermissionFunc) Mutate(ctx context.Context, m entgen.Mutation) (entgen.V
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *entgen.PermissionMutation", m)
 }
 
+// The RefreshTokenFunc type is an adapter to allow the use of ordinary
+// function as RefreshToken mutator.
+type RefreshTokenFunc func(context.Context, *entgen.RefreshTokenMutation) (entgen.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RefreshTokenFunc) Mutate(ctx context.Context, m entgen.Mutation) (entgen.Value, error) {
+	if mv, ok := m.(*entgen.RefreshTokenMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *entgen.RefreshTokenMutation", m)
+}
+
 // The RoleFunc type is an adapter to allow the use of ordinary
 // function as Role mutator.
 type RoleFunc func(context.Context, *entgen.RoleMutation) (entgen.Value, error)

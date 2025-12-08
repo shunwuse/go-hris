@@ -36,6 +36,7 @@ func (User) Edges() []ent.Edge {
 		edge.To("password", Password.Type).Unique(),
 		edge.To("roles", Role.Type).
 			Through("user_role", UserRole.Type),
+		edge.To("refresh_tokens", RefreshToken.Type),
 	}
 }
 

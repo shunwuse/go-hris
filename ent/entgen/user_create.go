@@ -11,6 +11,7 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/shunwuse/go-hris/ent/entgen/password"
+	"github.com/shunwuse/go-hris/ent/entgen/refreshtoken"
 	"github.com/shunwuse/go-hris/ent/entgen/role"
 	"github.com/shunwuse/go-hris/ent/entgen/user"
 	"github.com/shunwuse/go-hris/ent/entgen/userrole"
@@ -115,6 +116,21 @@ func (_c *UserCreate) AddRoles(v ...*Role) *UserCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddRoleIDs(ids...)
+}
+
+// AddRefreshTokenIDs adds the "refresh_tokens" edge to the RefreshToken entity by IDs.
+func (_c *UserCreate) AddRefreshTokenIDs(ids ...uint) *UserCreate {
+	_c.mutation.AddRefreshTokenIDs(ids...)
+	return _c
+}
+
+// AddRefreshTokens adds the "refresh_tokens" edges to the RefreshToken entity.
+func (_c *UserCreate) AddRefreshTokens(v ...*RefreshToken) *UserCreate {
+	ids := make([]uint, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddRefreshTokenIDs(ids...)
 }
 
 // AddUserRoleIDs adds the "user_role" edge to the UserRole entity by IDs.
@@ -292,6 +308,22 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		createE.defaults()
 		_, specE := createE.createSpec()
 		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.RefreshTokensIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   user.RefreshTokensTable,
+			Columns: []string{user.RefreshTokensColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(refreshtoken.FieldID, field.TypeUint),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
 	if nodes := _c.mutation.UserRoleIDs(); len(nodes) > 0 {
