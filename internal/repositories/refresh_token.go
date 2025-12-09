@@ -86,3 +86,22 @@ func (r *RefreshTokenRepository) Revoke(ctx context.Context, tokenHash string) e
 
 	return nil
 }
+
+func (r *RefreshTokenRepository) RevokeAllForUser(ctx context.Context, userID uint) error {
+	now := time.Now()
+
+	err := r.Client.RefreshToken.Update().
+		Where(
+			refreshtoken.UserID(userID),
+			refreshtoken.Revoked(false),
+		).
+		SetRevoked(true).
+		SetRevokedAt(now).
+		Exec(ctx)
+	if err != nil {
+		r.logger.WithContext(ctx).Error("failed to revoke all tokens for user", zap.Uint("user_id", userID), zap.Error(err))
+		return errors.ErrDatabaseError
+	}
+
+	return nil
+}

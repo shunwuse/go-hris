@@ -239,3 +239,7 @@ func (s *authService) RevokeRefreshToken(ctx context.Context, refreshToken strin
 	tokenHash := utils.SHA256Hex(refreshToken)
 	return s.refreshTokenRepository.Revoke(ctx, tokenHash)
 }
+
+func (s *authService) RevokeAllUserTokens(ctx context.Context, userID uint) error {
+	return s.refreshTokenRepository.RevokeAllForUser(ctx, userID)
+}
