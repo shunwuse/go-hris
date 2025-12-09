@@ -51,7 +51,7 @@ func (m *JWTMiddleware) Handler() func(http.Handler) http.Handler {
 
 			token := texts[1]
 
-			claims, err := m.authService.AuthenticateToken(r.Context(), token)
+			claims, err := m.authService.ValidateAccessToken(r.Context(), token)
 			if err != nil {
 				m.logger.WithContext(r.Context()).Error("failed to authenticate token", zap.Error(err))
 				response.Error(w, err)

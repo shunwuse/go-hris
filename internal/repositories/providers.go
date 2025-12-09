@@ -12,4 +12,5 @@ var ProvideSet = wire.NewSet(
 	NewUserRoleRepository,
 	NewApprovalRepository,
 	NewRolePermissionRepository,
+	NewRefreshTokenRepository,
 )

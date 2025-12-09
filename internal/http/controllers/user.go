@@ -221,10 +221,18 @@ func (c *UserController) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Generate JWT token.
-	token, err := c.authService.GenerateToken(r.Context(), user)
+	// Generate access token.
+	accessToken, err := c.authService.GenerateAccessToken(r.Context(), user)
 	if err != nil {
-		c.logger.WithContext(r.Context()).Error("failed to generate token", zap.Error(err))
+		c.logger.WithContext(r.Context()).Error("failed to generate access token", zap.Error(err))
+		response.Error(w, err)
+		return
+	}
+
+	// Generate refresh token.
+	refreshToken, err := c.authService.GenerateRefreshToken(r.Context(), user)
+	if err != nil {
+		c.logger.WithContext(r.Context()).Error("failed to generate refresh token", zap.Error(err))
 		response.Error(w, err)
 		return
 	}
@@ -235,9 +243,10 @@ func (c *UserController) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp := dtos.LoginResponse{
-		Username: user.Username,
-		Roles:    roles,
-		Token:    token,
+		Username:     user.Username,
+		Roles:        roles,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
 	}
 
 	response.OK(w, resp)
