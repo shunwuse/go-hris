@@ -4,6 +4,8 @@ import (
 	"net/http"
 
 	"github.com/go-chi/render"
+	"github.com/shunwuse/go-hris/internal/constants"
+	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/dtos"
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/http/response"
@@ -80,4 +82,23 @@ func (c *AuthController) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.OK(w, "logged out successfully")
+}
+
+func (c *AuthController) LogoutAll(w http.ResponseWriter, r *http.Request) {
+	// Get user ID from JWT claims.
+	token, ok := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
+	if !ok {
+		c.logger.WithContext(r.Context()).Error("failed to get claims from context")
+		response.Error(w, errors.ErrUnauthorized)
+		return
+	}
+
+	// Revoke all refresh tokens for this user.
+	if err := c.authService.RevokeAllUserTokens(r.Context(), token.UserID); err != nil {
+		c.logger.WithContext(r.Context()).Error("failed to revoke all tokens", zap.Uint("user_id", token.UserID), zap.Error(err))
+		response.Error(w, err)
+		return
+	}
+
+	response.OK(w, "logged out from all devices successfully")
 }
