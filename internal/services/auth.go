@@ -2,7 +2,9 @@ package services
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"time"
 
@@ -14,19 +16,25 @@ import (
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/infra"
 	"github.com/shunwuse/go-hris/internal/ports/service"
+	"github.com/shunwuse/go-hris/internal/repositories"
+	"github.com/shunwuse/go-hris/internal/utils"
 	"go.uber.org/zap"
 )
 
 type authService struct {
 	logger *infra.Logger
 
-	jwtKey    jwk.Key
-	jwtExpire time.Duration
+	jwtKey           jwk.Key
+	jwtExpire        time.Duration
+	jwtRefreshExpire time.Duration
+
+	refreshTokenRepository *repositories.RefreshTokenRepository
 }
 
 func NewAuthService(
 	config infra.Config,
 	logger *infra.Logger,
+	refreshTokenRepository *repositories.RefreshTokenRepository,
 ) service.AuthService {
 	key, err := jwk.FromRaw([]byte(config.JWTSecret))
 	if err != nil {
@@ -45,20 +53,30 @@ func NewAuthService(
 		expireDuration = 1 * time.Hour // default to 1 hour
 	}
 
+	// Set refresh expire hours with default value.
+	refreshExpireDuration := time.Duration(config.JWTRefreshExpireMinutes) * time.Minute
+	if refreshExpireDuration <= 0 {
+		refreshExpireDuration = 24 * time.Hour // default to 24 hours
+	}
+
 	logger.Info("Auth service initialized",
 		zap.String("kid", kid),
-		zap.Duration("expire_duration", expireDuration),
+		zap.Duration("access_token_expire", expireDuration),
+		zap.Duration("refresh_token_expire", refreshExpireDuration),
 	)
 
 	return &authService{
 		logger: logger,
 
-		jwtKey:    key,
-		jwtExpire: expireDuration,
+		jwtKey:           key,
+		jwtExpire:        expireDuration,
+		jwtRefreshExpire: refreshExpireDuration,
+
+		refreshTokenRepository: refreshTokenRepository,
 	}
 }
 
-func (s *authService) GenerateToken(ctx context.Context, user *domains.UserWithPermissions) (string, error) {
+func (s *authService) GenerateAccessToken(ctx context.Context, user *domains.UserWithPermissions) (string, error) {
 	roles := make([]constants.Role, 0)
 	for _, role := range user.Edges.Roles {
 		roles = append(roles, constants.Role(role.Name))
@@ -92,7 +110,7 @@ func (s *authService) GenerateToken(ctx context.Context, user *domains.UserWithP
 	return string(signed), nil
 }
 
-func (s *authService) AuthenticateToken(ctx context.Context, tokenString string) (*domains.Claims, error) {
+func (s *authService) ValidateAccessToken(ctx context.Context, tokenString string) (*domains.Claims, error) {
 	// Parse and verify token using JWK.
 	token, err := jwt.Parse(
 		[]byte(tokenString),
@@ -144,4 +162,30 @@ func (s *authService) AuthenticateToken(ctx context.Context, tokenString string)
 	}
 
 	return claims, nil
+}
+
+func (s *authService) GenerateRefreshToken(ctx context.Context, user *domains.UserWithPermissions) (string, error) {
+	// Generate random token (opaque token, not JWT).
+	tokenBytes := make([]byte, 32) // 256 bits
+	if _, err := rand.Read(tokenBytes); err != nil {
+		s.logger.WithContext(ctx).Error("failed to generate random token", zap.Error(err))
+		return "", errors.ErrInternalError
+	}
+	rawToken := base64.URLEncoding.EncodeToString(tokenBytes)
+
+	tokenHash := utils.SHA256Hex(rawToken)
+
+	expiresAt := time.Now().Add(s.jwtRefreshExpire)
+
+	_, err := s.refreshTokenRepository.Create(
+		ctx,
+		tokenHash,
+		user.ID,
+		expiresAt,
+	)
+	if err != nil {
+		return "", err
+	}
+
+	return rawToken, nil
 }
