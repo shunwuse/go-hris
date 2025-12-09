@@ -15,12 +15,14 @@ func NewRoutes(
 	userRoute *UserRoute,
 	approvalRoute *ApprovalRoute,
 	swaggerRoute *SwaggerRoute,
+	authRoute *AuthRoute,
 ) Routes {
 	return Routes{
 		exampleRoute,
 		userRoute,
 		approvalRoute,
 		swaggerRoute,
+		authRoute,
 	}
 }
 

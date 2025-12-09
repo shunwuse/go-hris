@@ -10,4 +10,5 @@ type AuthService interface {
 	GenerateAccessToken(ctx context.Context, user *domains.UserWithPermissions) (string, error)
 	ValidateAccessToken(ctx context.Context, tokenString string) (*domains.Claims, error)
 	GenerateRefreshToken(ctx context.Context, user *domains.UserWithPermissions) (string, error)
+	RefreshAccessToken(ctx context.Context, refreshToken string) (*domains.TokenPair, error)
 }

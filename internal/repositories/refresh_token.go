@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/shunwuse/go-hris/ent/entgen"
+	"github.com/shunwuse/go-hris/ent/entgen/refreshtoken"
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/infra"
 	"go.uber.org/zap"
@@ -43,4 +44,45 @@ func (r *RefreshTokenRepository) Create(
 	}
 
 	return token, nil
+}
+
+func (r *RefreshTokenRepository) FindValidByTokenHash(ctx context.Context, tokenHash string) (*entgen.RefreshToken, error) {
+	now := time.Now()
+
+	token, err := r.Client.RefreshToken.Query().
+		Where(
+			refreshtoken.TokenHash(tokenHash),
+			refreshtoken.Revoked(false),
+			refreshtoken.ExpiresAtGT(now),
+		).
+		Only(ctx)
+	if err != nil {
+		if entgen.IsNotFound(err) {
+			return nil, errors.ErrTokenInvalid
+		}
+		r.logger.WithContext(ctx).Error("failed to find valid refresh token", zap.Error(err))
+		return nil, errors.ErrDatabaseError
+	}
+
+	return token, nil
+}
+
+func (r *RefreshTokenRepository) Revoke(ctx context.Context, tokenHash string) error {
+	now := time.Now()
+
+	affected, err := r.Client.RefreshToken.Update().
+		Where(refreshtoken.TokenHash(tokenHash)).
+		SetRevoked(true).
+		SetRevokedAt(now).
+		Save(ctx)
+	if err != nil {
+		r.logger.WithContext(ctx).Error("failed to revoke refresh token", zap.Error(err))
+		return errors.ErrDatabaseError
+	}
+
+	if affected == 0 {
+		return errors.ErrTokenInvalid
+	}
+
+	return nil
 }
