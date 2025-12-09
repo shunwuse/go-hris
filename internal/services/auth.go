@@ -234,3 +234,8 @@ func (s *authService) RefreshAccessToken(ctx context.Context, refreshToken strin
 		RefreshToken: newRefreshToken,
 	}, nil
 }
+
+func (s *authService) RevokeRefreshToken(ctx context.Context, refreshToken string) error {
+	tokenHash := utils.SHA256Hex(refreshToken)
+	return s.refreshTokenRepository.Revoke(ctx, tokenHash)
+}

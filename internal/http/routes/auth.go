@@ -26,5 +26,6 @@ func (r *AuthRoute) Setup(router chi.Router) {
 
 	router.Route("/auth", func(authRouter chi.Router) {
 		authRouter.Post("/refresh", r.authController.RefreshToken)
+		authRouter.Post("/logout", r.authController.Logout)
 	})
 }
