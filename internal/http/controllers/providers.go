@@ -8,4 +8,5 @@ var ProvideSet = wire.NewSet(
 	NewExampleController,
 	NewUserController,
 	NewApprovalController,
+	NewAuthController,
 )

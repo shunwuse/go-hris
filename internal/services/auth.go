@@ -29,12 +29,14 @@ type authService struct {
 	jwtRefreshExpire time.Duration
 
 	refreshTokenRepository *repositories.RefreshTokenRepository
+	userRepository         *repositories.UserRepository
 }
 
 func NewAuthService(
 	config infra.Config,
 	logger *infra.Logger,
 	refreshTokenRepository *repositories.RefreshTokenRepository,
+	userRepository *repositories.UserRepository,
 ) service.AuthService {
 	key, err := jwk.FromRaw([]byte(config.JWTSecret))
 	if err != nil {
@@ -73,6 +75,7 @@ func NewAuthService(
 		jwtRefreshExpire: refreshExpireDuration,
 
 		refreshTokenRepository: refreshTokenRepository,
+		userRepository:         userRepository,
 	}
 }
 
@@ -188,4 +191,46 @@ func (s *authService) GenerateRefreshToken(ctx context.Context, user *domains.Us
 	}
 
 	return rawToken, nil
+}
+
+func (s *authService) RefreshAccessToken(ctx context.Context, refreshToken string) (*domains.TokenPair, error) {
+	tokenHash := utils.SHA256Hex(refreshToken)
+
+	tokenRecord, err := s.refreshTokenRepository.FindValidByTokenHash(ctx, tokenHash)
+	if err != nil {
+		return nil, err
+	}
+
+	user, err := s.userRepository.FindByID(ctx, tokenRecord.UserID)
+	if err != nil {
+		s.logger.WithContext(ctx).Error("failed to get user for refresh", zap.Uint("user_id", tokenRecord.UserID), zap.Error(err))
+		return nil, errors.ErrTokenInvalid
+	}
+
+	// Generate new access token.
+	accessToken, err := s.GenerateAccessToken(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	// Token Rotation: revoke old refresh token, issue a new one.
+	if err := s.refreshTokenRepository.Revoke(ctx, tokenHash); err != nil {
+		s.logger.WithContext(ctx).Warn("failed to revoke old refresh token", zap.Error(err))
+		// Don't return error.
+	}
+
+	// Generate new refresh token.
+	newRefreshToken, err := s.GenerateRefreshToken(ctx, user)
+	if err != nil {
+		s.logger.WithContext(ctx).Error("failed to create new refresh token", zap.Error(err))
+		// Only return access token.
+		return &domains.TokenPair{
+			AccessToken: accessToken,
+		}, nil
+	}
+
+	return &domains.TokenPair{
+		AccessToken:  accessToken,
+		RefreshToken: newRefreshToken,
+	}, nil
 }
