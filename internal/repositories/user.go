@@ -15,15 +15,24 @@ import (
 type UserRepository struct {
 	logger *infra.Logger
 	*infra.Database
+
+	userRoleMap []*entgen.UserRole
 }
 
 func NewUserRepository(
 	logger *infra.Logger,
 	db *infra.Database,
 ) *UserRepository {
+	// Initialize user roles.
+	userRoles, _ := db.Client.UserRole.
+		Query().
+		All(context.Background())
+
 	return &UserRepository{
 		logger:   logger,
 		Database: db,
+
+		userRoleMap: userRoles,
 	}
 }
 
@@ -112,4 +121,30 @@ func (r *UserRepository) Update(ctx context.Context, id uint, name string) error
 	}
 
 	return nil
+}
+
+func (r *UserRepository) CreatePassword(ctx context.Context, hash string, owner *entgen.User) (*entgen.Password, error) {
+	password, err := r.Client.Password.Create().
+		SetHash(hash).
+		SetOwner(owner).
+		Save(ctx)
+	if err != nil {
+		r.logger.WithContext(ctx).Error("failed to create password", zap.Error(err))
+		return nil, errors.ErrDatabaseError
+	}
+
+	return password, nil
+}
+
+func (r *UserRepository) AssignRole(ctx context.Context, userID uint, roleID uint) (*entgen.UserRole, error) {
+	userRole, err := r.Client.UserRole.Create().
+		SetUserID(userID).
+		SetRoleID(roleID).
+		Save(ctx)
+	if err != nil {
+		r.logger.WithContext(ctx).Error("failed to create user role association", zap.Error(err))
+		return nil, errors.ErrDatabaseError
+	}
+
+	return userRole, nil
 }
