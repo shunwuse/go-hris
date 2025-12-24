@@ -27,10 +27,6 @@ go-migrate-up:
 go-migrate-down:
 	go run ./cmd/migrate/main.go down
 
-# go install github.com/swaggo/swag/cmd/swag@latest
-swagger:
-	swag init -g ./cmd/server/main.go -o ./docs/swagger
-
 docker-build:
 	docker buildx build --platform linux/amd64 -t go-hris:latest .
 
@@ -59,7 +55,6 @@ test-coverage:
 	wire \
 	migrate-create migrate-up migrate-down \
 	go-migrate-up go-migrate-down \
-	swagger \
 	docker-build docker-run \
 	test test-coverage \
 	test-integration test-integration-quick test-integration-endpoints

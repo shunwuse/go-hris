@@ -29,16 +29,6 @@ func NewApprovalController(
 	}
 }
 
-// GetApprovals godoc
-//
-// @Summary Get approvals
-// @Description Get all approvals
-// @Tags approvals
-// @security BasicAuth
-// @Accept json
-// @Produce json
-// @Success 200 {array} dtos.ApprovalResponse
-// @Router /approvals [get]
 func (c *ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request) {
 	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions
@@ -76,16 +66,6 @@ func (c *ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request
 	response.List(w, approvalsResponse)
 }
 
-// AddApproval godoc
-//
-// @Summary Add approval
-// @Description Add a new approval
-// @Tags approvals
-// @security BasicAuth
-// @Accept json
-// @Produce json
-// @Success 200 {string} message "Approval added successfully"
-// @Router /approvals [post]
 func (c *ApprovalController) AddApproval(w http.ResponseWriter, r *http.Request) {
 	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions
@@ -114,17 +94,6 @@ func (c *ApprovalController) AddApproval(w http.ResponseWriter, r *http.Request)
 	response.Created(w, "approval added successfully")
 }
 
-// ActionApproval godoc
-//
-// @Summary Action approval
-// @Description Action an approval
-// @Tags approvals
-// @security BasicAuth
-// @Accept json
-// @Produce json
-// @Param action body dtos.ApprovalAction true "Approval action object"
-// @Success 200 {string} message "Approval actioned successfully"
-// @Router /approvals/action [put]
 func (c *ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Request) {
 	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions

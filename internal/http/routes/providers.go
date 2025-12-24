@@ -8,7 +8,6 @@ var ProvideSet = wire.NewSet(
 	NewExampleRoute,
 	NewUserRoute,
 	NewApprovalRoute,
-	NewSwaggerRoute,
 	NewAuthRoute,
 
 	NewRoutes,
