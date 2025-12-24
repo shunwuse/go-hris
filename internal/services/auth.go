@@ -28,14 +28,14 @@ type authService struct {
 	jwtExpire        time.Duration
 	jwtRefreshExpire time.Duration
 
-	refreshTokenRepository *repositories.RefreshTokenRepository
+	refreshTokenRepository *repositories.AuthRepository
 	userRepository         *repositories.UserRepository
 }
 
 func NewAuthService(
 	config infra.Config,
 	logger *infra.Logger,
-	refreshTokenRepository *repositories.RefreshTokenRepository,
+	refreshTokenRepository *repositories.AuthRepository,
 	userRepository *repositories.UserRepository,
 ) service.AuthService {
 	key, err := jwk.FromRaw([]byte(config.JWTSecret))
@@ -180,7 +180,7 @@ func (s *authService) GenerateRefreshToken(ctx context.Context, user *domains.Us
 
 	expiresAt := time.Now().Add(s.jwtRefreshExpire)
 
-	_, err := s.refreshTokenRepository.Create(
+	_, err := s.refreshTokenRepository.CreateRefreshToken(
 		ctx,
 		tokenHash,
 		user.ID,
@@ -196,7 +196,7 @@ func (s *authService) GenerateRefreshToken(ctx context.Context, user *domains.Us
 func (s *authService) RefreshAccessToken(ctx context.Context, refreshToken string) (*domains.TokenPair, error) {
 	tokenHash := utils.SHA256Hex(refreshToken)
 
-	tokenRecord, err := s.refreshTokenRepository.FindValidByTokenHash(ctx, tokenHash)
+	tokenRecord, err := s.refreshTokenRepository.FindValidRefreshTokenByTokenHash(ctx, tokenHash)
 	if err != nil {
 		return nil, err
 	}
@@ -214,7 +214,7 @@ func (s *authService) RefreshAccessToken(ctx context.Context, refreshToken strin
 	}
 
 	// Token Rotation: revoke old refresh token, issue a new one.
-	if err := s.refreshTokenRepository.Revoke(ctx, tokenHash); err != nil {
+	if err := s.refreshTokenRepository.RevokeRefreshToken(ctx, tokenHash); err != nil {
 		s.logger.WithContext(ctx).Warn("failed to revoke old refresh token", zap.Error(err))
 		// Don't return error.
 	}
@@ -237,9 +237,9 @@ func (s *authService) RefreshAccessToken(ctx context.Context, refreshToken strin
 
 func (s *authService) RevokeRefreshToken(ctx context.Context, refreshToken string) error {
 	tokenHash := utils.SHA256Hex(refreshToken)
-	return s.refreshTokenRepository.Revoke(ctx, tokenHash)
+	return s.refreshTokenRepository.RevokeRefreshToken(ctx, tokenHash)
 }
 
 func (s *authService) RevokeAllUserTokens(ctx context.Context, userID uint) error {
-	return s.refreshTokenRepository.RevokeAllForUser(ctx, userID)
+	return s.refreshTokenRepository.RevokeAllRefreshTokensForUser(ctx, userID)
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/shunwuse/go-hris/ent/entgen"
+	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/infra"
 	"go.uber.org/zap"
@@ -13,7 +14,8 @@ type RoleRepository struct {
 	logger *infra.Logger
 	*infra.Database
 
-	Roles []*entgen.Role
+	Roles             []*entgen.Role
+	rolePermissionMap map[constants.Role]constants.Permissions
 }
 
 func NewRoleRepository(
@@ -22,12 +24,26 @@ func NewRoleRepository(
 ) *RoleRepository {
 	roles, _ := db.Client.Role.
 		Query().
+		WithPermissions().
 		All(context.Background())
 
+	rolePermissionMap := make(map[constants.Role]constants.Permissions)
+	for _, role := range roles {
+		roleKey := constants.Role(role.Name)
+		permissions := make(constants.Permissions, 0, len(role.Edges.Permissions))
+
+		for _, p := range role.Edges.Permissions {
+			permissions = append(permissions, constants.Permission(p.Description))
+		}
+
+		rolePermissionMap[roleKey] = permissions
+	}
+
 	return &RoleRepository{
-		logger:   logger,
-		Database: db,
-		Roles:    roles,
+		logger:            logger,
+		Database:          db,
+		Roles:             roles,
+		rolePermissionMap: rolePermissionMap,
 	}
 }
 
@@ -68,4 +84,8 @@ func (r *RoleRepository) Create(ctx context.Context, name string) (*entgen.Role,
 	}
 
 	return role, nil
+}
+
+func (r *RoleRepository) GetPermissionsByRole(ctx context.Context, role constants.Role) constants.Permissions {
+	return r.rolePermissionMap[role]
 }

@@ -15,29 +15,20 @@ import (
 )
 
 type userService struct {
-	logger                   *infra.Logger
-	userRepository           *repositories.UserRepository
-	passwordRepository       *repositories.PasswordRepository
-	roleRepository           *repositories.RoleRepository
-	userRoleRepository       *repositories.UserRoleRepository
-	rolePermissionRepository *repositories.RolePermissionRepository
+	logger         *infra.Logger
+	userRepository *repositories.UserRepository
+	roleRepository *repositories.RoleRepository
 }
 
 func NewUserService(
 	logger *infra.Logger,
 	userRepository *repositories.UserRepository,
-	passwordRepository *repositories.PasswordRepository,
 	roleRepository *repositories.RoleRepository,
-	userRoleRepository *repositories.UserRoleRepository,
-	rolePermissionRepository *repositories.RolePermissionRepository,
 ) service.UserService {
 	return &userService{
-		logger:                   logger,
-		userRepository:           userRepository,
-		passwordRepository:       passwordRepository,
-		roleRepository:           roleRepository,
-		userRoleRepository:       userRoleRepository,
-		rolePermissionRepository: rolePermissionRepository,
+		logger:         logger,
+		userRepository: userRepository,
+		roleRepository: roleRepository,
 	}
 }
 
@@ -51,7 +42,7 @@ func (s *userService) CreateUser(ctx context.Context, user *domains.UserCreate, 
 		return err
 	}
 
-	_, err = s.passwordRepository.Create(ctx, user.Password.Hash, u)
+	_, err = s.userRepository.CreatePassword(ctx, user.Password.Hash, u)
 	if err != nil {
 		return err
 	}
@@ -62,7 +53,7 @@ func (s *userService) CreateUser(ctx context.Context, user *domains.UserCreate, 
 		return errors.ErrNotFound
 	}
 
-	_, err = s.userRoleRepository.Create(ctx, u.ID, roleModel.ID)
+	_, err = s.userRepository.AssignRole(ctx, u.ID, roleModel.ID)
 	if err != nil {
 		return err
 	}
@@ -81,7 +72,7 @@ func (s *userService) GetUserByUsername(ctx context.Context, username string) (*
 
 	// Collect permissions from all roles.
 	for _, role := range user.Edges.Roles {
-		rolePermissions := s.rolePermissionRepository.GetPermissionsByRole(ctx, constants.Role(role.Name))
+		rolePermissions := s.roleRepository.GetPermissionsByRole(ctx, constants.Role(role.Name))
 
 		// Add unique permissions to user.
 		for _, permission := range rolePermissions {

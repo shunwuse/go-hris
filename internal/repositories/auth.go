@@ -11,22 +11,22 @@ import (
 	"go.uber.org/zap"
 )
 
-type RefreshTokenRepository struct {
+type AuthRepository struct {
 	logger *infra.Logger
 	*infra.Database
 }
 
-func NewRefreshTokenRepository(
+func NewAuthRepository(
 	logger *infra.Logger,
 	db *infra.Database,
-) *RefreshTokenRepository {
-	return &RefreshTokenRepository{
+) *AuthRepository {
+	return &AuthRepository{
 		logger:   logger,
 		Database: db,
 	}
 }
 
-func (r *RefreshTokenRepository) Create(
+func (r *AuthRepository) CreateRefreshToken(
 	ctx context.Context,
 	tokenHash string,
 	userID uint,
@@ -46,7 +46,7 @@ func (r *RefreshTokenRepository) Create(
 	return token, nil
 }
 
-func (r *RefreshTokenRepository) FindValidByTokenHash(ctx context.Context, tokenHash string) (*entgen.RefreshToken, error) {
+func (r *AuthRepository) FindValidRefreshTokenByTokenHash(ctx context.Context, tokenHash string) (*entgen.RefreshToken, error) {
 	now := time.Now()
 
 	token, err := r.Client.RefreshToken.Query().
@@ -67,7 +67,7 @@ func (r *RefreshTokenRepository) FindValidByTokenHash(ctx context.Context, token
 	return token, nil
 }
 
-func (r *RefreshTokenRepository) Revoke(ctx context.Context, tokenHash string) error {
+func (r *AuthRepository) RevokeRefreshToken(ctx context.Context, tokenHash string) error {
 	now := time.Now()
 
 	affected, err := r.Client.RefreshToken.Update().
@@ -87,7 +87,7 @@ func (r *RefreshTokenRepository) Revoke(ctx context.Context, tokenHash string) e
 	return nil
 }
 
-func (r *RefreshTokenRepository) RevokeAllForUser(ctx context.Context, userID uint) error {
+func (r *AuthRepository) RevokeAllRefreshTokensForUser(ctx context.Context, userID uint) error {
 	now := time.Now()
 
 	err := r.Client.RefreshToken.Update().
