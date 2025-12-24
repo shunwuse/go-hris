@@ -35,16 +35,6 @@ func NewUserController(
 	}
 }
 
-// GetUsers godoc
-//
-// @Summary Get users
-// @Description Get all users
-// @Tags users
-// @security BasicAuth
-// @Accept json
-// @Produce json
-// @Success 200 {array} dtos.GetUserResponse
-// @Router /users [get]
 func (c *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
 	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions
@@ -77,17 +67,6 @@ func (c *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
 	response.List(w, usersResponse)
 }
 
-// CreateUser godoc
-//
-// @Summary Create user
-// @Description Create a new user
-// @Tags users
-// @security BasicAuth
-// @Accept json
-// @Produce json
-// @Param user body dtos.UserCreate true "User object that needs to be created"
-// @Success 201 {string} string "create successfully"
-// @Router /users [post]
 func (c *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions
@@ -141,17 +120,6 @@ func (c *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 	response.Created(w, "user created successfully")
 }
 
-// UpdateUser godoc
-//
-// @Summary Update user
-// @Description Update user
-// @Tags users
-// @security BasicAuth
-// @Accept json
-// @Produce json
-// @Param user body dtos.UserUpdate true "User object that needs to be updated"
-// @Success 200 {string} string "update successfully"
-// @Router /users [put]
 func (c *UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions
@@ -184,16 +152,6 @@ func (c *UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	response.OK(w, "user updated successfully")
 }
 
-// Login godoc
-//
-// @Summary Login
-// @Description Login
-// @Tags users
-// @Accept json
-// @Produce json
-// @Param user body dtos.UserLogin true "User object that needs to login"
-// @Success 200 {object} dtos.LoginResponse
-// @Router /login [post]
 func (c *UserController) Login(w http.ResponseWriter, r *http.Request) {
 	var userLogin dtos.UserLogin
 
