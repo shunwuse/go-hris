@@ -9,6 +9,7 @@ require (
 	github.com/go-chi/render v1.0.3
 	github.com/golang-migrate/migrate/v4 v4.19.0
 	github.com/google/wire v0.7.0
+	github.com/jmoiron/sqlx v1.4.0
 	github.com/knadh/koanf/parsers/dotenv v1.1.0
 	github.com/knadh/koanf/providers/file v1.2.0
 	github.com/knadh/koanf/v2 v2.3.0
