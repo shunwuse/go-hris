@@ -6,7 +6,6 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/oklog/ulid/v2"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
@@ -57,17 +56,16 @@ func newLogger(config Config) Logger {
 	}
 
 	// Define common fields.
-	hostname, _ := os.Hostname()
 	fields := []zapcore.Field{
-		zap.String("instance_id", ulid.Make().String()),
-		zap.String("hostname", hostname),
+		zap.String("instance_id", InstanceID),
+		zap.String("hostname", Hostname),
 		zap.Int("pid", os.Getpid()),
 		zap.String("environment", config.Environment),
 	}
 
 	// Create logger core based on environment.
 	var core zapcore.Core
-	if config.Environment == "development" {
+	if config.Environment == constants.EnvDevelopment {
 		core = createDevelopmentCore(config, fields)
 	} else {
 		core = createProductionCore(config, fields)
