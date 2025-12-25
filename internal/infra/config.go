@@ -2,9 +2,11 @@ package infra
 
 import (
 	"log"
+	"strings"
 	"sync"
 
 	"github.com/knadh/koanf/parsers/dotenv"
+	"github.com/knadh/koanf/providers/env"
 	"github.com/knadh/koanf/providers/file"
 	"github.com/knadh/koanf/v2"
 )
@@ -39,9 +41,23 @@ func loadConfig() *Config {
 
 	k := koanf.New(".")
 
-	// Read dotenv file.
+	// [STAGE 1] >>> Load 'default.env' (Default Values)
+	if err := k.Load(file.Provider("default.env"), dotenv.Parser()); err != nil {
+		log.Printf("info: default.env file not found, skipping: %v", err)
+	}
+
+	// [STAGE 2] >>> Load '.env' (Local Overrides)
 	if err := k.Load(file.Provider(".env"), dotenv.Parser()); err != nil {
-		log.Fatalf("failed to read .env file: %v", err)
+		log.Printf("info: .env file not found, skipping: %v", err)
+	}
+
+	// [STAGE 3] >>> Load 'Environment Variables' (System Overrides)
+	// Prefix "APP_", example: APP_SERVER_PORT will map to server_port.
+	if err := k.Load(env.Provider("APP_", ".", func(s string) string {
+		return strings.ReplaceAll(strings.ToLower(
+			strings.TrimPrefix(s, "APP_")), "_", ".")
+	}), nil); err != nil {
+		log.Printf("warning: failed to load environment variables: %v", err)
 	}
 
 	// Unmarshal configuration.

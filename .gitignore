@@ -9,6 +9,9 @@
 myapp
 server
 
+# Local environment variables
+.env
+
 *.log
 *.db
 
