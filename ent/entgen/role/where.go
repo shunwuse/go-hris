@@ -8,6 +8,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/shunwuse/go-hris/ent/entgen/predicate"
+	"github.com/shunwuse/go-hris/internal/constants"
 )
 
 // ID filters vertices based on their ID field.
@@ -71,8 +72,9 @@ func DeletedAt(v time.Time) predicate.Role {
 }
 
 // Name applies equality check predicate on the "name" field. It's identical to NameEQ.
-func Name(v string) predicate.Role {
-	return predicate.Role(sql.FieldEQ(FieldName, v))
+func Name(v constants.Role) predicate.Role {
+	vc := string(v)
+	return predicate.Role(sql.FieldEQ(FieldName, vc))
 }
 
 // CreatedAtEQ applies the EQ predicate on the "created_at" field.
@@ -206,68 +208,87 @@ func DeletedAtNotNil() predicate.Role {
 }
 
 // NameEQ applies the EQ predicate on the "name" field.
-func NameEQ(v string) predicate.Role {
-	return predicate.Role(sql.FieldEQ(FieldName, v))
+func NameEQ(v constants.Role) predicate.Role {
+	vc := string(v)
+	return predicate.Role(sql.FieldEQ(FieldName, vc))
 }
 
 // NameNEQ applies the NEQ predicate on the "name" field.
-func NameNEQ(v string) predicate.Role {
-	return predicate.Role(sql.FieldNEQ(FieldName, v))
+func NameNEQ(v constants.Role) predicate.Role {
+	vc := string(v)
+	return predicate.Role(sql.FieldNEQ(FieldName, vc))
 }
 
 // NameIn applies the In predicate on the "name" field.
-func NameIn(vs ...string) predicate.Role {
-	return predicate.Role(sql.FieldIn(FieldName, vs...))
+func NameIn(vs ...constants.Role) predicate.Role {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = string(vs[i])
+	}
+	return predicate.Role(sql.FieldIn(FieldName, v...))
 }
 
 // NameNotIn applies the NotIn predicate on the "name" field.
-func NameNotIn(vs ...string) predicate.Role {
-	return predicate.Role(sql.FieldNotIn(FieldName, vs...))
+func NameNotIn(vs ...constants.Role) predicate.Role {
+	v := make([]any, len(vs))
+	for i := range v {
+		v[i] = string(vs[i])
+	}
+	return predicate.Role(sql.FieldNotIn(FieldName, v...))
 }
 
 // NameGT applies the GT predicate on the "name" field.
-func NameGT(v string) predicate.Role {
-	return predicate.Role(sql.FieldGT(FieldName, v))
+func NameGT(v constants.Role) predicate.Role {
+	vc := string(v)
+	return predicate.Role(sql.FieldGT(FieldName, vc))
 }
 
 // NameGTE applies the GTE predicate on the "name" field.
-func NameGTE(v string) predicate.Role {
-	return predicate.Role(sql.FieldGTE(FieldName, v))
+func NameGTE(v constants.Role) predicate.Role {
+	vc := string(v)
+	return predicate.Role(sql.FieldGTE(FieldName, vc))
 }
 
 // NameLT applies the LT predicate on the "name" field.
-func NameLT(v string) predicate.Role {
-	return predicate.Role(sql.FieldLT(FieldName, v))
+func NameLT(v constants.Role) predicate.Role {
+	vc := string(v)
+	return predicate.Role(sql.FieldLT(FieldName, vc))
 }
 
 // NameLTE applies the LTE predicate on the "name" field.
-func NameLTE(v string) predicate.Role {
-	return predicate.Role(sql.FieldLTE(FieldName, v))
+func NameLTE(v constants.Role) predicate.Role {
+	vc := string(v)
+	return predicate.Role(sql.FieldLTE(FieldName, vc))
 }
 
 // NameContains applies the Contains predicate on the "name" field.
-func NameContains(v string) predicate.Role {
-	return predicate.Role(sql.FieldContains(FieldName, v))
+func NameContains(v constants.Role) predicate.Role {
+	vc := string(v)
+	return predicate.Role(sql.FieldContains(FieldName, vc))
 }
 
 // NameHasPrefix applies the HasPrefix predicate on the "name" field.
-func NameHasPrefix(v string) predicate.Role {
-	return predicate.Role(sql.FieldHasPrefix(FieldName, v))
+func NameHasPrefix(v constants.Role) predicate.Role {
+	vc := string(v)
+	return predicate.Role(sql.FieldHasPrefix(FieldName, vc))
 }
 
 // NameHasSuffix applies the HasSuffix predicate on the "name" field.
-func NameHasSuffix(v string) predicate.Role {
-	return predicate.Role(sql.FieldHasSuffix(FieldName, v))
+func NameHasSuffix(v constants.Role) predicate.Role {
+	vc := string(v)
+	return predicate.Role(sql.FieldHasSuffix(FieldName, vc))
 }
 
 // NameEqualFold applies the EqualFold predicate on the "name" field.
-func NameEqualFold(v string) predicate.Role {
-	return predicate.Role(sql.FieldEqualFold(FieldName, v))
+func NameEqualFold(v constants.Role) predicate.Role {
+	vc := string(v)
+	return predicate.Role(sql.FieldEqualFold(FieldName, vc))
 }
 
 // NameContainsFold applies the ContainsFold predicate on the "name" field.
-func NameContainsFold(v string) predicate.Role {
-	return predicate.Role(sql.FieldContainsFold(FieldName, v))
+func NameContainsFold(v constants.Role) predicate.Role {
+	vc := string(v)
+	return predicate.Role(sql.FieldContainsFold(FieldName, vc))
 }
 
 // HasUsers applies the HasEdge predicate on the "users" edge.

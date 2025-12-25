@@ -7,6 +7,7 @@ import (
 	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"github.com/shunwuse/go-hris/ent/schema/mixin"
+	"github.com/shunwuse/go-hris/internal/constants"
 )
 
 type Role struct {
@@ -24,7 +25,8 @@ func (Role) Fields() []ent.Field {
 	return []ent.Field{
 		field.String("name").
 			Unique().
-			NotEmpty(),
+			NotEmpty().
+			GoType(constants.Role("")),
 	}
 }
 

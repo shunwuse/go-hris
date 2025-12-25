@@ -10,6 +10,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/shunwuse/go-hris/ent/entgen/role"
+	"github.com/shunwuse/go-hris/internal/constants"
 )
 
 // Role is the model entity for the Role schema.
@@ -24,7 +25,7 @@ type Role struct {
 	// DeletedAt holds the value of the "deleted_at" field.
 	DeletedAt *time.Time `json:"deleted_at,omitempty"`
 	// Name holds the value of the "name" field.
-	Name string `json:"name,omitempty"`
+	Name constants.Role `json:"name,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the RoleQuery when eager-loading is set.
 	Edges        RoleEdges `json:"edges"`
@@ -137,7 +138,7 @@ func (_m *Role) assignValues(columns []string, values []any) error {
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
-				_m.Name = value.String
+				_m.Name = constants.Role(value.String)
 			}
 		default:
 			_m.selectValues.Set(columns[i], values[i])
@@ -207,7 +208,7 @@ func (_m *Role) String() string {
 	}
 	builder.WriteString(", ")
 	builder.WriteString("name=")
-	builder.WriteString(_m.Name)
+	builder.WriteString(fmt.Sprintf("%v", _m.Name))
 	builder.WriteByte(')')
 	return builder.String()
 }
