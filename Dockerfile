@@ -1,43 +1,50 @@
-# Description: Dockerfile for building the application
-FROM golang:1.25.1 AS builder
+# Stage 1: Build
+FROM golang:1.25.5-alpine3.23 AS builder
 
-# copy the source code
-COPY . /app
-
-# set the working directory
+# Set the working directory
 WORKDIR /app
 
-# install the migrate tool
-RUN go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
-# run the migrations
-RUN make migrate-up
+# Install build tools
+RUN apk add --no-cache make gcc musl-dev
 
-# download the dependencies
+# Install migrate tool
+RUN go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+RUN go install github.com/google/wire/cmd/wire@latest
+
+# Copy dependency files and download
+COPY go.mod go.sum ./
 RUN go mod download
 
-# install wire
-RUN go install github.com/google/wire/cmd/wire@latest
-# generate the wire files
-RUN make wire
+# Copy the rest of the source code
+COPY . .
 
-# build the application
-RUN GOOS=linux go build -a -installsuffix cgo -ldflags '-extldflags "-static"' -o myapp ./cmd/server
+# Accept version as a build argument
+ARG VERSION=dev
 
-# create a new image
-FROM alpine:3.20
+# Generate wire files and build the application
+RUN make gen
+RUN CGO_ENABLED=1 GOOS=linux make build-static VERSION=${VERSION}
+
+# Run the migrations
+RUN make migrate-up
+
+# Stage 2: Runtime
+FROM alpine:3.23
 
 # Install runtime dependencies for cgo and sqlite3
 RUN apk add --no-cache libgcc libstdc++
 
-# copy the binary
+WORKDIR /app
+
+# Copy the binary
 COPY --from=builder /app/myapp .
-# copy the environment file
+# Copy the environment file
 COPY --from=builder /app/.env .
-# copy the database
+# Copy the database
 COPY --from=builder /app/test.db .
 
-# expose the port
+# Expose the application port
 EXPOSE 8080
 
-# run the application
+# Run the application
 CMD ["./myapp"]

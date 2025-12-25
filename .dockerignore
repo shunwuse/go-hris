@@ -5,11 +5,14 @@
 .vscode
 .idea
 
+# Version control #
+.git
+.gitignore
+
 # Binaries #
 myapp
 server
 
-*.log
+# Database files and logs
 *.db
-
-wire_gen.go
+*.log
