@@ -80,7 +80,7 @@ MAX_ATTEMPTS=$((PING_TIMEOUT * 2))  # Convert to attempts (0.5s interval)
 ATTEMPT=0
 
 while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
-    if curl -s -f http://localhost:$SERVER_PORT/ping >/dev/null 2>&1; then
+    if curl -s -f http://localhost:$SERVER_PORT/health >/dev/null 2>&1; then
         echo -e "${GREEN}Server is ready!${NC}"
         break
     fi
@@ -100,7 +100,7 @@ done
 echo ""
 
 # Check if server is ready after timeout
-if ! curl -s -f http://localhost:$SERVER_PORT/ping >/dev/null 2>&1; then
+if ! curl -s -f http://localhost:$SERVER_PORT/health >/dev/null 2>&1; then
     echo -e "${RED}Server failed to start within ${PING_TIMEOUT}s${NC}"
     echo "Server log:"
     cat "$SERVER_LOG"
@@ -118,9 +118,9 @@ if [ -f "./scripts/test_endpoints.sh" ]; then
 else
     echo -e "${YELLOW}No test_endpoints.sh found, running basic tests...${NC}"
 
-    # Basic ping test
-    echo -n "Testing /ping... "
-    if curl -s http://localhost:$SERVER_PORT/ping | grep -q "pong"; then
+    # Basic health test
+    echo -n "Testing /health... "
+    if curl -s -f http://localhost:$SERVER_PORT/health >/dev/null 2>&1; then
         echo -e "${GREEN}✓${NC}"
     else
         echo -e "${RED}✗${NC}"

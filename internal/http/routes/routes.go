@@ -11,13 +11,13 @@ type IRoute interface {
 }
 
 func NewRoutes(
-	exampleRoute *ExampleRoute,
+	healthRoute *HealthRoute,
 	userRoute *UserRoute,
 	approvalRoute *ApprovalRoute,
 	authRoute *AuthRoute,
 ) Routes {
 	return Routes{
-		exampleRoute,
+		healthRoute,
 		userRoute,
 		approvalRoute,
 		authRoute,

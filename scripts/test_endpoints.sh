@@ -48,19 +48,14 @@ section() {
 # Main tests
 section "Testing Endpoints"
 
-# Test 1: Ping endpoint
-echo -n "1. GET /ping... "
-RESPONSE=$(curl -s -w "\n%{http_code}" $BASE_URL/ping)
+# Test 1: Health check endpoint
+echo -n "1. GET /health... "
+RESPONSE=$(curl -s -w "\n%{http_code}" $BASE_URL/health)
 HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
 BODY=$(echo "$RESPONSE" | sed '$d')
 
-if test_result "Ping returns 200" "200" "$HTTP_CODE"; then
-    if echo "$BODY" | grep -q "pong"; then
-        echo -e "   ${GREEN}✓${NC} Response contains 'pong'"
-    else
-        echo -e "   ${RED}✗${NC} Response missing 'pong': $BODY"
-        FAILED_TESTS=$((FAILED_TESTS + 1))
-    fi
+if test_result "Health check returns 200" "200" "$HTTP_CODE"; then
+    echo -e "   ${GREEN}✓${NC} Health check successful"
 fi
 
 # Test 2: Login with correct credentials

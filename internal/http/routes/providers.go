@@ -5,7 +5,7 @@ import (
 )
 
 var ProvideSet = wire.NewSet(
-	NewExampleRoute,
+	NewHealthRoute,
 	NewUserRoute,
 	NewApprovalRoute,
 	NewAuthRoute,

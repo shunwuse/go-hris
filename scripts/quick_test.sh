@@ -18,9 +18,9 @@ echo -e "${YELLOW}Quick API Test${NC}"
 echo -e "Testing: $BASE_URL"
 echo ""
 
-# Ping test
-echo -n "Ping... "
-if curl -s -f $BASE_URL/ping | grep -q "pong"; then
+# Health check test
+echo -n "Health check... "
+if curl -s -f $BASE_URL/health >/dev/null 2>&1; then
     echo -e "${GREEN}✓${NC}"
 else
     echo -e "${RED}✗${NC}"
