@@ -5,6 +5,10 @@
 .vscode
 .idea
 
+# Binaries #
+myapp
+server
+
 *.log
 *.db
 

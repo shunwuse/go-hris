@@ -1,91 +1,101 @@
-# Human Resources Information System
+# 🚀 Go HRIS
 
-## Description
-This is a simple Human Resources Information System (HRIS).
+**A Human Resources Information System (HRIS) practice project built with Go.**
 
-## How to run
-```plaintext
-1. Clone this repository
-2. Run `make go-migrate-up` to migrate the database
-3. Run `make server` to start the server on port 8080 (default)
-```
+*This is a side project for learning purposes and is **not intended for production use**.*
 
-Alternatively, you can run the server using Docker in two ways
-```plaintext
-Build and run the server from source:
-1. Clone this repository
-2. Run `make docker build` to build the docker image
-3. Run `make docker run` to run the docker image, the server will be available on port 8080
+## 🛠️ Tech Stack
 
-Run the server using a pre-built image from Docker Hub:
-1. Run `docker run --rm -p 8080:8080 shunwuse/go-hris:latest`
-```
+- **Language**: Go 1.25.5
+- **Framework**: Chi (HTTP Router)
+- **ORM**: Ent
+- **DI**: Google Wire
+- **Database**: SQLite
+- **Container**: Docker (Multi-stage build)
 
-[Postman Collection](https://documenter.getpostman.com/view/23207346/2sA3duEsLN)
+## 🚀 Quick Start
 
+### Local Development
 
-Login with default user:
-```plaintext
-username: admin
-password: password
-```
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/shunwuse/go-hris.git
+   cd go-hris
+   ```
 
-## Testing
+2. **Initialize the database**
+   ```bash
+   make go-migrate-up
+   ```
 
-### Quick Start
+3. **Start the server**
+   ```bash
+   make run
+   ```
+   The server will be running at `http://localhost:8080` by default.
 
+### Run with Docker
+
+#### Build from source
 ```bash
-# Unit tests
-make test
+# Build the image (automatically injects Git Commit Hash as version)
+make docker-build
 
-# Integration tests (recommended for full validation)
-make test-integration
-
-# Quick smoke test (server must be running)
-make test-integration-quick
-
-# Detailed endpoint tests (server must be running)
-make test-integration-endpoints
+# Run the container
+make docker-run
 ```
 
-### Test Commands
+#### Use pre-built image
+```bash
+docker run --rm -p 8080:8080 shunwuse/go-hris:latest
+```
+
+## 📖 API Documentation
+
+- **Health Check**: `GET /health` (Check system status and version info)
+- **Postman Collection**: [View here](https://documenter.getpostman.com/view/23207346/2sA3duEsLN)
+
+### Default Admin Account
+- **Username**: `admin`
+- **Password**: `password`
+
+## 🧪 Testing Guide
+
+We provide a comprehensive test suite including unit and integration tests.
 
 | Command | Description | Auto-starts Server? |
 |---------|-------------|---------------------|
-| `make test` | Go unit tests (`go test ./...`) | N/A |
-| `make test-coverage` | Unit tests with coverage report | N/A |
-| `make test-integration` | Full integration test suite | ✅ Yes |
-| `make test-integration-quick` | Fast smoke test (4 core endpoints) | ❌ No |
-| `make test-integration-endpoints` | Comprehensive tests (10 test cases) | ❌ No |
+| `make test` | Run all unit tests | No |
+| `make test-coverage` | Generate test coverage report | No |
+| `make test-integration` | Run full integration test suite | ✅ Yes |
+| `make test-integration-quick` | Fast smoke test (requires running server) | No |
 
-### Output Example
+For detailed testing instructions, please refer to [TESTING.md](TESTING.md).
 
-```
-Building server...
-Server built successfully
-Starting server on port 8080...
-Server is ready!
+## 📂 Project Structure
 
-Running tests...
-✓ Ping returns 200
-✓ Login returns 200
-✓ Get users returns 200
-...
+- `cmd/`: Application entry points (Server, Migration)
+- `ent/`: Generated Ent ORM schemas and code
+- `internal/`: Core business logic
+  - `domains/`: Domain models
+  - `services/`: Business logic layer
+  - `repositories/`: Data access layer
+  - `http/`: Controllers and routes
+- `migrations/`: SQL migration files
+- `scripts/`: Helper scripts
 
-Total tests:  10
-Passed:       10
-Failed:       0
+## 📜 Development Commands (Makefile)
 
-All tests passed! 🎉
-```
+Type `make` or `make help` to see all available commands:
 
-### Documentation
+- `make gen`: Generate Wire dependency injection code
+- `make build`: Build local binary
+- `make clean`: Clean up build artifacts and temporary database
+- `make migrate-create name=xxx`: Create a new database migration file
 
-- 📖 **[TESTING.md](TESTING.md)** - Quick testing guide
-
-## Features
-- [x] Create user
-- [x] Login
-- [x] Role
-- [x] Permission
-- [x] Approval Management
+## ✨ Features
+- [x] User Management (CRUD)
+- [x] JWT Authentication & Authorization
+- [x] Role-Based Access Control (RBAC)
+- [x] Approval Workflow Management
+- [x] Structured Logging & Health Checks
