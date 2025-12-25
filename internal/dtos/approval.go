@@ -3,10 +3,10 @@ package dtos
 import "github.com/shunwuse/go-hris/internal/constants"
 
 type ApprovalResponse struct {
-	ID           uint    `json:"id"`
-	CreatorName  string  `json:"creator_name"`
-	ApproverName *string `json:"approver_name"`
-	Status       string  `json:"status"`
+	ID           uint                     `json:"id"`
+	CreatorName  string                   `json:"creator_name"`
+	ApproverName *string                  `json:"approver_name"`
+	Status       constants.ApprovalStatus `json:"status"`
 }
 
 type ApprovalAction struct {

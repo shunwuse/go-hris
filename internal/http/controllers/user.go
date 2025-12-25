@@ -195,7 +195,7 @@ func (c *UserController) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	roles := make([]string, 0)
+	roles := make([]constants.Role, 0)
 	for _, role := range user.Edges.Roles {
 		roles = append(roles, role.Name)
 	}

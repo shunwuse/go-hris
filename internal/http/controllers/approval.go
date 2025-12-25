@@ -52,7 +52,7 @@ func (c *ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request
 		approvalResponse := dtos.ApprovalResponse{
 			ID:          approval.ID,
 			CreatorName: approval.Edges.Creator.Name,
-			Status:      string(approval.Status),
+			Status:      approval.Status,
 		}
 
 		if approval.Edges.Approver != nil {

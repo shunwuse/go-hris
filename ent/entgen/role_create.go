@@ -15,6 +15,7 @@ import (
 	"github.com/shunwuse/go-hris/ent/entgen/rolepermission"
 	"github.com/shunwuse/go-hris/ent/entgen/user"
 	"github.com/shunwuse/go-hris/ent/entgen/userrole"
+	"github.com/shunwuse/go-hris/internal/constants"
 )
 
 // RoleCreate is the builder for creating a Role entity.
@@ -67,7 +68,7 @@ func (_c *RoleCreate) SetNillableDeletedAt(v *time.Time) *RoleCreate {
 }
 
 // SetName sets the "name" field.
-func (_c *RoleCreate) SetName(v string) *RoleCreate {
+func (_c *RoleCreate) SetName(v constants.Role) *RoleCreate {
 	_c.mutation.SetName(v)
 	return _c
 }
@@ -195,7 +196,7 @@ func (_c *RoleCreate) check() error {
 		return &ValidationError{Name: "name", err: errors.New(`entgen: missing required field "Role.name"`)}
 	}
 	if v, ok := _c.mutation.Name(); ok {
-		if err := role.NameValidator(v); err != nil {
+		if err := role.NameValidator(string(v)); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`entgen: validator failed for field "Role.name": %w`, err)}
 		}
 	}

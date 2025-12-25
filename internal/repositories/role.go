@@ -60,7 +60,7 @@ func (r *RoleRepository) FindAll(ctx context.Context) error {
 	return nil
 }
 
-func (r *RoleRepository) FindByName(ctx context.Context, name string) *entgen.Role {
+func (r *RoleRepository) FindByName(ctx context.Context, name constants.Role) *entgen.Role {
 	for _, role := range r.Roles {
 		if role.Name == name {
 			return role
@@ -70,7 +70,7 @@ func (r *RoleRepository) FindByName(ctx context.Context, name string) *entgen.Ro
 	return nil
 }
 
-func (r *RoleRepository) Create(ctx context.Context, name string) (*entgen.Role, error) {
+func (r *RoleRepository) Create(ctx context.Context, name constants.Role) (*entgen.Role, error) {
 	role, err := r.Client.Role.Create().
 		SetName(name).
 		Save(ctx)

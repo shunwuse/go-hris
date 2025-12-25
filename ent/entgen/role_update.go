@@ -17,6 +17,7 @@ import (
 	"github.com/shunwuse/go-hris/ent/entgen/rolepermission"
 	"github.com/shunwuse/go-hris/ent/entgen/user"
 	"github.com/shunwuse/go-hris/ent/entgen/userrole"
+	"github.com/shunwuse/go-hris/internal/constants"
 )
 
 // RoleUpdate is the builder for updating Role entities.
@@ -59,13 +60,13 @@ func (_u *RoleUpdate) ClearDeletedAt() *RoleUpdate {
 }
 
 // SetName sets the "name" field.
-func (_u *RoleUpdate) SetName(v string) *RoleUpdate {
+func (_u *RoleUpdate) SetName(v constants.Role) *RoleUpdate {
 	_u.mutation.SetName(v)
 	return _u
 }
 
 // SetNillableName sets the "name" field if the given value is not nil.
-func (_u *RoleUpdate) SetNillableName(v *string) *RoleUpdate {
+func (_u *RoleUpdate) SetNillableName(v *constants.Role) *RoleUpdate {
 	if v != nil {
 		_u.SetName(*v)
 	}
@@ -260,7 +261,7 @@ func (_u *RoleUpdate) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (_u *RoleUpdate) check() error {
 	if v, ok := _u.mutation.Name(); ok {
-		if err := role.NameValidator(v); err != nil {
+		if err := role.NameValidator(string(v)); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`entgen: validator failed for field "Role.name": %w`, err)}
 		}
 	}
@@ -542,13 +543,13 @@ func (_u *RoleUpdateOne) ClearDeletedAt() *RoleUpdateOne {
 }
 
 // SetName sets the "name" field.
-func (_u *RoleUpdateOne) SetName(v string) *RoleUpdateOne {
+func (_u *RoleUpdateOne) SetName(v constants.Role) *RoleUpdateOne {
 	_u.mutation.SetName(v)
 	return _u
 }
 
 // SetNillableName sets the "name" field if the given value is not nil.
-func (_u *RoleUpdateOne) SetNillableName(v *string) *RoleUpdateOne {
+func (_u *RoleUpdateOne) SetNillableName(v *constants.Role) *RoleUpdateOne {
 	if v != nil {
 		_u.SetName(*v)
 	}
@@ -756,7 +757,7 @@ func (_u *RoleUpdateOne) defaults() {
 // check runs all checks and user-defined validators on the builder.
 func (_u *RoleUpdateOne) check() error {
 	if v, ok := _u.mutation.Name(); ok {
-		if err := role.NameValidator(v); err != nil {
+		if err := role.NameValidator(string(v)); err != nil {
 			return &ValidationError{Name: "name", err: fmt.Errorf(`entgen: validator failed for field "Role.name": %w`, err)}
 		}
 	}
