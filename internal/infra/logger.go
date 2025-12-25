@@ -12,6 +12,10 @@ import (
 	"go.uber.org/zap/zapcore"
 )
 
+const (
+	consoleTimeFormat = "15:04:05.000"
+)
+
 // Logger structure.
 type Logger struct {
 	*zap.Logger
@@ -52,25 +56,25 @@ func newLogger(config Config) Logger {
 		}
 	}
 
-	// Create logger core based on environment.
-	var core zapcore.Core
-	if config.Environment == "development" {
-		core = createDevelopmentCore(config)
-	} else {
-		core = createProductionCore(config)
-	}
-
-	// Create logger with caller.
-	logger := zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))
-
-	// Add instance metadata to all logs.
+	// Define common fields.
 	hostname, _ := os.Hostname()
-	logger = logger.With(
+	fields := []zapcore.Field{
 		zap.String("instance_id", ulid.Make().String()),
 		zap.String("hostname", hostname),
 		zap.Int("pid", os.Getpid()),
 		zap.String("environment", config.Environment),
-	)
+	}
+
+	// Create logger core based on environment.
+	var core zapcore.Core
+	if config.Environment == "development" {
+		core = createDevelopmentCore(config, fields)
+	} else {
+		core = createProductionCore(config, fields)
+	}
+
+	// Create logger with caller.
+	logger := zap.New(core, zap.AddCaller(), zap.AddStacktrace(zapcore.ErrorLevel))
 
 	// Set global logger.
 	zap.ReplaceGlobals(logger)
@@ -78,20 +82,24 @@ func newLogger(config Config) Logger {
 	return Logger{logger}
 }
 
-func createDevelopmentCore(config Config) zapcore.Core {
+func createDevelopmentCore(config Config, fields []zapcore.Field) zapcore.Core {
 	encoderConfig := createEncoderConfig()
 	file := createFileWriter(config.LogOutput)
 
-	// File core with JSON format.
+	// File core with JSON format and metadata.
 	fileCore := zapcore.NewCore(
 		zapcore.NewJSONEncoder(encoderConfig),
 		zapcore.AddSync(file),
 		zapcore.DebugLevel,
-	)
+	).With(fields)
 
 	// Console core with colored output.
+	consoleConfig := zap.NewDevelopmentEncoderConfig()
+	consoleConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	consoleConfig.EncodeTime = zapcore.TimeEncoderOfLayout(consoleTimeFormat)
+
 	consoleCore := zapcore.NewCore(
-		zapcore.NewConsoleEncoder(zap.NewDevelopmentEncoderConfig()),
+		zapcore.NewConsoleEncoder(consoleConfig),
 		zapcore.AddSync(os.Stdout),
 		zapcore.DebugLevel,
 	)
@@ -100,16 +108,16 @@ func createDevelopmentCore(config Config) zapcore.Core {
 	return zapcore.NewTee(fileCore, consoleCore)
 }
 
-func createProductionCore(config Config) zapcore.Core {
+func createProductionCore(config Config, fields []zapcore.Field) zapcore.Core {
 	encoderConfig := createEncoderConfig()
 	file := createFileWriter(config.LogOutput)
 
-	// Only file output with JSON format.
+	// Only file output with JSON format and metadata.
 	return zapcore.NewCore(
 		zapcore.NewJSONEncoder(encoderConfig),
 		zapcore.AddSync(file),
 		zapcore.InfoLevel,
-	)
+	).With(fields)
 }
 
 func createEncoderConfig() zapcore.EncoderConfig {
