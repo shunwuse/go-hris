@@ -21,6 +21,7 @@ type Server struct {
 	commonMiddlewares middlewares.CommonMiddlewares
 	logger            *infra.Logger
 	database          *infra.Database
+	cache             *infra.Cache
 }
 
 func NewServer(
@@ -30,6 +31,7 @@ func NewServer(
 	commonMiddlewares middlewares.CommonMiddlewares,
 	logger *infra.Logger,
 	database *infra.Database,
+	cache *infra.Cache,
 ) *Server {
 	return &Server{
 		config:            config,
@@ -38,6 +40,7 @@ func NewServer(
 		commonMiddlewares: commonMiddlewares,
 		logger:            logger,
 		database:          database,
+		cache:             cache,
 	}
 }
 
@@ -83,6 +86,11 @@ func (server *Server) Run() {
 		defer cancel()
 
 		server.logger.Info("initiating graceful shutdown", zap.Duration("timeout", 30*time.Second))
+
+		// Close Cache connection.
+		if err := server.cache.Close(); err != nil {
+			server.logger.Error("failed to close cache connection", zap.Error(err))
+		}
 
 		if err := httpServer.Shutdown(ctx); err != nil {
 			server.logger.Error("graceful shutdown failed", zap.Error(err))
