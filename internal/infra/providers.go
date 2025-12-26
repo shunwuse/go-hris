@@ -8,5 +8,6 @@ var ProviderSet = wire.NewSet(
 	GetConfig,
 	GetLogger,
 	GetDatabase,
+	NewCache,
 	NewRequestHandler,
 )
