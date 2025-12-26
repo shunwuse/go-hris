@@ -15,12 +15,12 @@ import (
 
 func InitializeServer() *Server {
 	wire.Build(
-		infra.ProvideSet,
-		repositories.ProvideSet,
-		services.ProvideSet,
-		middlewares.ProvideSet,
-		controllers.ProvideSet,
-		routes.ProvideSet,
+		infra.ProviderSet,
+		repositories.ProviderSet,
+		services.ProviderSet,
+		middlewares.ProviderSet,
+		controllers.ProviderSet,
+		routes.ProviderSet,
 		NewServer,
 	)
 

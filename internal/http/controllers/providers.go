@@ -4,7 +4,7 @@ import (
 	"github.com/google/wire"
 )
 
-var ProvideSet = wire.NewSet(
+var ProviderSet = wire.NewSet(
 	NewHealthController,
 	NewUserController,
 	NewApprovalController,
