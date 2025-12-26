@@ -24,7 +24,7 @@ func NewHealthRepository(
 
 func (r *HealthRepository) Check(ctx context.Context) bool {
 	// Ping the database.
-	if err := r.RawDB.PingContext(ctx); err != nil {
+	if err := r.GetRawDB(ctx).PingContext(ctx); err != nil {
 		r.logger.WithContext(ctx).Error("database health check failed", zap.Error(err))
 		return false
 	}

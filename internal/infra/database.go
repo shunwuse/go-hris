@@ -14,8 +14,8 @@ import (
 )
 
 type Database struct {
-	Client *entgen.Client
-	RawDB  *sqlx.DB
+	client *entgen.Client
+	rawDB  *sqlx.DB
 }
 
 var globalDatabase *Database
@@ -48,7 +48,17 @@ func newDatabase(config Config, logger *Logger) Database {
 	logger.Info("database connected successfully")
 
 	return Database{
-		Client: client,
-		RawDB:  db,
+		client: client,
+		rawDB:  db,
 	}
+}
+
+// GetClient returns the Ent client.
+func (d *Database) GetClient(ctx context.Context) *entgen.Client {
+	return d.client
+}
+
+// GetRawDB returns the raw sqlx.DB instance.
+func (d *Database) GetRawDB(ctx context.Context) *sqlx.DB {
+	return d.rawDB
 }

@@ -27,7 +27,7 @@ func NewApprovalRepository(
 }
 
 func (r *ApprovalRepository) FindAllWithRelations(ctx context.Context) ([]*entgen.Approval, error) {
-	approvals, err := r.Client.Approval.Query().
+	approvals, err := r.GetClient(ctx).Approval.Query().
 		WithCreator().
 		WithApprover().
 		All(ctx)
@@ -40,7 +40,7 @@ func (r *ApprovalRepository) FindAllWithRelations(ctx context.Context) ([]*entge
 }
 
 func (r *ApprovalRepository) Create(ctx context.Context, status constants.ApprovalStatus, creatorID uint) (*entgen.Approval, error) {
-	approval, err := r.Client.Approval.Create().
+	approval, err := r.GetClient(ctx).Approval.Create().
 		SetStatus(status).
 		SetCreatorID(creatorID).
 		Save(ctx)
@@ -53,7 +53,7 @@ func (r *ApprovalRepository) Create(ctx context.Context, status constants.Approv
 }
 
 func (r *ApprovalRepository) UpdateStatusByID(ctx context.Context, id uint, status constants.ApprovalStatus, approverID uint) error {
-	err := r.Client.Approval.Update().
+	err := r.GetClient(ctx).Approval.Update().
 		Where(
 			approval.IDEQ(id),
 			approval.StatusEQ(constants.ApprovalStatusPending),

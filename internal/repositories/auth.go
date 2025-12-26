@@ -32,7 +32,7 @@ func (r *AuthRepository) CreateRefreshToken(
 	userID uint,
 	expiresAt time.Time,
 ) (*entgen.RefreshToken, error) {
-	query := r.Client.RefreshToken.Create().
+	query := r.GetClient(ctx).RefreshToken.Create().
 		SetTokenHash(tokenHash).
 		SetUserID(userID).
 		SetExpiresAt(expiresAt)
@@ -49,7 +49,7 @@ func (r *AuthRepository) CreateRefreshToken(
 func (r *AuthRepository) FindValidRefreshTokenByTokenHash(ctx context.Context, tokenHash string) (*entgen.RefreshToken, error) {
 	now := time.Now()
 
-	token, err := r.Client.RefreshToken.Query().
+	token, err := r.GetClient(ctx).RefreshToken.Query().
 		Where(
 			refreshtoken.TokenHash(tokenHash),
 			refreshtoken.Revoked(false),
@@ -70,7 +70,7 @@ func (r *AuthRepository) FindValidRefreshTokenByTokenHash(ctx context.Context, t
 func (r *AuthRepository) RevokeRefreshToken(ctx context.Context, tokenHash string) error {
 	now := time.Now()
 
-	affected, err := r.Client.RefreshToken.Update().
+	affected, err := r.GetClient(ctx).RefreshToken.Update().
 		Where(refreshtoken.TokenHash(tokenHash)).
 		SetRevoked(true).
 		SetRevokedAt(now).
@@ -90,7 +90,7 @@ func (r *AuthRepository) RevokeRefreshToken(ctx context.Context, tokenHash strin
 func (r *AuthRepository) RevokeAllRefreshTokensForUser(ctx context.Context, userID uint) error {
 	now := time.Now()
 
-	err := r.Client.RefreshToken.Update().
+	err := r.GetClient(ctx).RefreshToken.Update().
 		Where(
 			refreshtoken.UserID(userID),
 			refreshtoken.Revoked(false),
