@@ -95,3 +95,51 @@ func TestCacheGetOrSet(t *testing.T) {
 		}
 	})
 }
+
+func TestPrefixHook(t *testing.T) {
+	logger := GetLogger()
+	prefix := "test-prefix"
+	config := Config{
+		UseMiniredis: true,
+		RedisPrefix:  prefix,
+	}
+	cache := NewCache(config, logger)
+	defer func() { _ = cache.Close() }()
+
+	ctx := context.Background()
+	key := "mykey"
+	val := "myval"
+	prefixedKey := prefix + ":" + key
+
+	t.Run("SetWithPrefix", func(t *testing.T) {
+		err := cache.Client.Set(ctx, key, val, 0).Err()
+		if err != nil {
+			t.Fatalf("SET failed: %v", err)
+		}
+
+		// Verify in miniredis that the key has the prefix
+		if !cache.miniRedis.Exists(prefixedKey) {
+			t.Errorf("expected key %s to exist in redis, but it doesn't", prefixedKey)
+		}
+	})
+
+	t.Run("GetWithPrefix", func(t *testing.T) {
+		got, err := cache.Client.Get(ctx, key).Result()
+		if err != nil {
+			t.Fatalf("GET failed: %v", err)
+		}
+		if got != val {
+			t.Errorf("expected %s, got %s", val, got)
+		}
+	})
+
+	t.Run("DelWithPrefix", func(t *testing.T) {
+		err := cache.Client.Del(ctx, key).Err()
+		if err != nil {
+			t.Fatalf("DEL failed: %v", err)
+		}
+		if cache.miniRedis.Exists(prefixedKey) {
+			t.Errorf("expected key %s to be deleted, but it still exists", prefixedKey)
+		}
+	})
+}
