@@ -31,7 +31,7 @@ func NewRoleRepository(
 
 func (r *RoleRepository) FindAll(ctx context.Context) ([]*entgen.Role, error) {
 	return infra.CacheGetOrSet(ctx, r.cache, constants.GetAllRolesKey(), constants.CacheTTLAllRoles, func() ([]*entgen.Role, error) {
-		roles, err := r.Client.Role.Query().
+		roles, err := r.GetClient(ctx).Role.Query().
 			All(ctx)
 		if err != nil {
 			r.logger.WithContext(ctx).Error("failed to find all roles", zap.Error(err))
@@ -57,7 +57,7 @@ func (r *RoleRepository) FindByName(ctx context.Context, name constants.Role) *e
 }
 
 func (r *RoleRepository) Create(ctx context.Context, name constants.Role) (*entgen.Role, error) {
-	role, err := r.Client.Role.Create().
+	role, err := r.GetClient(ctx).Role.Create().
 		SetName(name).
 		Save(ctx)
 	if err != nil {
@@ -72,7 +72,7 @@ func (r *RoleRepository) Create(ctx context.Context, name constants.Role) (*entg
 
 func (r *RoleRepository) GetPermissionsByRole(ctx context.Context, roleName constants.Role) constants.Permissions {
 	permissions, _ := infra.CacheGetOrSet(ctx, r.cache, constants.GetRolePermissionsKey(roleName), constants.CacheTTLRolePermissions, func() (constants.Permissions, error) {
-		roleData, err := r.Client.Role.Query().
+		roleData, err := r.GetClient(ctx).Role.Query().
 			Where(role.NameEQ(roleName)).
 			WithPermissions().
 			Only(ctx)

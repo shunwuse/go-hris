@@ -31,7 +31,7 @@ func NewUserRepository(
 }
 
 func (r *UserRepository) FindAll(ctx context.Context) ([]*entgen.User, error) {
-	users, err := r.Client.User.Query().
+	users, err := r.GetClient(ctx).User.Query().
 		All(ctx)
 	if err != nil {
 		r.logger.WithContext(ctx).Error("failed to find all users", zap.Error(err))
@@ -42,7 +42,7 @@ func (r *UserRepository) FindAll(ctx context.Context) ([]*entgen.User, error) {
 }
 
 func (r *UserRepository) Create(ctx context.Context, username string, name string) (*entgen.User, error) {
-	u, err := r.Client.User.Create().
+	u, err := r.GetClient(ctx).User.Create().
 		SetUsername(username).
 		SetName(name).
 		Save(ctx)
@@ -55,7 +55,7 @@ func (r *UserRepository) Create(ctx context.Context, username string, name strin
 }
 
 func (r *UserRepository) FindByUsername(ctx context.Context, username string) (*entgen.User, error) {
-	u, err := r.Client.User.Query().
+	u, err := r.GetClient(ctx).User.Query().
 		WithPassword().
 		WithRoles().
 		Where(user.UsernameEQ(username)).
@@ -73,7 +73,7 @@ func (r *UserRepository) FindByUsername(ctx context.Context, username string) (*
 
 func (r *UserRepository) FindByID(ctx context.Context, id uint) (*domains.UserWithPermissions, error) {
 	return infra.CacheGetOrSet(ctx, r.cache, constants.GetUserPermissionsKey(id), constants.CacheTTLUserPermissions, func() (*domains.UserWithPermissions, error) {
-		u, err := r.Client.User.Query().
+		u, err := r.GetClient(ctx).User.Query().
 			WithPassword().
 			WithRoles(func(rq *entgen.RoleQuery) {
 				rq.WithRolePermission(func(rpq *entgen.RolePermissionQuery) {
@@ -108,7 +108,7 @@ func (r *UserRepository) FindByID(ctx context.Context, id uint) (*domains.UserWi
 }
 
 func (r *UserRepository) Update(ctx context.Context, id uint, name string) error {
-	if err := r.Client.User.Update().
+	if err := r.GetClient(ctx).User.Update().
 		Where(user.IDEQ(id)).
 		SetName(name).
 		Exec(ctx); err != nil {
@@ -122,7 +122,7 @@ func (r *UserRepository) Update(ctx context.Context, id uint, name string) error
 }
 
 func (r *UserRepository) CreatePassword(ctx context.Context, hash string, owner *entgen.User) (*entgen.Password, error) {
-	password, err := r.Client.Password.Create().
+	password, err := r.GetClient(ctx).Password.Create().
 		SetHash(hash).
 		SetOwner(owner).
 		Save(ctx)
@@ -135,7 +135,7 @@ func (r *UserRepository) CreatePassword(ctx context.Context, hash string, owner 
 }
 
 func (r *UserRepository) AssignRole(ctx context.Context, userID uint, roleID uint) (*entgen.UserRole, error) {
-	userRole, err := r.Client.UserRole.Create().
+	userRole, err := r.GetClient(ctx).UserRole.Create().
 		SetUserID(userID).
 		SetRoleID(roleID).
 		Save(ctx)
