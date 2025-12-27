@@ -88,23 +88,13 @@ func (c *AuthController) RefreshToken(w http.ResponseWriter, r *http.Request) {
 func (c *AuthController) Logout(w http.ResponseWriter, r *http.Request) {
 	var req dtos.LogoutRequest
 
-	if err := render.DecodeJSON(r.Body, &req); err != nil {
-		c.logger.WithContext(r.Context()).Error("failed to decode logout request", zap.Error(err))
-		response.Error(w, errors.ErrInvalidInput)
-		return
-	}
+	_ = render.DecodeJSON(r.Body, &req)
 
-	if req.RefreshToken == "" {
-		c.logger.WithContext(r.Context()).Error("refresh token is required")
-		response.Error(w, errors.ErrInvalidInput)
-		return
-	}
-
-	// Revoke refresh token.
-	if err := c.authService.RevokeRefreshToken(r.Context(), req.RefreshToken); err != nil {
-		c.logger.WithContext(r.Context()).Error("failed to revoke refresh token", zap.Error(err))
-		response.Error(w, err)
-		return
+	if req.RefreshToken != "" {
+		// Revoke refresh token.
+		if err := c.authService.RevokeRefreshToken(r.Context(), req.RefreshToken); err != nil {
+			c.logger.WithContext(r.Context()).Error("failed to revoke refresh token", zap.Error(err))
+		}
 	}
 
 	response.OK(w, "logged out successfully")

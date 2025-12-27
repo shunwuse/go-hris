@@ -32,10 +32,10 @@ func (r *AuthRoute) Setup(router chi.Router) {
 
 	router.Route("/auth", func(authRouter chi.Router) {
 		authRouter.Post("/refresh", r.authController.RefreshToken)
-		authRouter.Post("/logout", r.authController.Logout)
 
 		authRouter.Group(func(protectedRouter chi.Router) {
 			protectedRouter.Use(r.jwtMiddleware.Handler())
+			protectedRouter.Post("/logout", r.authController.Logout)
 			protectedRouter.Post("/logout-all", r.authController.LogoutAll)
 		})
 	})
