@@ -8,6 +8,7 @@ type HealthResponse struct {
 
 type HealthComponentsResponse struct {
 	Database string `json:"database"`
+	Redis    string `json:"redis"`
 }
 
 type HealthInfoResponse struct {

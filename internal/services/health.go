@@ -28,12 +28,18 @@ func NewHealthService(
 
 func (s *healthService) Check(ctx context.Context) *domains.Health {
 	dbStatus := constants.StatusUp
-	if ok := s.healthRepository.Check(ctx); !ok {
+	if ok := s.healthRepository.CheckDatabase(ctx); !ok {
 		dbStatus = constants.StatusDown
 	}
 
+	redisStatus := constants.StatusUp
+	if ok := s.healthRepository.CheckRedis(ctx); !ok {
+		redisStatus = constants.StatusDown
+	}
+
 	status := constants.StatusUp
-	if dbStatus == constants.StatusDown {
+	if dbStatus == constants.StatusDown ||
+		redisStatus == constants.StatusDown {
 		status = constants.StatusDown
 	}
 
@@ -43,6 +49,7 @@ func (s *healthService) Check(ctx context.Context) *domains.Health {
 		Status: status,
 		Components: domains.HealthComponents{
 			Database: dbStatus,
+			Redis:    redisStatus,
 		},
 		Info: domains.HealthInfo{
 			Version:     infra.Version,
