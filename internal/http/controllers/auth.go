@@ -29,6 +29,32 @@ func NewAuthController(
 	}
 }
 
+func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
+	var userLogin dtos.UserLogin
+
+	if err := render.DecodeJSON(r.Body, &userLogin); err != nil {
+		c.logger.WithContext(r.Context()).Error("failed to decode login request", zap.Error(err))
+		response.Error(w, errors.ErrInvalidInput)
+		return
+	}
+
+	result, err := c.authService.Login(r.Context(), userLogin.Username, userLogin.Password)
+	if err != nil {
+		c.logger.WithContext(r.Context()).Error("failed to login", zap.String("username", userLogin.Username), zap.Error(err))
+		response.Error(w, err)
+		return
+	}
+
+	resp := dtos.LoginResponse{
+		Username:     result.Username,
+		Roles:        result.Roles,
+		AccessToken:  result.AccessToken,
+		RefreshToken: result.RefreshToken,
+	}
+
+	response.OK(w, resp)
+}
+
 func (c *AuthController) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	var req dtos.RefreshRequest
 

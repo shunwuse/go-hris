@@ -28,6 +28,8 @@ func NewAuthRoute(
 func (r *AuthRoute) Setup(router chi.Router) {
 	r.logger.Info("setting up auth routes")
 
+	router.Post("/login", r.authController.Login)
+
 	router.Route("/auth", func(authRouter chi.Router) {
 		authRouter.Post("/refresh", r.authController.RefreshToken)
 		authRouter.Post("/logout", r.authController.Logout)

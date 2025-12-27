@@ -14,8 +14,7 @@ type UserWithPermissions struct {
 type UserCreate struct {
 	Username string
 	Name     string
-
-	Password PasswordCreate
+	Password string
 }
 
 type UserUpdate struct {
