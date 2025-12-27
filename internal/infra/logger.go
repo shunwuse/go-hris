@@ -2,6 +2,7 @@ package infra
 
 import (
 	"context"
+	"io"
 	"os"
 	"path/filepath"
 	"sync"
@@ -9,6 +10,7 @@ import (
 	"github.com/shunwuse/go-hris/internal/constants"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"gopkg.in/natefinch/lumberjack.v2"
 )
 
 const (
@@ -82,12 +84,12 @@ func newLogger(config Config) Logger {
 
 func createDevelopmentCore(config Config, fields []zapcore.Field) zapcore.Core {
 	encoderConfig := createEncoderConfig()
-	file := createFileWriter(config.LogOutput)
+	writer := createFileWriter(config)
 
 	// File core with JSON format and metadata.
 	fileCore := zapcore.NewCore(
 		zapcore.NewJSONEncoder(encoderConfig),
-		zapcore.AddSync(file),
+		zapcore.AddSync(writer),
 		zapcore.DebugLevel,
 	).With(fields)
 
@@ -108,12 +110,12 @@ func createDevelopmentCore(config Config, fields []zapcore.Field) zapcore.Core {
 
 func createProductionCore(config Config, fields []zapcore.Field) zapcore.Core {
 	encoderConfig := createEncoderConfig()
-	file := createFileWriter(config.LogOutput)
+	writer := createFileWriter(config)
 
 	// Only file output with JSON format and metadata.
 	return zapcore.NewCore(
 		zapcore.NewJSONEncoder(encoderConfig),
-		zapcore.AddSync(file),
+		zapcore.AddSync(writer),
 		zapcore.InfoLevel,
 	).With(fields)
 }
@@ -135,11 +137,12 @@ func createEncoderConfig() zapcore.EncoderConfig {
 	}
 }
 
-func createFileWriter(logOutput string) *os.File {
-	file, err := os.OpenFile(logOutput, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-	if err != nil {
-		// Fallback to stderr if file cannot be opened.
-		return os.Stderr
+func createFileWriter(config Config) io.Writer {
+	return &lumberjack.Logger{
+		Filename:   config.LogOutput,
+		MaxSize:    config.LogMaxSize,    // megabytes
+		MaxBackups: config.LogMaxBackups, // number of backups
+		MaxAge:     config.LogMaxAge,     // days
+		Compress:   config.LogCompress,   // compress old files
 	}
-	return file
 }

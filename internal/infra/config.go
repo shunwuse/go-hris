@@ -12,9 +12,13 @@ import (
 )
 
 type Config struct {
-	Environment string `koanf:"env"`
-	ServerPort  string `koanf:"server_port"`
-	LogOutput   string `koanf:"log_output"`
+	Environment   string `koanf:"env"`
+	ServerPort    string `koanf:"server_port"`
+	LogOutput     string `koanf:"log_output"`
+	LogMaxSize    int    `koanf:"log_max_size"`    // megabytes
+	LogMaxBackups int    `koanf:"log_max_backups"` // number of backups
+	LogMaxAge     int    `koanf:"log_max_age"`     // days
+	LogCompress   bool   `koanf:"log_compress"`    // compress old files
 
 	SqliteDBPath string `koanf:"sqlite_db_path"`
 
