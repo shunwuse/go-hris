@@ -46,21 +46,15 @@ func (r *AuthRepository) CreateRefreshToken(
 	return token, nil
 }
 
-func (r *AuthRepository) FindValidRefreshTokenByTokenHash(ctx context.Context, tokenHash string) (*entgen.RefreshToken, error) {
-	now := time.Now()
-
+func (r *AuthRepository) FindRefreshTokenByTokenHash(ctx context.Context, tokenHash string) (*entgen.RefreshToken, error) {
 	token, err := r.GetClient(ctx).RefreshToken.Query().
-		Where(
-			refreshtoken.TokenHash(tokenHash),
-			refreshtoken.Revoked(false),
-			refreshtoken.ExpiresAtGT(now),
-		).
+		Where(refreshtoken.TokenHash(tokenHash)).
 		Only(ctx)
 	if err != nil {
 		if entgen.IsNotFound(err) {
 			return nil, errors.ErrTokenInvalid
 		}
-		r.logger.WithContext(ctx).Error("failed to find valid refresh token", zap.Error(err))
+		r.logger.WithContext(ctx).Error("failed to find refresh token", zap.Error(err))
 		return nil, errors.ErrDatabaseError
 	}
 
