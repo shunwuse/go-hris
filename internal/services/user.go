@@ -38,6 +38,10 @@ func (s *userService) GetUsers(ctx context.Context) ([]*entgen.User, error) {
 	return s.userRepository.FindAll(ctx)
 }
 
+func (s *userService) GetUsersWithOffset(ctx context.Context, query domains.OffsetQuery) (*domains.OffsetResult[*entgen.User], error) {
+	return s.userRepository.FindAllWithOffset(ctx, query)
+}
+
 func (s *userService) CreateUser(ctx context.Context, user *domains.UserCreate, role constants.Role) error {
 	// Convert username to lowercase.
 	user.Username = strings.ToLower(user.Username)

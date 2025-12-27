@@ -9,6 +9,7 @@ import (
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/dtos"
 	"github.com/shunwuse/go-hris/internal/errors"
+	"github.com/shunwuse/go-hris/internal/http/request"
 	"github.com/shunwuse/go-hris/internal/http/response"
 	"github.com/shunwuse/go-hris/internal/infra"
 	"github.com/shunwuse/go-hris/internal/ports/service"
@@ -41,25 +42,39 @@ func (c *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	users, err := c.userService.GetUsers(r.Context())
+	// Get pagination parameters.
+	var query domains.OffsetQuery
+	if err := request.DecodeQuery(r, &query); err != nil {
+		c.logger.WithContext(r.Context()).Error("failed to decode query params", zap.Error(err))
+		response.Error(w, errors.ErrInvalidInput)
+		return
+	}
+	query.Normalize()
+
+	result, err := c.userService.GetUsersWithOffset(r.Context(), query)
 	if err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to get users", zap.Error(err))
 		response.Error(w, err)
 		return
 	}
 
-	usersResponse := make([]dtos.GetUserResponse, 0)
-	for _, user := range users {
-		usersResponse = append(usersResponse, dtos.GetUserResponse{
+	usersResponse := make([]dtos.GetUserResponse, len(result.Items))
+	for idx, user := range result.Items {
+		usersResponse[idx] = dtos.GetUserResponse{
 			ID:              user.ID,
 			Username:        user.Username,
 			Name:            user.Name,
 			CreatedTime:     strconv.FormatInt(user.CreatedAt.UnixMilli(), 10),
 			LastUpdatedTime: strconv.FormatInt(user.UpdatedAt.UnixMilli(), 10),
-		})
+		}
 	}
 
-	response.List(w, usersResponse)
+	response.OffsetList(w, usersResponse, response.OffsetPaginationMeta{
+		Total:       result.TotalCount,
+		PerPage:     query.PerPage,
+		CurrentPage: query.Page,
+		LastPage:    result.TotalPage,
+	})
 }
 
 func (c *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
