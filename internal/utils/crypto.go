@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
 )
@@ -10,4 +11,13 @@ import (
 func SHA256Hex(s string) string {
 	hash := sha256.Sum256([]byte(s))
 	return hex.EncodeToString(hash[:])
+}
+
+// GenerateRandomString generates a random hexadecimal string of the specified length.
+func GenerateRandomString(length int) string {
+	b := make([]byte, length/2+1)
+	if _, err := rand.Read(b); err != nil {
+		return ""
+	}
+	return hex.EncodeToString(b)[:length]
 }
