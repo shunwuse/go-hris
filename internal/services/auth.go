@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"strings"
 	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwa"
@@ -28,15 +29,15 @@ type authService struct {
 	jwtExpire        time.Duration
 	jwtRefreshExpire time.Duration
 
+	userService            service.UserService
 	refreshTokenRepository *repositories.AuthRepository
-	userRepository         *repositories.UserRepository
 }
 
 func NewAuthService(
 	config infra.Config,
 	logger *infra.Logger,
+	userService service.UserService,
 	refreshTokenRepository *repositories.AuthRepository,
-	userRepository *repositories.UserRepository,
 ) service.AuthService {
 	key, err := jwk.FromRaw([]byte(config.JWTSecret))
 	if err != nil {
@@ -74,9 +75,50 @@ func NewAuthService(
 		jwtExpire:        expireDuration,
 		jwtRefreshExpire: refreshExpireDuration,
 
+		userService:            userService,
 		refreshTokenRepository: refreshTokenRepository,
-		userRepository:         userRepository,
 	}
+}
+
+func (s *authService) Login(ctx context.Context, username string, password string) (*domains.LoginResult, error) {
+	// Convert username to lowercase.
+	username = strings.ToLower(username)
+
+	user, err := s.userService.GetUserByUsername(ctx, username)
+	if err != nil {
+		s.logger.WithContext(ctx).Error("failed to get user", zap.String("username", username), zap.Error(err))
+		return nil, err
+	}
+
+	// Verify password.
+	if !utils.CheckPasswordHash(password, user.Edges.Password.Hash) {
+		s.logger.WithContext(ctx).Error("password verification failed")
+		return nil, errors.ErrInvalidCredentials
+	}
+
+	// Generate access token.
+	accessToken, err := s.GenerateAccessToken(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	// Generate refresh token.
+	refreshToken, err := s.GenerateRefreshToken(ctx, user)
+	if err != nil {
+		return nil, err
+	}
+
+	roles := make([]constants.Role, len(user.Edges.Roles))
+	for idx, role := range user.Edges.Roles {
+		roles[idx] = role.Name
+	}
+
+	return &domains.LoginResult{
+		Username:     user.Username,
+		Roles:        roles,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	}, nil
 }
 
 func (s *authService) GenerateAccessToken(ctx context.Context, user *domains.UserWithPermissions) (string, error) {
@@ -204,7 +246,7 @@ func (s *authService) RefreshAccessToken(ctx context.Context, refreshToken strin
 			return err
 		}
 
-		user, err := s.userRepository.FindByID(txCtx, tokenRecord.UserID)
+		user, err := s.userService.GetUserByID(txCtx, tokenRecord.UserID)
 		if err != nil {
 			s.logger.WithContext(txCtx).Error("failed to get user for refresh", zap.Uint("user_id", tokenRecord.UserID), zap.Error(err))
 			return errors.ErrTokenInvalid

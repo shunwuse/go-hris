@@ -118,16 +118,7 @@ func (c *ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	approvalID := actionRequest.ID
-	action := actionRequest.Action
-
-	if !isActionValid(action) {
-		c.logger.WithContext(r.Context()).Error("invalid approval action", zap.String("action", string(action)))
-		response.Error(w, errors.ErrValidationFailed)
-		return
-	}
-
-	err = c.approvalService.ActionApproval(r.Context(), approvalID, action, userID)
+	err = c.approvalService.ActionApproval(r.Context(), actionRequest.ID, actionRequest.Action, userID)
 	if err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to action approval", zap.Error(err))
 		response.Error(w, err)
@@ -135,8 +126,4 @@ func (c *ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Reque
 	}
 
 	response.OK(w, "approval actioned successfully")
-}
-
-func isActionValid(action constants.ApprovalStatus) bool {
-	return action == constants.ApprovalStatusApproved || action == constants.ApprovalStatusRejected
 }

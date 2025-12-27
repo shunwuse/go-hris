@@ -7,6 +7,7 @@ import (
 )
 
 type AuthService interface {
+	Login(ctx context.Context, username string, password string) (*domains.LoginResult, error)
 	GenerateAccessToken(ctx context.Context, user *domains.UserWithPermissions) (string, error)
 	ValidateAccessToken(ctx context.Context, tokenString string) (*domains.Claims, error)
 	GenerateRefreshToken(ctx context.Context, user *domains.UserWithPermissions) (string, error)

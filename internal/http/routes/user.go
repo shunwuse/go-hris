@@ -34,6 +34,4 @@ func (r *UserRoute) Setup(router chi.Router) {
 		userRouter.Post("/", r.userController.CreateUser)
 		userRouter.Put("/", r.userController.UpdateUser)
 	})
-
-	router.Post("/login", r.userController.Login)
 }

@@ -22,3 +22,10 @@ type TokenPair struct {
 	AccessToken  string `json:"access_token"`
 	RefreshToken string `json:"refresh_token"`
 }
+
+type LoginResult struct {
+	Username     string
+	Roles        []constants.Role
+	AccessToken  string
+	RefreshToken string
+}

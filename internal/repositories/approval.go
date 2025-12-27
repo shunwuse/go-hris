@@ -6,6 +6,7 @@ import (
 	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/ent/entgen/approval"
 	"github.com/shunwuse/go-hris/internal/constants"
+	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/infra"
 	"go.uber.org/zap"
@@ -39,34 +40,36 @@ func (r *ApprovalRepository) FindAllWithRelations(ctx context.Context) ([]*entge
 	return approvals, nil
 }
 
-func (r *ApprovalRepository) Create(ctx context.Context, status constants.ApprovalStatus, creatorID uint) (*entgen.Approval, error) {
-	approval, err := r.GetClient(ctx).Approval.Create().
-		SetStatus(status).
-		SetCreatorID(creatorID).
+func (r *ApprovalRepository) Create(ctx context.Context, approval *domains.ApprovalCreate) (*entgen.Approval, error) {
+	appr, err := r.GetClient(ctx).Approval.Create().
+		SetStatus(approval.Status).
+		SetCreatorID(approval.CreatorID).
 		Save(ctx)
 	if err != nil {
 		r.logger.WithContext(ctx).Error("failed to create approval", zap.Error(err))
 		return nil, errors.ErrDatabaseError
 	}
 
-	return approval, nil
+	return appr, nil
 }
 
 func (r *ApprovalRepository) UpdateStatusByID(ctx context.Context, id uint, status constants.ApprovalStatus, approverID uint) error {
-	err := r.GetClient(ctx).Approval.Update().
+	affected, err := r.GetClient(ctx).Approval.Update().
 		Where(
 			approval.IDEQ(id),
 			approval.StatusEQ(constants.ApprovalStatusPending),
 		).
 		SetStatus(status).
 		SetApproverID(approverID).
-		Exec(ctx)
+		Save(ctx)
 	if err != nil {
 		r.logger.WithContext(ctx).Error("failed to update approval status", zap.Error(err))
 		return errors.ErrDatabaseError
 	}
 
-	// TODO: Check if rows were affected
+	if affected == 0 {
+		return errors.ErrNotFound
+	}
 
 	return nil
 }
