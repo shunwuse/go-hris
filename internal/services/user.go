@@ -37,28 +37,30 @@ func (s *userService) GetUsers(ctx context.Context) ([]*entgen.User, error) {
 }
 
 func (s *userService) CreateUser(ctx context.Context, user *domains.UserCreate, role constants.Role) error {
-	u, err := s.userRepository.Create(ctx, user.Username, user.Name)
-	if err != nil {
-		return err
-	}
+	return s.userRepository.WithTx(ctx, func(txCtx context.Context) error {
+		u, err := s.userRepository.Create(txCtx, user.Username, user.Name)
+		if err != nil {
+			return err
+		}
 
-	_, err = s.userRepository.CreatePassword(ctx, user.Password.Hash, u)
-	if err != nil {
-		return err
-	}
+		_, err = s.userRepository.CreatePassword(txCtx, user.Password.Hash, u)
+		if err != nil {
+			return err
+		}
 
-	roleModel := s.roleRepository.FindByName(ctx, role)
-	if roleModel == nil {
-		s.logger.WithContext(ctx).Error("role not found", zap.String("role", role.String()))
-		return errors.ErrNotFound
-	}
+		roleModel := s.roleRepository.FindByName(txCtx, role)
+		if roleModel == nil {
+			s.logger.WithContext(txCtx).Error("role not found", zap.String("role", role.String()))
+			return errors.ErrNotFound
+		}
 
-	_, err = s.userRepository.AssignRole(ctx, u.ID, roleModel.ID)
-	if err != nil {
-		return err
-	}
+		_, err = s.userRepository.AssignRole(txCtx, u.ID, roleModel.ID)
+		if err != nil {
+			return err
+		}
 
-	return nil
+		return nil
+	})
 }
 
 func (s *userService) GetUserByUsername(ctx context.Context, username string) (*domains.UserWithPermissions, error) {
