@@ -13,11 +13,9 @@ type ICommonMiddleware interface {
 
 func NewCommonMiddlewares(
 	traceMiddleware *TraceMiddleware,
-	dbTrxMiddleware *DBTrxMiddleware,
 ) CommonMiddlewares {
 	return CommonMiddlewares{
 		traceMiddleware,
-		dbTrxMiddleware,
 	}
 }
 

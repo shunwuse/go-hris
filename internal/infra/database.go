@@ -2,6 +2,7 @@ package infra
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect"
@@ -53,8 +54,13 @@ func newDatabase(config Config, logger *Logger) Database {
 	}
 }
 
-// GetClient returns the Ent client.
+// GetClient returns the transactional or default database client from context.
 func (d *Database) GetClient(ctx context.Context) *entgen.Client {
+	tx, ok := ctx.Value(txKey{}).(*entgen.Tx)
+	if ok {
+		return tx.Client()
+	}
+
 	return d.client
 }
 
@@ -62,3 +68,37 @@ func (d *Database) GetClient(ctx context.Context) *entgen.Client {
 func (d *Database) GetRawDB(ctx context.Context) *sqlx.DB {
 	return d.rawDB
 }
+
+// WithTx provides a transactional context to the given work function.
+func (d *Database) WithTx(ctx context.Context, work func(ctx context.Context) error) error {
+	// 1. Begin transaction.
+	tx, err := d.client.Tx(ctx)
+	if err != nil {
+		return err
+	}
+
+	// 2. Handle panic.
+	defer func() {
+		if v := recover(); v != nil {
+			_ = tx.Rollback()
+			panic(v)
+		}
+	}()
+
+	// 3. Execute work with transactional context.
+	ctxWithTx := context.WithValue(ctx, txKey{}, tx)
+
+	if err := work(ctxWithTx); err != nil {
+		// 4. Rollback on error.
+		if rerr := tx.Rollback(); rerr != nil {
+			return fmt.Errorf("%w: rolling back transaction: %v", err, rerr)
+		}
+
+		return err
+	}
+
+	// 5. Commit on success.
+	return tx.Commit()
+}
+
+type txKey struct{}
