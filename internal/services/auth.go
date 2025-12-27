@@ -278,9 +278,23 @@ func (s *authService) RefreshAccessToken(ctx context.Context, refreshToken strin
 	var tokenPair *domains.TokenPair
 	// Use WithTx to ensure token rotation is atomic (revoke old + create new).
 	err := s.refreshTokenRepository.WithTx(ctx, func(txCtx context.Context) error {
-		tokenRecord, err := s.refreshTokenRepository.FindValidRefreshTokenByTokenHash(txCtx, tokenHash)
+		tokenRecord, err := s.refreshTokenRepository.FindRefreshTokenByTokenHash(txCtx, tokenHash)
 		if err != nil {
 			return err
+		}
+
+		// Reuse detection.
+		if tokenRecord.Revoked {
+			s.logger.WithContext(txCtx).Warn("Refresh token reuse detected! Revoking all tokens for user.",
+				zap.Uint("user_id", tokenRecord.UserID))
+			// Revoke all tokens for this user as a security measure.
+			_ = s.RevokeAllUserTokens(txCtx, tokenRecord.UserID)
+			return errors.ErrTokenInvalid
+		}
+
+		// Check expiration.
+		if tokenRecord.ExpiresAt.Before(time.Now()) {
+			return errors.ErrTokenExpired
 		}
 
 		user, err := s.userService.GetUserByID(txCtx, tokenRecord.UserID)
