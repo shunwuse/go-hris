@@ -7,7 +7,6 @@ import (
 var ProviderSet = wire.NewSet(
 	NewTraceMiddleware,
 	NewJWTMiddleware,
-	NewDBTrxMiddleware,
 
 	NewCommonMiddlewares,
 )
