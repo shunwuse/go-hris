@@ -10,26 +10,26 @@ import (
 	"github.com/shunwuse/go-hris/internal/ports/service"
 )
 
-// HealthController struct
-type HealthController struct {
-	logger        *infra.Logger
-	healthService service.HealthService
+// MonitorController struct
+type MonitorController struct {
+	logger         *infra.Logger
+	monitorService service.MonitorService
 }
 
-func NewHealthController(
+func NewMonitorController(
 	logger *infra.Logger,
-	healthService service.HealthService,
-) *HealthController {
-	return &HealthController{
-		logger:        logger,
-		healthService: healthService,
+	monitorService service.MonitorService,
+) *MonitorController {
+	return &MonitorController{
+		logger:         logger,
+		monitorService: monitorService,
 	}
 }
 
-func (c *HealthController) Check(w http.ResponseWriter, r *http.Request) {
+func (c *MonitorController) HealthCheck(w http.ResponseWriter, r *http.Request) {
 	c.logger.WithContext(r.Context()).Info("health check controller invoked")
 
-	health := c.healthService.Check(r.Context())
+	health := c.monitorService.HealthCheck(r.Context())
 
 	res := dtos.HealthResponse{
 		Status: health.Status,
