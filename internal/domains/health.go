@@ -8,6 +8,7 @@ type Health struct {
 
 type HealthComponents struct {
 	Database string
+	Redis    string
 }
 
 type HealthInfo struct {

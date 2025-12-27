@@ -43,6 +43,11 @@ func NoContent(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
+// ServiceUnavailable sends service unavailable response (503 Service Unavailable)
+func ServiceUnavailable(w http.ResponseWriter, data any) {
+	JSON(w, http.StatusServiceUnavailable, data)
+}
+
 // List sends simple list response
 func List(w http.ResponseWriter, data any) {
 	JSON(w, http.StatusOK, data)
