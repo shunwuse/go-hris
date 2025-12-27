@@ -196,43 +196,51 @@ func (s *authService) GenerateRefreshToken(ctx context.Context, user *domains.Us
 func (s *authService) RefreshAccessToken(ctx context.Context, refreshToken string) (*domains.TokenPair, error) {
 	tokenHash := utils.SHA256Hex(refreshToken)
 
-	tokenRecord, err := s.refreshTokenRepository.FindValidRefreshTokenByTokenHash(ctx, tokenHash)
+	var tokenPair *domains.TokenPair
+	// Use WithTx to ensure token rotation is atomic (revoke old + create new).
+	err := s.refreshTokenRepository.WithTx(ctx, func(txCtx context.Context) error {
+		tokenRecord, err := s.refreshTokenRepository.FindValidRefreshTokenByTokenHash(txCtx, tokenHash)
+		if err != nil {
+			return err
+		}
+
+		user, err := s.userRepository.FindByID(txCtx, tokenRecord.UserID)
+		if err != nil {
+			s.logger.WithContext(txCtx).Error("failed to get user for refresh", zap.Uint("user_id", tokenRecord.UserID), zap.Error(err))
+			return errors.ErrTokenInvalid
+		}
+
+		// Generate new access token.
+		accessToken, err := s.GenerateAccessToken(txCtx, user)
+		if err != nil {
+			return err
+		}
+
+		// Token Rotation: revoke old refresh token.
+		if err := s.refreshTokenRepository.RevokeRefreshToken(txCtx, tokenHash); err != nil {
+			s.logger.WithContext(txCtx).Error("failed to revoke old refresh token", zap.Error(err))
+			return err
+		}
+
+		// Generate new refresh token.
+		newRefreshToken, err := s.GenerateRefreshToken(txCtx, user)
+		if err != nil {
+			s.logger.WithContext(txCtx).Error("failed to create new refresh token", zap.Error(err))
+			return err
+		}
+
+		tokenPair = &domains.TokenPair{
+			AccessToken:  accessToken,
+			RefreshToken: newRefreshToken,
+		}
+		return nil
+	})
+
 	if err != nil {
 		return nil, err
 	}
 
-	user, err := s.userRepository.FindByID(ctx, tokenRecord.UserID)
-	if err != nil {
-		s.logger.WithContext(ctx).Error("failed to get user for refresh", zap.Uint("user_id", tokenRecord.UserID), zap.Error(err))
-		return nil, errors.ErrTokenInvalid
-	}
-
-	// Generate new access token.
-	accessToken, err := s.GenerateAccessToken(ctx, user)
-	if err != nil {
-		return nil, err
-	}
-
-	// Token Rotation: revoke old refresh token, issue a new one.
-	if err := s.refreshTokenRepository.RevokeRefreshToken(ctx, tokenHash); err != nil {
-		s.logger.WithContext(ctx).Warn("failed to revoke old refresh token", zap.Error(err))
-		// Don't return error.
-	}
-
-	// Generate new refresh token.
-	newRefreshToken, err := s.GenerateRefreshToken(ctx, user)
-	if err != nil {
-		s.logger.WithContext(ctx).Error("failed to create new refresh token", zap.Error(err))
-		// Only return access token.
-		return &domains.TokenPair{
-			AccessToken: accessToken,
-		}, nil
-	}
-
-	return &domains.TokenPair{
-		AccessToken:  accessToken,
-		RefreshToken: newRefreshToken,
-	}, nil
+	return tokenPair, nil
 }
 
 func (s *authService) RevokeRefreshToken(ctx context.Context, refreshToken string) error {
