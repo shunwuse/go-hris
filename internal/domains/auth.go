@@ -7,6 +7,7 @@ import (
 )
 
 type TokenPayload struct {
+	JTI         string                `json:"jti"`
 	UserID      uint                  `json:"user_id"`
 	Username    string                `json:"username"`
 	CreatedAt   time.Time             `json:"created_at"`

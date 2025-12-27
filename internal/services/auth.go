@@ -6,12 +6,14 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"strconv"
 	"strings"
 	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwk"
 	"github.com/lestrrat-go/jwx/v2/jwt"
+	"github.com/oklog/ulid/v2"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/errors"
@@ -132,13 +134,16 @@ func (s *authService) GenerateAccessToken(ctx context.Context, user *domains.Use
 
 	// Build JWT token with jwx.
 	token, err := jwt.NewBuilder().
+		// Issuer("go-hris").
 		IssuedAt(now).
 		Expiration(expiration).
-		Claim(constants.ClaimUserID, user.ID).
+		JwtID(ulid.Make().String()).
+		Subject(strconv.FormatUint(uint64(user.ID), 10)).
 		Claim(constants.ClaimUsername, user.Username).
 		Claim(constants.ClaimCreatedAt, user.CreatedAt).
 		Claim(constants.ClaimRoles, roles).
 		Claim(constants.ClaimPermissions, user.Permissions).
+		Claim(constants.ClaimType, constants.TokenTypeAccess).
 		Build()
 	if err != nil {
 		s.logger.WithContext(ctx).Error("failed to build JWT token", zap.Error(err))
@@ -161,17 +166,31 @@ func (s *authService) ValidateAccessToken(ctx context.Context, tokenString strin
 		[]byte(tokenString),
 		jwt.WithKey(jwa.HS256, s.jwtKey),
 		jwt.WithValidate(true), // validate claims like exp, nbf, iat
+		// jwt.WithIssuer("go-hris"),
 	)
 	if err != nil {
+		if strings.Contains(err.Error(), "exp") {
+			return nil, errors.ErrTokenExpired
+		}
 		s.logger.WithContext(ctx).Error("failed to parse JWT token", zap.Error(err))
+		return nil, errors.ErrTokenInvalid
+	}
+
+	// Verify token type.
+	tokenType, ok := token.Get(constants.ClaimType)
+	if !ok || tokenType != string(constants.TokenTypeAccess) {
+		s.logger.WithContext(ctx).Error("invalid token type", zap.Any("type", tokenType))
 		return nil, errors.ErrTokenInvalid
 	}
 
 	// Extract claims.
 	claims := &domains.Claims{}
 
-	if userID, ok := token.Get(constants.ClaimUserID); ok {
-		if id, ok := userID.(float64); ok {
+	claims.JTI = token.JwtID()
+
+	// Parse Subject (User ID) from string back to uint.
+	if sub := token.Subject(); sub != "" {
+		if id, err := strconv.ParseUint(sub, 10, 64); err == nil {
 			claims.UserID = uint(id)
 		}
 	}
@@ -181,8 +200,15 @@ func (s *authService) ValidateAccessToken(ctx context.Context, tokenString strin
 	}
 
 	if createdAt, ok := token.Get(constants.ClaimCreatedAt); ok {
-		if t, ok := createdAt.(time.Time); ok {
-			claims.CreatedAt = t
+		switch v := createdAt.(type) {
+		case time.Time:
+			claims.CreatedAt = v
+		case string:
+			if t, err := time.Parse(time.RFC3339, v); err == nil {
+				claims.CreatedAt = t
+			}
+		case float64:
+			claims.CreatedAt = time.Unix(int64(v), 0)
 		}
 	}
 
