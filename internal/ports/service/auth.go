@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"time"
 
 	"github.com/shunwuse/go-hris/internal/domains"
 )
@@ -14,4 +15,5 @@ type AuthService interface {
 	RefreshAccessToken(ctx context.Context, refreshToken string) (*domains.TokenPair, error)
 	RevokeRefreshToken(ctx context.Context, refreshToken string) error
 	RevokeAllUserTokens(ctx context.Context, userID uint) error
+	BlacklistToken(ctx context.Context, jti string, expiration time.Duration) error
 }

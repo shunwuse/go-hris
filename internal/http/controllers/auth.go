@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"net/http"
+	"time"
 
 	"github.com/go-chi/render"
 	"github.com/shunwuse/go-hris/internal/constants"
@@ -97,6 +98,17 @@ func (c *AuthController) Logout(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Blacklist current access token.
+	payload, ok := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
+	if ok && payload.JTI != "" {
+		expiration := time.Until(payload.ExpiresAt)
+		if expiration > 0 {
+			if err := c.authService.BlacklistToken(r.Context(), payload.JTI, expiration); err != nil {
+				c.logger.WithContext(r.Context()).Error("failed to blacklist token", zap.Error(err))
+			}
+		}
+	}
+
 	response.OK(w, "logged out successfully")
 }
 
@@ -114,6 +126,16 @@ func (c *AuthController) LogoutAll(w http.ResponseWriter, r *http.Request) {
 		c.logger.WithContext(r.Context()).Error("failed to revoke all tokens", zap.Uint("user_id", token.UserID), zap.Error(err))
 		response.Error(w, err)
 		return
+	}
+
+	// Blacklist current access token.
+	if token.JTI != "" {
+		expiration := time.Until(token.ExpiresAt)
+		if expiration > 0 {
+			if err := c.authService.BlacklistToken(r.Context(), token.JTI, expiration); err != nil {
+				c.logger.WithContext(r.Context()).Error("failed to blacklist token", zap.Error(err))
+			}
+		}
 	}
 
 	response.OK(w, "logged out from all devices successfully")

@@ -13,6 +13,10 @@ const (
 )
 
 // Cache Key Helpers.
+func GetBlacklistKey(jti string) string {
+	return fmt.Sprintf("blacklist:%s", jti)
+}
+
 func GetAllRolesKey() string {
 	return "roles:all"
 }
