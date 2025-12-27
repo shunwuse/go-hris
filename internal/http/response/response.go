@@ -38,10 +38,10 @@ type CursorListResponse struct {
 
 // OffsetPaginationMeta contains metadata for offset-based pagination
 type OffsetPaginationMeta struct {
-	Page       int `json:"page"`        // Current page number (1-based)
-	PerPage    int `json:"per_page"`    // Items per page
-	Total      int `json:"total"`       // Total number of items
-	TotalPages int `json:"total_pages"` // Total number of pages
+	Total       int64 `json:"total"`
+	PerPage     int   `json:"per_page"`
+	CurrentPage int   `json:"current_page"`
+	LastPage    int   `json:"last_page"`
 }
 
 // CursorPaginationMeta contains metadata for cursor-based pagination

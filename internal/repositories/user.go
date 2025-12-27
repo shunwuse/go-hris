@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"math"
 
 	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/ent/entgen/user"
@@ -39,6 +40,32 @@ func (r *UserRepository) FindAll(ctx context.Context) ([]*entgen.User, error) {
 	}
 
 	return users, nil
+}
+
+func (r *UserRepository) FindAllWithOffset(ctx context.Context, query domains.OffsetQuery) (*domains.OffsetResult[*entgen.User], error) {
+	dbQuery := r.GetClient(ctx).User.Query()
+
+	total, err := dbQuery.Count(ctx)
+	if err != nil {
+		r.logger.WithContext(ctx).Error("failed to count users", zap.Error(err))
+		return nil, errors.ErrDatabaseError
+	}
+
+	users, err := dbQuery.
+		Limit(query.PerPage).
+		Offset(query.Offset()).
+		Order(entgen.Desc(user.FieldCreatedAt)).
+		All(ctx)
+	if err != nil {
+		r.logger.WithContext(ctx).Error("failed to find users with offset", zap.Error(err))
+		return nil, errors.ErrDatabaseError
+	}
+
+	return &domains.OffsetResult[*entgen.User]{
+		Items:      users,
+		TotalCount: total,
+		TotalPage:  int(math.Ceil(float64(total) / float64(query.PerPage))),
+	}, nil
 }
 
 func (r *UserRepository) Create(ctx context.Context, username string, name string) (*entgen.User, error) {
