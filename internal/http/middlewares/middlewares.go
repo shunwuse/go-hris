@@ -13,9 +13,11 @@ type ICommonMiddleware interface {
 
 func NewCommonMiddlewares(
 	traceMiddleware *TraceMiddleware,
+	recoveryMiddleware *RecoveryMiddleware,
 ) CommonMiddlewares {
 	return CommonMiddlewares{
 		traceMiddleware,
+		recoveryMiddleware,
 	}
 }
 
@@ -24,7 +26,6 @@ func (m CommonMiddlewares) Setup(router chi.Router) {
 
 	// Setup built-in middlewares.
 	router.Use(middleware.Logger)
-	router.Use(middleware.Recoverer)
 
 	for _, middleware := range m {
 		middleware.Setup(router)
