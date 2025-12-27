@@ -12,11 +12,13 @@ type ICommonMiddleware interface {
 
 func NewCommonMiddlewares(
 	traceMiddleware *TraceMiddleware,
+	metricsMiddleware *MetricsMiddleware,
 	requestLoggerMiddleware *RequestLoggerMiddleware,
 	recoveryMiddleware *RecoveryMiddleware,
 ) CommonMiddlewares {
 	return CommonMiddlewares{
 		traceMiddleware,
+		metricsMiddleware,
 		requestLoggerMiddleware,
 		recoveryMiddleware,
 	}
