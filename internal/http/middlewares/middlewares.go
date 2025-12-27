@@ -2,7 +2,6 @@ package middlewares
 
 import (
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 )
 
 type CommonMiddlewares []ICommonMiddleware
@@ -13,10 +12,12 @@ type ICommonMiddleware interface {
 
 func NewCommonMiddlewares(
 	traceMiddleware *TraceMiddleware,
+	requestLoggerMiddleware *RequestLoggerMiddleware,
 	recoveryMiddleware *RecoveryMiddleware,
 ) CommonMiddlewares {
 	return CommonMiddlewares{
 		traceMiddleware,
+		requestLoggerMiddleware,
 		recoveryMiddleware,
 	}
 }
@@ -25,7 +26,7 @@ func (m CommonMiddlewares) Setup(router chi.Router) {
 	NewCORSMiddleware().Setup(router) // setup CORS middleware
 
 	// Setup built-in middlewares.
-	router.Use(middleware.Logger)
+	// router.Use(middleware.Logger) // Replaced by requestLoggerMiddleware
 
 	for _, middleware := range m {
 		middleware.Setup(router)
