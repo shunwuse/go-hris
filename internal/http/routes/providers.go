@@ -5,11 +5,10 @@ import (
 )
 
 var ProviderSet = wire.NewSet(
-	NewHealthRoute,
+	NewMonitorRoute,
 	NewUserRoute,
 	NewApprovalRoute,
 	NewAuthRoute,
-	NewMetricsRoute,
 
 	NewRoutes,
 )

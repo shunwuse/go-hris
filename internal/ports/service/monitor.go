@@ -6,6 +6,6 @@ import (
 	"github.com/shunwuse/go-hris/internal/domains"
 )
 
-type HealthService interface {
-	Check(ctx context.Context) *domains.Health
+type MonitorService interface {
+	HealthCheck(ctx context.Context) *domains.Health
 }

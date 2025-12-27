@@ -5,7 +5,7 @@ import (
 )
 
 var ProviderSet = wire.NewSet(
-	NewHealthRepository,
+	NewMonitorRepository,
 	NewUserRepository,
 	NewRoleRepository,
 	NewApprovalRepository,

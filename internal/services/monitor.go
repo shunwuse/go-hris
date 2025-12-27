@@ -11,29 +11,29 @@ import (
 	"github.com/shunwuse/go-hris/internal/repositories"
 )
 
-type healthService struct {
-	logger           *infra.Logger
-	healthRepository *repositories.HealthRepository
+type monitorService struct {
+	logger            *infra.Logger
+	monitorRepository *repositories.MonitorRepository
 }
 
-func NewHealthService(
+func NewMonitorService(
 	logger *infra.Logger,
-	healthRepository *repositories.HealthRepository,
-) service.HealthService {
-	return &healthService{
-		logger:           logger,
-		healthRepository: healthRepository,
+	monitorRepository *repositories.MonitorRepository,
+) service.MonitorService {
+	return &monitorService{
+		logger:            logger,
+		monitorRepository: monitorRepository,
 	}
 }
 
-func (s *healthService) Check(ctx context.Context) *domains.Health {
+func (s *monitorService) HealthCheck(ctx context.Context) *domains.Health {
 	dbStatus := constants.StatusUp
-	if ok := s.healthRepository.CheckDatabase(ctx); !ok {
+	if ok := s.monitorRepository.CheckDatabase(ctx); !ok {
 		dbStatus = constants.StatusDown
 	}
 
 	redisStatus := constants.StatusUp
-	if ok := s.healthRepository.CheckRedis(ctx); !ok {
+	if ok := s.monitorRepository.CheckRedis(ctx); !ok {
 		redisStatus = constants.StatusDown
 	}
 
