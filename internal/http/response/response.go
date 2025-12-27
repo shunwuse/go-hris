@@ -38,16 +38,14 @@ type CursorListResponse struct {
 
 // OffsetPaginationMeta contains metadata for offset-based pagination
 type OffsetPaginationMeta struct {
-	Total       int64 `json:"total"`
-	PerPage     int   `json:"per_page"`
-	CurrentPage int   `json:"current_page"`
-	LastPage    int   `json:"last_page"`
+	Total       int `json:"total"`
+	PerPage     int `json:"per_page"`
+	CurrentPage int `json:"current_page"`
+	LastPage    int `json:"last_page"`
 }
 
 // CursorPaginationMeta contains metadata for cursor-based pagination
 type CursorPaginationMeta struct {
-	NextCursor *string `json:"next_cursor,omitempty"` // Cursor for next page (nil = last page)
-	PrevCursor *string `json:"prev_cursor,omitempty"` // Cursor for previous page (nil = first page)
-	PerPage    int     `json:"per_page"`              // Items per page
-	HasMore    bool    `json:"has_more"`              // Whether more items exist
+	NextCursor string `json:"next_cursor"`
+	HasMore    bool   `json:"has_more"`
 }

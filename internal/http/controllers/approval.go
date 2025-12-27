@@ -8,6 +8,7 @@ import (
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/dtos"
 	"github.com/shunwuse/go-hris/internal/errors"
+	"github.com/shunwuse/go-hris/internal/http/request"
 	"github.com/shunwuse/go-hris/internal/http/response"
 	"github.com/shunwuse/go-hris/internal/infra"
 	"github.com/shunwuse/go-hris/internal/ports/service"
@@ -40,15 +41,24 @@ func (c *ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	approvals, err := c.approvalService.GetApprovals(r.Context())
+	// Get pagination parameters.
+	var query domains.CursorQuery
+	if err := request.DecodeQuery(r, &query); err != nil {
+		c.logger.WithContext(r.Context()).Error("failed to decode query params", zap.Error(err))
+		response.Error(w, errors.ErrInvalidInput)
+		return
+	}
+	query.Normalize()
+
+	result, err := c.approvalService.GetApprovalsWithCursor(r.Context(), query)
 	if err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to get approvals", zap.Error(err))
 		response.Error(w, err)
 		return
 	}
 
-	approvalsResponse := make([]dtos.ApprovalResponse, 0)
-	for _, approval := range approvals {
+	approvalsResponse := make([]dtos.ApprovalResponse, len(result.Items))
+	for idx, approval := range result.Items {
 		approvalResponse := dtos.ApprovalResponse{
 			ID:          approval.ID,
 			CreatorName: approval.Edges.Creator.Name,
@@ -59,11 +69,13 @@ func (c *ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request
 			approvalResponse.ApproverName = &approval.Edges.Approver.Name
 		}
 
-		approvalsResponse = append(approvalsResponse, approvalResponse)
-
+		approvalsResponse[idx] = approvalResponse
 	}
 
-	response.List(w, approvalsResponse)
+	response.CursorList(w, approvalsResponse, response.CursorPaginationMeta{
+		NextCursor: result.NextCursor,
+		HasMore:    result.HasMore,
+	})
 }
 
 func (c *ApprovalController) AddApproval(w http.ResponseWriter, r *http.Request) {

@@ -2,6 +2,7 @@ package repositories
 
 import (
 	"context"
+	"strconv"
 
 	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/ent/entgen/approval"
@@ -9,6 +10,7 @@ import (
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/utils"
 	"go.uber.org/zap"
 )
 
@@ -38,6 +40,48 @@ func (r *ApprovalRepository) FindAllWithRelations(ctx context.Context) ([]*entge
 	}
 
 	return approvals, nil
+}
+
+func (r *ApprovalRepository) FindAllWithCursor(ctx context.Context, query domains.CursorQuery) (*domains.CursorResult[*entgen.Approval], error) {
+	dbQuery := r.GetClient(ctx).Approval.Query().
+		WithCreator().
+		WithApprover().
+		Order(entgen.Desc(approval.FieldID)).
+		Limit(query.Limit + 1)
+
+	if query.Cursor != "" {
+		parts, err := utils.DecodeCursor(query.Cursor)
+		if err != nil || len(parts) == 0 {
+			r.logger.WithContext(ctx).Error("failed to decode cursor", zap.Error(err))
+			return nil, errors.ErrInvalidInput
+		}
+
+		decodedID, err := strconv.ParseUint(parts[0], 10, 32)
+		if err != nil {
+			r.logger.WithContext(ctx).Error("failed to parse cursor ID", zap.Error(err))
+			return nil, errors.ErrInvalidInput
+		}
+		dbQuery = dbQuery.Where(approval.IDLT(uint(decodedID)))
+	}
+
+	approvals, err := dbQuery.All(ctx)
+	if err != nil {
+		r.logger.WithContext(ctx).Error("failed to find approvals with cursor", zap.Error(err))
+		return nil, errors.ErrDatabaseError
+	}
+
+	hasMore := len(approvals) > query.Limit
+	var nextCursor string
+	if hasMore {
+		nextCursor = utils.EncodeCursor(approvals[query.Limit-1].ID)
+		approvals = approvals[:query.Limit]
+	}
+
+	return &domains.CursorResult[*entgen.Approval]{
+		Items:      approvals,
+		NextCursor: nextCursor,
+		HasMore:    hasMore,
+	}, nil
 }
 
 func (r *ApprovalRepository) Create(ctx context.Context, approval *domains.ApprovalCreate) (*entgen.Approval, error) {

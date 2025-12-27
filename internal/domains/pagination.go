@@ -30,3 +30,26 @@ type OffsetResult[T any] struct {
 	TotalCount int
 	TotalPage  int
 }
+
+// CursorQuery represents the parameters for cursor-based pagination.
+type CursorQuery struct {
+	Cursor string `schema:"cursor"`
+	Limit  int    `schema:"limit"`
+}
+
+// Normalize sets default values for CursorQuery.
+func (q *CursorQuery) Normalize() {
+	if q.Limit <= 0 {
+		q.Limit = 10
+	}
+	if q.Limit > 100 {
+		q.Limit = 100
+	}
+}
+
+// CursorResult represents the result of a cursor-based pagination.
+type CursorResult[T any] struct {
+	Items      []T
+	NextCursor string
+	HasMore    bool
+}
