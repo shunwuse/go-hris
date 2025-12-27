@@ -26,18 +26,21 @@ import (
 
 type authService struct {
 	logger *infra.Logger
+	cache  *infra.Cache
+
+	refreshTokenRepository *repositories.AuthRepository
+
+	userService service.UserService
 
 	jwtKey           jwk.Key
 	jwtExpire        time.Duration
 	jwtRefreshExpire time.Duration
-
-	userService            service.UserService
-	refreshTokenRepository *repositories.AuthRepository
 }
 
 func NewAuthService(
 	config infra.Config,
 	logger *infra.Logger,
+	cache *infra.Cache,
 	userService service.UserService,
 	refreshTokenRepository *repositories.AuthRepository,
 ) service.AuthService {
@@ -71,14 +74,13 @@ func NewAuthService(
 	)
 
 	return &authService{
-		logger: logger,
-
-		jwtKey:           key,
-		jwtExpire:        expireDuration,
-		jwtRefreshExpire: refreshExpireDuration,
-
-		userService:            userService,
+		logger:                 logger,
+		cache:                  cache,
 		refreshTokenRepository: refreshTokenRepository,
+		userService:            userService,
+		jwtKey:                 key,
+		jwtExpire:              expireDuration,
+		jwtRefreshExpire:       refreshExpireDuration,
 	}
 }
 
@@ -187,6 +189,15 @@ func (s *authService) ValidateAccessToken(ctx context.Context, tokenString strin
 	claims := &domains.Claims{}
 
 	claims.JTI = token.JwtID()
+	claims.ExpiresAt = token.Expiration()
+
+	// Check if token is blacklisted.
+	if claims.JTI != "" {
+		blacklisted, err := s.cache.Client.Exists(ctx, constants.GetBlacklistKey(claims.JTI)).Result()
+		if err == nil && blacklisted > 0 {
+			return nil, errors.ErrTokenInvalid
+		}
+	}
 
 	// Parse Subject (User ID) from string back to uint.
 	if sub := token.Subject(); sub != "" {
@@ -318,4 +329,12 @@ func (s *authService) RevokeRefreshToken(ctx context.Context, refreshToken strin
 
 func (s *authService) RevokeAllUserTokens(ctx context.Context, userID uint) error {
 	return s.refreshTokenRepository.RevokeAllRefreshTokensForUser(ctx, userID)
+}
+
+func (s *authService) BlacklistToken(ctx context.Context, jti string, expiration time.Duration) error {
+	if jti == "" {
+		return nil
+	}
+
+	return s.cache.Client.Set(ctx, constants.GetBlacklistKey(jti), "1", expiration).Err()
 }
