@@ -126,9 +126,9 @@ func (s *authService) Login(ctx context.Context, username string, password strin
 }
 
 func (s *authService) GenerateAccessToken(ctx context.Context, user *domains.UserWithPermissions) (string, error) {
-	roles := make([]constants.Role, 0)
-	for _, role := range user.Edges.Roles {
-		roles = append(roles, constants.Role(role.Name))
+	roles := make([]constants.Role, len(user.Edges.Roles))
+	for idx, role := range user.Edges.Roles {
+		roles[idx] = role.Name
 	}
 
 	now := time.Now()
@@ -141,10 +141,6 @@ func (s *authService) GenerateAccessToken(ctx context.Context, user *domains.Use
 		Expiration(expiration).
 		JwtID(ulid.Make().String()).
 		Subject(strconv.FormatUint(uint64(user.ID), 10)).
-		Claim(constants.ClaimUsername, user.Username).
-		Claim(constants.ClaimCreatedAt, user.CreatedAt).
-		Claim(constants.ClaimRoles, roles).
-		Claim(constants.ClaimPermissions, user.Permissions).
 		Claim(constants.ClaimType, constants.TokenTypeAccess).
 		Build()
 	if err != nil {
@@ -206,41 +202,26 @@ func (s *authService) ValidateAccessToken(ctx context.Context, tokenString strin
 		}
 	}
 
-	if username, ok := token.Get(constants.ClaimUsername); ok {
-		claims.Username, _ = username.(string)
-	}
-
-	if createdAt, ok := token.Get(constants.ClaimCreatedAt); ok {
-		switch v := createdAt.(type) {
-		case time.Time:
-			claims.CreatedAt = v
-		case string:
-			if t, err := time.Parse(time.RFC3339, v); err == nil {
-				claims.CreatedAt = t
-			}
-		case float64:
-			claims.CreatedAt = time.Unix(int64(v), 0)
+	// Fetch user data.
+	if claims.UserID != 0 {
+		user, err := s.userService.GetUserByID(ctx, claims.UserID)
+		if err != nil {
+			s.logger.WithContext(ctx).Error("failed to get user data", zap.Uint("userID", claims.UserID), zap.Error(err))
+			return nil, errors.ErrInternalError
 		}
-	}
 
-	if rolesRaw, ok := token.Get(constants.ClaimRoles); ok {
-		if roles, ok := rolesRaw.([]any); ok {
-			for _, r := range roles {
-				if roleStr, ok := r.(string); ok {
-					claims.Roles = append(claims.Roles, constants.Role(roleStr))
-				}
-			}
-		}
-	}
+		// Set user info.
+		claims.Username = user.Username
+		claims.CreatedAt = user.CreatedAt
 
-	if permsRaw, ok := token.Get(constants.ClaimPermissions); ok {
-		if perms, ok := permsRaw.([]any); ok {
-			for _, p := range perms {
-				if permStr, ok := p.(string); ok {
-					claims.Permissions = append(claims.Permissions, constants.Permission(permStr))
-				}
-			}
+		// Set roles.
+		claims.Roles = make([]constants.Role, len(user.Edges.Roles))
+		for idx, role := range user.Edges.Roles {
+			claims.Roles[idx] = role.Name
 		}
+
+		// Set permissions.
+		claims.Permissions = user.Permissions
 	}
 
 	return claims, nil
