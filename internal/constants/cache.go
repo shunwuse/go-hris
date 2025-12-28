@@ -8,13 +8,21 @@ import (
 const (
 	// Cache TTLs.
 	CacheTTLAllRoles        = 1 * time.Hour
+	CacheTTLUser            = 30 * time.Minute
 	CacheTTLRolePermissions = 1 * time.Hour
-	CacheTTLUserPermissions = 30 * time.Minute
 )
 
 // Cache Key Helpers.
 func GetBlacklistKey(jti string) string {
 	return fmt.Sprintf("blacklist:%s", jti)
+}
+
+func GetUserKey(userID uint) string {
+	return fmt.Sprintf("user:%d", userID)
+}
+
+func GetUserPermissionsKey(userID uint) string {
+	return fmt.Sprintf("user:%d:permissions", userID)
 }
 
 func GetAllRolesKey() string {
@@ -23,8 +31,4 @@ func GetAllRolesKey() string {
 
 func GetRolePermissionsKey(role Role) string {
 	return fmt.Sprintf("role:%s:permissions", role)
-}
-
-func GetUserPermissionsKey(userID uint) string {
-	return fmt.Sprintf("user:%d:permissions", userID)
 }

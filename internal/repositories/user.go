@@ -86,8 +86,6 @@ func (r *UserRepository) Create(ctx context.Context, username string, name strin
 
 func (r *UserRepository) FindByUsername(ctx context.Context, username string) (*entgen.User, error) {
 	u, err := r.GetClient(ctx).User.Query().
-		WithPassword().
-		WithRoles().
 		Where(user.UsernameEQ(username)).
 		Only(ctx)
 	if err != nil {
@@ -101,15 +99,11 @@ func (r *UserRepository) FindByUsername(ctx context.Context, username string) (*
 	return u, nil
 }
 
-func (r *UserRepository) FindByID(ctx context.Context, id uint) (*domains.UserWithPermissions, error) {
-	return infra.CacheGetOrSet(ctx, r.cache, constants.GetUserPermissionsKey(id), constants.CacheTTLUserPermissions, func() (*domains.UserWithPermissions, error) {
+func (r *UserRepository) FindByID(ctx context.Context, id uint) (*entgen.User, error) {
+	return infra.CacheGetOrSet(ctx, r.cache, constants.GetUserKey(id), constants.CacheTTLUser, func() (*entgen.User, error) {
 		u, err := r.GetClient(ctx).User.Query().
 			WithPassword().
-			WithRoles(func(rq *entgen.RoleQuery) {
-				rq.WithRolePermission(func(rpq *entgen.RolePermissionQuery) {
-					rpq.WithPermission()
-				})
-			}).
+			WithRoles().
 			Where(user.IDEQ(id)).
 			Only(ctx)
 		if err != nil {
@@ -120,20 +114,7 @@ func (r *UserRepository) FindByID(ctx context.Context, id uint) (*domains.UserWi
 			return nil, errors.ErrDatabaseError
 		}
 
-		// Aggregate permissions from roles.
-		permissions := make(constants.Permissions, 0)
-		for _, role := range u.Edges.Roles {
-			for _, rolePermission := range role.Edges.RolePermission {
-				if rolePermission.Edges.Permission != nil {
-					permissions = append(permissions, constants.Permission(rolePermission.Edges.Permission.Description))
-				}
-			}
-		}
-
-		return &domains.UserWithPermissions{
-			User:        u,
-			Permissions: permissions,
-		}, nil
+		return u, nil
 	})
 }
 
@@ -146,7 +127,7 @@ func (r *UserRepository) Update(ctx context.Context, id uint, name string) error
 		return errors.ErrDatabaseError
 	}
 
-	r.invalidateUserPermissionsCache(ctx, id)
+	r.invalidateUserCache(ctx, id)
 
 	return nil
 }
@@ -174,11 +155,12 @@ func (r *UserRepository) AssignRole(ctx context.Context, userID uint, roleID uin
 		return nil, errors.ErrDatabaseError
 	}
 
-	r.invalidateUserPermissionsCache(ctx, userID)
+	r.invalidateUserCache(ctx, userID)
 
 	return userRole, nil
 }
 
-func (r *UserRepository) invalidateUserPermissionsCache(ctx context.Context, userID uint) {
+func (r *UserRepository) invalidateUserCache(ctx context.Context, userID uint) {
+	r.cache.Client.Del(ctx, constants.GetUserKey(userID))
 	r.cache.Client.Del(ctx, constants.GetUserPermissionsKey(userID))
 }
