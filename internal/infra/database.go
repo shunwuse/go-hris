@@ -54,6 +54,16 @@ func newDatabase(config Config, logger *Logger) Database {
 	}
 }
 
+// Close closes the database connection.
+func (d *Database) Close() error {
+	if d.client != nil {
+		if err := d.client.Close(); err != nil {
+			return err
+		}
+	}
+	return d.rawDB.Close()
+}
+
 // GetClient returns the transactional or default database client from context.
 func (d *Database) GetClient(ctx context.Context) *entgen.Client {
 	tx, ok := ctx.Value(txKey{}).(*entgen.Tx)

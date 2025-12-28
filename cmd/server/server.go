@@ -87,22 +87,30 @@ func (server *Server) Run() {
 
 		server.logger.Info("initiating graceful shutdown", zap.Duration("timeout", 30*time.Second))
 
-		// Close Cache connection.
-		if err := server.cache.Close(); err != nil {
-			server.logger.Error("failed to close cache connection", zap.Error(err))
-		}
-
+		// Shutdown HTTP server.
 		if err := httpServer.Shutdown(ctx); err != nil {
 			server.logger.Error("graceful shutdown failed", zap.Error(err))
 
+			// if shutdown fails, we should try to close other resources.
 			if closeErr := httpServer.Close(); closeErr != nil {
 				server.logger.Error("forced closure failed", zap.Error(closeErr))
 			}
 
-			return
+		}
+
+		// Close cache connection.
+		if err := server.cache.Close(); err != nil {
+			server.logger.Error("failed to close cache connection", zap.Error(err))
+		}
+
+		// Close database connection.
+		if err := server.database.Close(); err != nil {
+			server.logger.Error("failed to close database connection", zap.Error(err))
 		}
 
 		server.logger.Info("server stopped gracefully")
+
+		_ = server.logger.Sync()
 	}
 
 	// Block until we receive an error or interrupt signal.
