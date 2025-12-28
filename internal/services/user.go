@@ -17,18 +17,22 @@ import (
 )
 
 type userService struct {
-	logger         *infra.Logger
+	logger *infra.Logger
+	cache  *infra.Cache
+
 	userRepository *repositories.UserRepository
 	roleRepository *repositories.RoleRepository
 }
 
 func NewUserService(
 	logger *infra.Logger,
+	cache *infra.Cache,
 	userRepository *repositories.UserRepository,
 	roleRepository *repositories.RoleRepository,
 ) service.UserService {
 	return &userService{
 		logger:         logger,
+		cache:          cache,
 		userRepository: userRepository,
 		roleRepository: roleRepository,
 	}
@@ -90,12 +94,33 @@ func (s *userService) GetUserByUsername(ctx context.Context, username string) (*
 		return nil, err
 	}
 
-	// Get permissions based on user's roles.
+	return s.GetUserByID(ctx, user.ID)
+}
+
+func (s *userService) GetUserByID(ctx context.Context, id uint) (*domains.UserWithPermissions, error) {
+	return infra.CacheGetOrSet(ctx, s.cache, constants.GetUserPermissionsKey(id), constants.CacheTTLUser, func() (*domains.UserWithPermissions, error) {
+		user, err := s.userRepository.FindByID(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+
+		return &domains.UserWithPermissions{
+			User:        user,
+			Permissions: s.getPermissionsForUser(ctx, user),
+		}, nil
+	})
+}
+
+func (s *userService) UpdateUser(ctx context.Context, update *domains.UserUpdate) error {
+	return s.userRepository.Update(ctx, update.ID, update.Name)
+}
+
+func (s *userService) getPermissionsForUser(ctx context.Context, user *entgen.User) constants.Permissions {
 	permissions := make(constants.Permissions, 0)
 
 	// Collect permissions from all roles.
 	for _, role := range user.Edges.Roles {
-		rolePermissions := s.roleRepository.GetPermissionsByRole(ctx, constants.Role(role.Name))
+		rolePermissions := s.roleRepository.GetPermissionsByRole(ctx, role.Name)
 
 		// Add unique permissions to user.
 		for _, permission := range rolePermissions {
@@ -105,19 +130,5 @@ func (s *userService) GetUserByUsername(ctx context.Context, username string) (*
 		}
 	}
 
-	// Construct user with permissions.
-	u := domains.UserWithPermissions{
-		User:        user,
-		Permissions: permissions,
-	}
-
-	return &u, nil
-}
-
-func (s *userService) GetUserByID(ctx context.Context, id uint) (*domains.UserWithPermissions, error) {
-	return s.userRepository.FindByID(ctx, id)
-}
-
-func (s *userService) UpdateUser(ctx context.Context, update *domains.UserUpdate) error {
-	return s.userRepository.Update(ctx, update.ID, update.Name)
+	return permissions
 }
