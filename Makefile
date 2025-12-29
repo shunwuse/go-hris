@@ -10,11 +10,12 @@ BLUE = \033[0;34m
 NC = \033[0m
 
 .PHONY: help \
-	run \
+	run run-worker \
 	gen \
 	test test-coverage \
 	test-integration test-integration-quick test-integration-endpoints \
 	build build-static \
+	build-worker build-worker-static \
 	migrate-create migrate-up migrate-down \
 	go-migrate-up go-migrate-down \
 	docker-build docker-run
@@ -29,12 +30,16 @@ help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(BLUE)%-25s$(NC) %s\n", $$1, $$2}'
 
 ## Development targets
-run: ## Run the application locally
+run: ## Run the api server locally
 	go run -ldflags "$(LDFLAGS)" ./cmd/server
+
+run-worker: ## Run the worker locally
+	go run -ldflags "$(LDFLAGS)" ./cmd/worker
 
 # go install github.com/google/wire/cmd/wire@latest
 gen: ## Generate wire dependencies
 	wire ./cmd/server
+	wire ./cmd/worker
 	go mod tidy
 
 ## Test targets
@@ -54,11 +59,17 @@ test-integration-quick: ## Run quick integration tests
 test-integration-endpoints: ## Run endpoint integration tests
 	./scripts/test_endpoints.sh
 
-build: ## Build the application
+build: ## Build the api server application
 	go build -ldflags "$(LDFLAGS)" -o $(APP_NAME) ./cmd/server
 
-build-static: ## Build the application statically
+build-static: ## Build the server application statically
 	go build -ldflags "$(LDFLAGS) -extldflags '-static'" -o $(APP_NAME) ./cmd/server
+
+build-worker: ## Build the worker application
+	go build -ldflags "$(LDFLAGS)" -o $(APP_NAME)-worker ./cmd/worker
+
+build-worker-static: ## Build the worker application statically
+	go build -ldflags "$(LDFLAGS) -extldflags '-static'" -o $(APP_NAME)-worker ./cmd/worker
 
 ## Database targets
 migrate-create: ## Create a new migration (usage: make migrate-create name=migration_name)

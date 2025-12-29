@@ -24,6 +24,7 @@ ARG VERSION=dev
 # Generate wire files and build the application
 RUN make gen
 RUN CGO_ENABLED=1 GOOS=linux make build-static VERSION=${VERSION}
+RUN CGO_ENABLED=1 GOOS=linux make build-worker-static VERSION=${VERSION}
 
 # Run the migrations
 RUN make migrate-up
@@ -36,8 +37,9 @@ RUN apk add --no-cache libgcc libstdc++
 
 WORKDIR /app
 
-# Copy the binary
+# Copy the binaries
 COPY --from=builder /app/myapp .
+COPY --from=builder /app/myapp-worker .
 # Copy the environment file
 COPY --from=builder /app/.env .
 # Copy the database

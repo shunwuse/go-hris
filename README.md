@@ -28,11 +28,17 @@
    make go-migrate-up
    ```
 
-3. **Start the server**
+3. **Start the api server**
    ```bash
    make run
    ```
    The server will be running at `http://localhost:8080` by default.
+
+4. **Start the worker (Optional)**
+   ```bash
+   make run-worker
+   ```
+   The worker handles background tasks like token cleanup.
 
 ### Run with Docker
 
