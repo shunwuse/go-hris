@@ -51,13 +51,13 @@ func loadConfig() *Config {
 	k := koanf.New(".")
 
 	// [STAGE 1] >>> Load 'default.env' (Default Values)
-	if err := k.Load(file.Provider("default.env"), dotenv.Parser()); err != nil {
-		log.Printf("info: default.env file not found, skipping: %v", err)
+	if err := k.Load(file.Provider("configs/default.env"), dotenv.Parser()); err != nil {
+		log.Printf("info: configs/default.env file not found, skipping: %v", err)
 	}
 
 	// [STAGE 2] >>> Load '.env' (Local Overrides)
-	if err := k.Load(file.Provider(".env"), dotenv.Parser()); err != nil {
-		log.Printf("info: .env file not found, skipping: %v", err)
+	if err := k.Load(file.Provider("configs/.env"), dotenv.Parser()); err != nil {
+		log.Printf("info: configs/.env file not found, skipping: %v", err)
 	}
 
 	// [STAGE 3] >>> Load 'Environment Variables' (System Overrides)

@@ -41,7 +41,8 @@ WORKDIR /app
 COPY --from=builder /app/myapp .
 COPY --from=builder /app/myapp-worker .
 # Copy the environment file
-COPY --from=builder /app/.env .
+RUN mkdir -p configs
+COPY --from=builder /app/configs/default.env ./configs/default.env
 # Copy the database
 COPY --from=builder /app/test.db .
 
