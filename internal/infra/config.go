@@ -63,8 +63,7 @@ func loadConfig() *Config {
 	// [STAGE 3] >>> Load 'Environment Variables' (System Overrides)
 	// Prefix "APP_", example: APP_SERVER_PORT will map to server_port.
 	if err := k.Load(env.Provider("APP_", ".", func(s string) string {
-		return strings.ReplaceAll(strings.ToLower(
-			strings.TrimPrefix(s, "APP_")), "_", ".")
+		return strings.ToLower(strings.TrimPrefix(s, "APP_"))
 	}), nil); err != nil {
 		log.Printf("warning: failed to load environment variables: %v", err)
 	}
