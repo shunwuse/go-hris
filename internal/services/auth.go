@@ -333,3 +333,7 @@ func (s *authService) BlacklistToken(ctx context.Context, jti string, expiration
 
 	return s.cache.Client.Set(ctx, constants.GetBlacklistKey(jti), "1", expiration).Err()
 }
+
+func (s *authService) CleanupExpiredTokens(ctx context.Context) (int, error) {
+	return s.refreshTokenRepository.DeleteExpiredTokens(ctx)
+}

@@ -16,4 +16,5 @@ type AuthService interface {
 	RevokeRefreshToken(ctx context.Context, refreshToken string) error
 	RevokeAllUserTokens(ctx context.Context, userID uint) error
 	BlacklistToken(ctx context.Context, jti string, expiration time.Duration) error
+	CleanupExpiredTokens(ctx context.Context) (int, error)
 }
