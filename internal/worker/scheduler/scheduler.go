@@ -4,7 +4,9 @@ import (
 	"context"
 
 	"github.com/robfig/cron/v3"
+	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/utils"
 	"github.com/shunwuse/go-hris/internal/worker/scheduler/jobs"
 	"go.uber.org/zap"
 )
@@ -44,18 +46,24 @@ func (s *Scheduler) Start(ctx context.Context) {
 func (s *Scheduler) registerJobs() {
 	for _, job := range s.jobs {
 		_, err := s.cron.AddFunc(job.Schedule(), func() {
-			s.logger.Info("running job", zap.String("name", job.Name()))
+			// Generate trace ID for the job execution.
+			traceID := utils.NewTraceID()
+			ctx := context.WithValue(context.Background(), constants.TraceID, traceID)
 
-			if err := job.Run(context.Background()); err != nil {
-				s.logger.Error("job failed", zap.String("name", job.Name()), zap.Error(err))
+			logger := s.logger.WithContext(ctx).With(zap.String("job_name", job.Name()))
+
+			logger.Info("running job")
+
+			if err := job.Run(ctx); err != nil {
+				logger.Error("job failed", zap.Error(err))
 				return
 			}
 
-			s.logger.Info("job completed successfully", zap.String("name", job.Name()))
+			logger.Info("job completed successfully")
 		})
 
 		if err != nil {
-			s.logger.Fatal("failed to register job", zap.String("name", job.Name()), zap.Error(err))
+			s.logger.Fatal("failed to register job", zap.Error(err))
 		}
 	}
 }
