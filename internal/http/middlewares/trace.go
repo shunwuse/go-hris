@@ -2,34 +2,23 @@ package middlewares
 
 import (
 	"context"
-	"crypto/rand"
-	"io"
 	"net/http"
-	"sync"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/oklog/ulid/v2"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/utils"
 )
 
 type TraceMiddleware struct {
-	logger      *infra.Logger
-	entropyPool *sync.Pool
+	logger *infra.Logger
 }
 
 func NewTraceMiddleware(
 	logger *infra.Logger,
 ) *TraceMiddleware {
-	pool := &sync.Pool{
-		New: func() any {
-			return ulid.Monotonic(rand.Reader, 0)
-		},
-	}
-
 	return &TraceMiddleware{
-		logger:      logger,
-		entropyPool: pool,
+		logger: logger,
 	}
 }
 
@@ -42,12 +31,7 @@ func (m *TraceMiddleware) Handler() func(http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			traceID := r.Header.Get("X-Trace-Id")
 			if traceID == "" {
-				entropy := m.entropyPool.Get().(io.Reader)
-
-				traceID = ulid.MustNew(ulid.Now(), entropy).String()
-
-				// Return entropy to pool for reuse.
-				m.entropyPool.Put(entropy)
+				traceID = utils.NewTraceID()
 			}
 
 			// Set trace ID in response header.
