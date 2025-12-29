@@ -65,6 +65,16 @@ docker run --rm -p 8080:8080 shunwuse/go-hris:latest
 - **Username**: `admin`
 - **Password**: `password`
 
+## ⚙️ Configuration
+
+The application uses a multi-stage configuration loading process:
+
+1. **Default Settings**: Loaded from [configs/default.env](configs/default.env).
+2. **Local Overrides**: Loaded from `configs/.env`.
+3. **Environment Variables**: System variables with `APP_` prefix (e.g., `APP_SERVER_PORT=9090`).
+
+To customize your local environment, we recommend creating a `.env` file in the `configs/` directory.
+
 ## 🧪 Testing Guide
 
 We provide a comprehensive test suite including unit and integration tests.
@@ -85,6 +95,7 @@ For detailed testing instructions, please refer to [TESTING.md](TESTING.md).
   - `ci/`: Continuous Integration configurations and scripts
   - `scripts/`: Scripts for various build, lint, and release operations
 - `cmd/`: Application entry points (Server, Migration)
+- `configs/`: Configuration file templates or default configs
 - `ent/`: Generated Ent ORM schemas and code
 - `internal/`: Core business logic
   - `domains/`: Domain models
