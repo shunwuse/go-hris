@@ -99,3 +99,15 @@ func (r *AuthRepository) RevokeAllRefreshTokensForUser(ctx context.Context, user
 
 	return nil
 }
+
+func (r *AuthRepository) DeleteExpiredTokens(ctx context.Context) (int, error) {
+	affected, err := r.GetClient(ctx).RefreshToken.Delete().
+		Where(refreshtoken.ExpiresAtLT(time.Now())).
+		Exec(ctx)
+	if err != nil {
+		r.logger.WithContext(ctx).Error("failed to delete expired tokens", zap.Error(err))
+		return 0, errors.ErrDatabaseError
+	}
+
+	return affected, nil
+}

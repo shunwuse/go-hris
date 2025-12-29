@@ -12,6 +12,10 @@ type ICronJob interface {
 	Run(ctx context.Context) error
 }
 
-func NewCronJobs() CronJobs {
-	return []ICronJob{}
+func NewCronJobs(
+	cleanupTokensJob *CleanupTokensJob,
+) CronJobs {
+	return []ICronJob{
+		cleanupTokensJob,
+	}
 }
