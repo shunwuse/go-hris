@@ -80,6 +80,10 @@ For detailed testing instructions, please refer to [TESTING.md](TESTING.md).
 
 ## 📂 Project Structure
 
+- `build/`: Packaging and CI related files
+  - `package/`: Container and OS specific packages
+  - `ci/`: Continuous Integration configurations and scripts
+  - `scripts/`: Scripts for various build, lint, and release operations
 - `cmd/`: Application entry points (Server, Migration)
 - `ent/`: Generated Ent ORM schemas and code
 - `internal/`: Core business logic

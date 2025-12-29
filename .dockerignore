@@ -16,3 +16,6 @@ server
 # Database files and logs
 *.db
 *.log
+
+# Build and deployment #
+build/

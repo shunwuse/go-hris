@@ -90,7 +90,7 @@ go-migrate-down: ## Run migrations down using go run
 
 ## Docker targets
 docker-build: ## Build Docker image
-	docker buildx build --platform linux/amd64 --build-arg VERSION=$(VERSION) -t go-hris:latest .
+	docker buildx build --platform linux/amd64 --build-arg VERSION=$(VERSION) -t go-hris:latest -f build/package/Dockerfile .
 
 docker-run: ## Run Docker container
 	docker run --rm -p 8080:8080 go-hris:latest
