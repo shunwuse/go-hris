@@ -96,6 +96,7 @@ For detailed testing instructions, please refer to [TESTING.md](TESTING.md).
   - `scripts/`: Scripts for various build, lint, and release operations
 - `cmd/`: Application entry points (Server, Migration)
 - `configs/`: Configuration file templates or default configs
+- `deployments/`: System configurations and scripts
 - `ent/`: Generated Ent ORM schemas and code
 - `internal/`: Core business logic
   - `domains/`: Domain models
