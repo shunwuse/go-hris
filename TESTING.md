@@ -87,8 +87,7 @@ The `make test` command is designed for CI/CD pipelines:
 
 ## More Information
 
-For detailed documentation, troubleshooting, and CI/CD integration examples, see:
-- [scripts/README.md](scripts/README.md) - Comprehensive testing documentation
+For detailed documentation and CI/CD integration examples, see scripts in the `scripts/` directory.
 
 ## Test Scripts Location
 

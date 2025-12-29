@@ -19,5 +19,6 @@ server
 
 # Build and deployment #
 build/
+deployments/
 configs/*
 !configs/default.env
