@@ -35,3 +35,9 @@ func (c *Consumer) Start(ctx context.Context) {
 	<-ctx.Done()
 	c.logger.Info("stopping consumer")
 }
+
+func (c *Consumer) Stop(ctx context.Context) {
+	// Implement consumer cleanup here if needed.
+
+	c.logger.Info("consumer stopped successfully")
+}

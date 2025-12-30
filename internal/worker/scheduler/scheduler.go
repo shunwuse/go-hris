@@ -40,7 +40,17 @@ func (s *Scheduler) Start(ctx context.Context) {
 	// Block until context is done.
 	<-ctx.Done()
 	s.logger.Info("stopping scheduler")
-	s.cron.Stop()
+}
+
+func (s *Scheduler) Stop(ctx context.Context) {
+	stopCtx := s.cron.Stop()
+
+	select {
+	case <-stopCtx.Done():
+		s.logger.Info("scheduler stopped successfully")
+	case <-ctx.Done():
+		s.logger.Warn("scheduler stop timed out")
+	}
 }
 
 func (s *Scheduler) registerJobs() {
