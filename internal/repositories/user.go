@@ -68,22 +68,6 @@ func (r *UserRepository) FindAllWithOffset(ctx context.Context, query domains.Of
 	}, nil
 }
 
-func (r *UserRepository) Create(ctx context.Context, username string, name string) (*entgen.User, error) {
-	u, err := r.GetClient(ctx).User.Create().
-		SetUsername(username).
-		SetName(name).
-		Save(ctx)
-	if err != nil {
-		if entgen.IsConstraintError(err) {
-			return nil, errors.ErrConflict
-		}
-		r.logger.WithContext(ctx).Error("failed to create user", zap.Error(err))
-		return nil, errors.ErrDatabaseError
-	}
-
-	return u, nil
-}
-
 func (r *UserRepository) FindByUsername(ctx context.Context, username string) (*entgen.User, error) {
 	u, err := r.GetClient(ctx).User.Query().
 		Where(user.UsernameEQ(username)).
@@ -116,6 +100,22 @@ func (r *UserRepository) FindByID(ctx context.Context, id uint) (*entgen.User, e
 
 		return u, nil
 	})
+}
+
+func (r *UserRepository) Create(ctx context.Context, username string, name string) (*entgen.User, error) {
+	u, err := r.GetClient(ctx).User.Create().
+		SetUsername(username).
+		SetName(name).
+		Save(ctx)
+	if err != nil {
+		if entgen.IsConstraintError(err) {
+			return nil, errors.ErrConflict
+		}
+		r.logger.WithContext(ctx).Error("failed to create user", zap.Error(err))
+		return nil, errors.ErrDatabaseError
+	}
+
+	return u, nil
 }
 
 func (r *UserRepository) Update(ctx context.Context, id uint, name string) error {
