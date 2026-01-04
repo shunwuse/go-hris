@@ -12,6 +12,10 @@ type GetUserResponse struct {
 	LastUpdatedTime string `json:"last_updated_time"`
 }
 
+type UserPathParams struct {
+	ID uint `schema:"id"`
+}
+
 type UserCreate struct {
 	Username string         `json:"username" binding:"required" validate:"alphanum"`
 	Password string         `json:"password" binding:"required"`

@@ -31,6 +31,7 @@ func (r *UserRoute) Setup(router chi.Router) {
 	router.Route("/users", func(userRouter chi.Router) {
 		userRouter.Use(r.jwtMiddleware.Handler())
 		userRouter.Get("/", r.userController.GetUsers)
+		userRouter.Get("/{id}", r.userController.GetUser)
 		userRouter.Post("/", r.userController.CreateUser)
 		userRouter.Put("/", r.userController.UpdateUser)
 	})
