@@ -33,6 +33,6 @@ func (r *ApprovalRoute) Setup(router chi.Router) {
 		approvalRouter.Get("/", r.approvalController.GetApprovals)
 		approvalRouter.Get("/{id}", r.approvalController.GetApproval)
 		approvalRouter.Post("/", r.approvalController.AddApproval)
-		approvalRouter.Put("/action", r.approvalController.ActionApproval)
+		approvalRouter.Put("/{id}/action", r.approvalController.ActionApproval)
 	})
 }
