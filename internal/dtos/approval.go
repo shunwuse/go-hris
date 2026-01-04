@@ -9,6 +9,10 @@ type ApprovalResponse struct {
 	Status       constants.ApprovalStatus `json:"status"`
 }
 
+type ApprovalPathParams struct {
+	ID uint `schema:"id"`
+}
+
 type ApprovalAction struct {
 	ID     uint                     `json:"id" binding:"required"`
 	Action constants.ApprovalStatus `json:"action" binding:"required"`

@@ -31,6 +31,7 @@ func (r *ApprovalRoute) Setup(router chi.Router) {
 	router.Route("/approvals", func(approvalRouter chi.Router) {
 		approvalRouter.Use(r.jwtMiddleware.Handler())
 		approvalRouter.Get("/", r.approvalController.GetApprovals)
+		approvalRouter.Get("/{id}", r.approvalController.GetApproval)
 		approvalRouter.Post("/", r.approvalController.AddApproval)
 		approvalRouter.Put("/action", r.approvalController.ActionApproval)
 	})

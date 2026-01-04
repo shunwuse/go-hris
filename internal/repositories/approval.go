@@ -97,6 +97,23 @@ func (r *ApprovalRepository) Create(ctx context.Context, approval *domains.Appro
 	return appr, nil
 }
 
+func (r *ApprovalRepository) FindByID(ctx context.Context, id uint) (*entgen.Approval, error) {
+	appr, err := r.GetClient(ctx).Approval.Query().
+		WithCreator().
+		WithApprover().
+		Where(approval.IDEQ(id)).
+		Only(ctx)
+	if err != nil {
+		r.logger.WithContext(ctx).Error("failed to find approval by id", zap.Error(err), zap.Uint("approval_id", id))
+		if entgen.IsNotFound(err) {
+			return nil, errors.ErrNotFound
+		}
+		return nil, errors.ErrDatabaseError
+	}
+
+	return appr, nil
+}
+
 func (r *ApprovalRepository) UpdateStatusByID(ctx context.Context, id uint, status constants.ApprovalStatus, approverID uint) error {
 	affected, err := r.GetClient(ctx).Approval.Update().
 		Where(
