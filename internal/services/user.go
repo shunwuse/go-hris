@@ -73,7 +73,7 @@ func (s *userService) CreateUser(ctx context.Context, user *domains.UserCreate, 
 			return err
 		}
 
-		roleModel := s.roleRepository.FindByName(txCtx, role)
+		roleModel := s.roleRepository.FindRoleByName(txCtx, role)
 		if roleModel == nil {
 			s.logger.WithContext(txCtx).Error("role not found", zap.String("role", role.String()))
 			return errors.ErrNotFound

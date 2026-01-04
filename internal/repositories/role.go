@@ -29,7 +29,7 @@ func NewRoleRepository(
 	}
 }
 
-func (r *RoleRepository) FindAll(ctx context.Context) ([]*entgen.Role, error) {
+func (r *RoleRepository) FindAllRoles(ctx context.Context) ([]*entgen.Role, error) {
 	return infra.CacheGetOrSet(ctx, r.cache, constants.GetAllRolesKey(), constants.CacheTTLAllRoles, func() ([]*entgen.Role, error) {
 		roles, err := r.GetClient(ctx).Role.Query().
 			All(ctx)
@@ -41,8 +41,8 @@ func (r *RoleRepository) FindAll(ctx context.Context) ([]*entgen.Role, error) {
 	})
 }
 
-func (r *RoleRepository) FindByName(ctx context.Context, name constants.Role) *entgen.Role {
-	roles, err := r.FindAll(ctx)
+func (r *RoleRepository) FindRoleByName(ctx context.Context, name constants.Role) *entgen.Role {
+	roles, err := r.FindAllRoles(ctx)
 	if err != nil {
 		return nil
 	}
@@ -56,7 +56,7 @@ func (r *RoleRepository) FindByName(ctx context.Context, name constants.Role) *e
 	return nil
 }
 
-func (r *RoleRepository) Create(ctx context.Context, name constants.Role) (*entgen.Role, error) {
+func (r *RoleRepository) CreateRole(ctx context.Context, name constants.Role) (*entgen.Role, error) {
 	role, err := r.GetClient(ctx).Role.Create().
 		SetName(name).
 		Save(ctx)
