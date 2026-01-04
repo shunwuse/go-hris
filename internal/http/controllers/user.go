@@ -77,6 +77,42 @@ func (c *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (c *UserController) GetUser(w http.ResponseWriter, r *http.Request) {
+	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
+	permissions := token.Permissions
+
+	// Check if user has permission to read users.
+	if hasPermission := permissions.Contains(constants.PermissionReadUser); !hasPermission {
+		c.logger.WithContext(r.Context()).Error("user not authorized to get user")
+		response.Error(w, errors.ErrInsufficientPermissions)
+		return
+	}
+
+	var pathParams dtos.UserPathParams
+	if err := request.DecodePath(r, &pathParams); err != nil {
+		c.logger.WithContext(r.Context()).Error("failed to decode path params", zap.Error(err))
+		response.Error(w, errors.ErrInvalidInput)
+		return
+	}
+
+	user, err := c.userService.GetUserByID(r.Context(), pathParams.ID)
+	if err != nil {
+		c.logger.WithContext(r.Context()).Error("failed to get user", zap.Error(err), zap.Uint("user_id", pathParams.ID))
+		response.Error(w, err)
+		return
+	}
+
+	resp := dtos.GetUserResponse{
+		ID:              user.ID,
+		Username:        user.Username,
+		Name:            user.Name,
+		CreatedTime:     strconv.FormatInt(user.CreatedAt.UnixMilli(), 10),
+		LastUpdatedTime: strconv.FormatInt(user.UpdatedAt.UnixMilli(), 10),
+	}
+
+	response.OK(w, resp)
+}
+
 func (c *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions
