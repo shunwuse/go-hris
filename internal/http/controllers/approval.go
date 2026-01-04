@@ -78,6 +78,44 @@ func (c *ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request
 	})
 }
 
+func (c *ApprovalController) GetApproval(w http.ResponseWriter, r *http.Request) {
+	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
+	permissions := token.Permissions
+
+	// Check if user has permission to read approvals.
+	if hasPermission := permissions.Contains(constants.PermissionReadApproval); !hasPermission {
+		c.logger.WithContext(r.Context()).Error("user not authorized to get approval")
+		response.Error(w, errors.ErrInsufficientPermissions)
+		return
+	}
+
+	var pathParams dtos.ApprovalPathParams
+	if err := request.DecodePath(r, &pathParams); err != nil {
+		c.logger.WithContext(r.Context()).Error("failed to decode path params", zap.Error(err))
+		response.Error(w, errors.ErrInvalidInput)
+		return
+	}
+
+	approval, err := c.approvalService.GetApprovalByID(r.Context(), pathParams.ID)
+	if err != nil {
+		c.logger.WithContext(r.Context()).Error("failed to get approval", zap.Error(err), zap.Uint("approval_id", pathParams.ID))
+		response.Error(w, err)
+		return
+	}
+
+	resp := dtos.ApprovalResponse{
+		ID:          approval.ID,
+		CreatorName: approval.Edges.Creator.Name,
+		Status:      approval.Status,
+	}
+
+	if approval.Edges.Approver != nil {
+		resp.ApproverName = &approval.Edges.Approver.Name
+	}
+
+	response.OK(w, resp)
+}
+
 func (c *ApprovalController) AddApproval(w http.ResponseWriter, r *http.Request) {
 	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
 	permissions := token.Permissions

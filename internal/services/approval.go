@@ -42,6 +42,10 @@ func (s *approvalService) AddApproval(ctx context.Context, approval *domains.App
 	return err
 }
 
+func (s *approvalService) GetApprovalByID(ctx context.Context, id uint) (*entgen.Approval, error) {
+	return s.approvalRepository.FindByID(ctx, id)
+}
+
 func (s *approvalService) ActionApproval(ctx context.Context, approvalID uint, action constants.ApprovalStatus, approverID uint) error {
 	if !isActionValid(action) {
 		s.logger.WithContext(ctx).Error("invalid approval action", zap.String("action", string(action)))
