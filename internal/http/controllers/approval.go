@@ -160,6 +160,13 @@ func (c *ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Reque
 
 	userID := token.UserID
 
+	var pathParams dtos.ApprovalPathParams
+	if err := request.DecodePath(r, &pathParams); err != nil {
+		c.logger.WithContext(r.Context()).Error("failed to decode path params", zap.Error(err))
+		response.Error(w, errors.ErrInvalidInput)
+		return
+	}
+
 	var actionRequest dtos.ApprovalAction
 	err := render.DecodeJSON(r.Body, &actionRequest)
 	if err != nil {
@@ -168,7 +175,7 @@ func (c *ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	err = c.approvalService.ActionApproval(r.Context(), actionRequest.ID, actionRequest.Action, userID)
+	err = c.approvalService.ActionApproval(r.Context(), pathParams.ID, actionRequest.Action, userID)
 	if err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to action approval", zap.Error(err))
 		response.Error(w, err)

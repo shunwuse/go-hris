@@ -14,6 +14,5 @@ type ApprovalPathParams struct {
 }
 
 type ApprovalAction struct {
-	ID     uint                     `json:"id" binding:"required"`
 	Action constants.ApprovalStatus `json:"action" binding:"required"`
 }
