@@ -46,6 +46,29 @@ func (s *userService) GetUsersWithOffset(ctx context.Context, query domains.Offs
 	return s.userRepository.FindAllWithOffset(ctx, query)
 }
 
+func (s *userService) GetUserByUsername(ctx context.Context, username string) (*domains.UserWithPermissions, error) {
+	user, err := s.userRepository.FindByUsername(ctx, username)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.GetUserByID(ctx, user.ID)
+}
+
+func (s *userService) GetUserByID(ctx context.Context, id uint) (*domains.UserWithPermissions, error) {
+	return infra.CacheGetOrSet(ctx, s.cache, constants.GetUserPermissionsKey(id), constants.CacheTTLUser, func() (*domains.UserWithPermissions, error) {
+		user, err := s.userRepository.FindByID(ctx, id)
+		if err != nil {
+			return nil, err
+		}
+
+		return &domains.UserWithPermissions{
+			User:        user,
+			Permissions: s.getPermissionsForUser(ctx, user),
+		}, nil
+	})
+}
+
 func (s *userService) CreateUser(ctx context.Context, user *domains.UserCreate, role constants.Role) error {
 	// Convert username to lowercase.
 	user.Username = strings.ToLower(user.Username)
@@ -85,29 +108,6 @@ func (s *userService) CreateUser(ctx context.Context, user *domains.UserCreate, 
 		}
 
 		return nil
-	})
-}
-
-func (s *userService) GetUserByUsername(ctx context.Context, username string) (*domains.UserWithPermissions, error) {
-	user, err := s.userRepository.FindByUsername(ctx, username)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.GetUserByID(ctx, user.ID)
-}
-
-func (s *userService) GetUserByID(ctx context.Context, id uint) (*domains.UserWithPermissions, error) {
-	return infra.CacheGetOrSet(ctx, s.cache, constants.GetUserPermissionsKey(id), constants.CacheTTLUser, func() (*domains.UserWithPermissions, error) {
-		user, err := s.userRepository.FindByID(ctx, id)
-		if err != nil {
-			return nil, err
-		}
-
-		return &domains.UserWithPermissions{
-			User:        user,
-			Permissions: s.getPermissionsForUser(ctx, user),
-		}, nil
 	})
 }
 

@@ -84,19 +84,6 @@ func (r *ApprovalRepository) FindAllWithCursor(ctx context.Context, query domain
 	}, nil
 }
 
-func (r *ApprovalRepository) Create(ctx context.Context, approval *domains.ApprovalCreate) (*entgen.Approval, error) {
-	appr, err := r.GetClient(ctx).Approval.Create().
-		SetStatus(approval.Status).
-		SetCreatorID(approval.CreatorID).
-		Save(ctx)
-	if err != nil {
-		r.logger.WithContext(ctx).Error("failed to create approval", zap.Error(err))
-		return nil, errors.ErrDatabaseError
-	}
-
-	return appr, nil
-}
-
 func (r *ApprovalRepository) FindByID(ctx context.Context, id uint) (*entgen.Approval, error) {
 	appr, err := r.GetClient(ctx).Approval.Query().
 		WithCreator().
@@ -108,6 +95,19 @@ func (r *ApprovalRepository) FindByID(ctx context.Context, id uint) (*entgen.App
 		if entgen.IsNotFound(err) {
 			return nil, errors.ErrNotFound
 		}
+		return nil, errors.ErrDatabaseError
+	}
+
+	return appr, nil
+}
+
+func (r *ApprovalRepository) Create(ctx context.Context, approval *domains.ApprovalCreate) (*entgen.Approval, error) {
+	appr, err := r.GetClient(ctx).Approval.Create().
+		SetStatus(approval.Status).
+		SetCreatorID(approval.CreatorID).
+		Save(ctx)
+	if err != nil {
+		r.logger.WithContext(ctx).Error("failed to create approval", zap.Error(err))
 		return nil, errors.ErrDatabaseError
 	}
 

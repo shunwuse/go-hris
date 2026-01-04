@@ -36,14 +36,14 @@ func (s *approvalService) GetApprovalsWithCursor(ctx context.Context, query doma
 	return s.approvalRepository.FindAllWithCursor(ctx, query)
 }
 
+func (s *approvalService) GetApprovalByID(ctx context.Context, id uint) (*entgen.Approval, error) {
+	return s.approvalRepository.FindByID(ctx, id)
+}
+
 func (s *approvalService) AddApproval(ctx context.Context, approval *domains.ApprovalCreate) error {
 	_, err := s.approvalRepository.Create(ctx, approval)
 
 	return err
-}
-
-func (s *approvalService) GetApprovalByID(ctx context.Context, id uint) (*entgen.Approval, error) {
-	return s.approvalRepository.FindByID(ctx, id)
 }
 
 func (s *approvalService) ActionApproval(ctx context.Context, approvalID uint, action constants.ApprovalStatus, approverID uint) error {
