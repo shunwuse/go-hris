@@ -24,7 +24,6 @@ type UserCreate struct {
 }
 
 type UserUpdate struct {
-	ID   uint   `json:"id" binding:"required"`
 	Name string `json:"name" binding:"omitempty"` // name is optional
 }
 

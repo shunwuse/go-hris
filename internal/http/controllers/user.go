@@ -157,6 +157,13 @@ func (c *UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var pathParams dtos.UserPathParams
+	if err := request.DecodePath(r, &pathParams); err != nil {
+		c.logger.WithContext(r.Context()).Error("failed to decode path params", zap.Error(err))
+		response.Error(w, errors.ErrInvalidInput)
+		return
+	}
+
 	var userUpdate dtos.UserUpdate
 	if err := render.DecodeJSON(r.Body, &userUpdate); err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to decode user request", zap.Error(err))
@@ -165,7 +172,7 @@ func (c *UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var user = &domains.UserUpdate{
-		ID:   userUpdate.ID,
+		ID:   pathParams.ID,
 		Name: userUpdate.Name,
 	}
 
