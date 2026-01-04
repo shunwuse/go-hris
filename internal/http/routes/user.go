@@ -33,6 +33,6 @@ func (r *UserRoute) Setup(router chi.Router) {
 		userRouter.Get("/", r.userController.GetUsers)
 		userRouter.Get("/{id}", r.userController.GetUser)
 		userRouter.Post("/", r.userController.CreateUser)
-		userRouter.Put("/", r.userController.UpdateUser)
+		userRouter.Put("/{id}", r.userController.UpdateUser)
 	})
 }
