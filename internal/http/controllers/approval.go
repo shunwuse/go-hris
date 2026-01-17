@@ -42,7 +42,7 @@ func (c *ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request
 	}
 
 	// Get pagination parameters.
-	var query domains.CursorQuery
+	var query dtos.GetApprovalsRequest
 	if err := request.DecodeQuery(r, &query); err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to decode query params", zap.Error(err))
 		response.Error(w, errors.ErrInvalidInput)
@@ -50,7 +50,11 @@ func (c *ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request
 	}
 	query.Normalize()
 
-	result, err := c.approvalService.GetApprovalsWithCursor(r.Context(), query)
+	filter := domains.ApprovalFilter{
+		Status: query.Status,
+	}
+
+	result, err := c.approvalService.GetApprovalsWithCursor(r.Context(), query.CursorQuery, filter)
 	if err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to get approvals", zap.Error(err))
 		response.Error(w, err)

@@ -32,8 +32,8 @@ func (s *approvalService) GetApprovals(ctx context.Context) ([]*entgen.Approval,
 	return s.approvalRepository.FindAllWithRelations(ctx)
 }
 
-func (s *approvalService) GetApprovalsWithCursor(ctx context.Context, query domains.CursorQuery) (*domains.CursorResult[*entgen.Approval], error) {
-	return s.approvalRepository.FindAllWithCursor(ctx, query)
+func (s *approvalService) GetApprovalsWithCursor(ctx context.Context, query domains.CursorQuery, filter domains.ApprovalFilter) (*domains.CursorResult[*entgen.Approval], error) {
+	return s.approvalRepository.FindAllWithCursor(ctx, query, filter)
 }
 
 func (s *approvalService) GetApprovalByID(ctx context.Context, id uint) (*entgen.Approval, error) {
