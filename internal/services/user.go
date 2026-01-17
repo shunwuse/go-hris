@@ -17,8 +17,9 @@ import (
 )
 
 type userService struct {
-	logger *infra.Logger
-	cache  *infra.Cache
+	logger     *infra.Logger
+	cache      *infra.Cache
+	transactor infra.Transactor
 
 	userRepository *repositories.UserRepository
 	roleRepository *repositories.RoleRepository
@@ -27,12 +28,14 @@ type userService struct {
 func NewUserService(
 	logger *infra.Logger,
 	cache *infra.Cache,
+	transactor infra.Transactor,
 	userRepository *repositories.UserRepository,
 	roleRepository *repositories.RoleRepository,
 ) service.UserService {
 	return &userService{
 		logger:         logger,
 		cache:          cache,
+		transactor:     transactor,
 		userRepository: userRepository,
 		roleRepository: roleRepository,
 	}
@@ -85,7 +88,7 @@ func (s *userService) CreateUser(ctx context.Context, user *domains.UserCreate, 
 		return errors.ErrInternalError
 	}
 
-	return s.userRepository.WithTx(ctx, func(txCtx context.Context) error {
+	return s.transactor.WithTx(ctx, func(txCtx context.Context) error {
 		u, err := s.userRepository.Create(txCtx, user.Username, user.Name)
 		if err != nil {
 			return err

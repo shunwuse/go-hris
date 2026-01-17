@@ -112,3 +112,11 @@ func (d *Database) WithTx(ctx context.Context, work func(ctx context.Context) er
 }
 
 type txKey struct{}
+
+type Transactor interface {
+	WithTx(ctx context.Context, work func(ctx context.Context) error) error
+}
+
+func NewTransactor() Transactor {
+	return GetDatabase()
+}
