@@ -8,3 +8,7 @@ type ApprovalCreate struct {
 	Status    constants.ApprovalStatus
 	CreatorID uint
 }
+
+type ApprovalFilter struct {
+	Status constants.ApprovalStatus
+}

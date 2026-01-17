@@ -1,6 +1,15 @@
 package dtos
 
-import "github.com/shunwuse/go-hris/internal/constants"
+import (
+	"github.com/shunwuse/go-hris/internal/constants"
+	"github.com/shunwuse/go-hris/internal/domains"
+)
+
+type GetApprovalsRequest struct {
+	domains.CursorQuery
+
+	Status constants.ApprovalStatus `schema:"status"`
+}
 
 type ApprovalResponse struct {
 	ID           uint                     `json:"id"`

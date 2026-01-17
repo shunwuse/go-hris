@@ -42,12 +42,16 @@ func (r *ApprovalRepository) FindAllWithRelations(ctx context.Context) ([]*entge
 	return approvals, nil
 }
 
-func (r *ApprovalRepository) FindAllWithCursor(ctx context.Context, query domains.CursorQuery) (*domains.CursorResult[*entgen.Approval], error) {
+func (r *ApprovalRepository) FindAllWithCursor(ctx context.Context, query domains.CursorQuery, filter domains.ApprovalFilter) (*domains.CursorResult[*entgen.Approval], error) {
 	dbQuery := r.GetClient(ctx).Approval.Query().
 		WithCreator().
 		WithApprover().
 		Order(entgen.Desc(approval.FieldID)).
 		Limit(query.Limit + 1)
+
+	if filter.Status != "" {
+		dbQuery = dbQuery.Where(approval.StatusEQ(filter.Status))
+	}
 
 	if query.Cursor != "" {
 		parts, err := utils.DecodeCursor(query.Cursor)
