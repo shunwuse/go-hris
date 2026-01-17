@@ -5,6 +5,7 @@ import (
 	"math"
 
 	"github.com/shunwuse/go-hris/ent/entgen"
+	"github.com/shunwuse/go-hris/ent/entgen/role"
 	"github.com/shunwuse/go-hris/ent/entgen/user"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
@@ -42,8 +43,25 @@ func (r *UserRepository) FindAll(ctx context.Context) ([]*entgen.User, error) {
 	return users, nil
 }
 
-func (r *UserRepository) FindAllWithOffset(ctx context.Context, query domains.OffsetQuery) (*domains.OffsetResult[*entgen.User], error) {
+func (r *UserRepository) FindAllWithOffset(ctx context.Context, query domains.OffsetQuery, filter domains.UserFilter) (*domains.OffsetResult[*entgen.User], error) {
 	dbQuery := r.GetClient(ctx).User.Query()
+
+	if filter.Name != "" {
+		dbQuery = dbQuery.Where(
+			user.Or(
+				user.UsernameHasPrefix(filter.Name),
+				user.NameContainsFold(filter.Name),
+			),
+		)
+	}
+
+	if filter.Role != "" {
+		dbQuery = dbQuery.Where(
+			user.HasRolesWith(
+				role.NameEQ(filter.Role),
+			),
+		)
+	}
 
 	total, err := dbQuery.Count(ctx)
 	if err != nil {

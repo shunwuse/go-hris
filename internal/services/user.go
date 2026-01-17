@@ -45,8 +45,8 @@ func (s *userService) GetUsers(ctx context.Context) ([]*entgen.User, error) {
 	return s.userRepository.FindAll(ctx)
 }
 
-func (s *userService) GetUsersWithOffset(ctx context.Context, query domains.OffsetQuery) (*domains.OffsetResult[*entgen.User], error) {
-	return s.userRepository.FindAllWithOffset(ctx, query)
+func (s *userService) GetUsersWithOffset(ctx context.Context, query domains.OffsetQuery, filter domains.UserFilter) (*domains.OffsetResult[*entgen.User], error) {
+	return s.userRepository.FindAllWithOffset(ctx, query, filter)
 }
 
 func (s *userService) GetUserByUsername(ctx context.Context, username string) (*domains.UserWithPermissions, error) {

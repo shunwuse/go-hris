@@ -11,6 +11,11 @@ type UserWithPermissions struct {
 	Permissions constants.Permissions
 }
 
+type UserFilter struct {
+	Name string
+	Role constants.Role
+}
+
 type UserCreate struct {
 	Username string
 	Name     string

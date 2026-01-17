@@ -2,7 +2,15 @@ package dtos
 
 import (
 	"github.com/shunwuse/go-hris/internal/constants"
+	"github.com/shunwuse/go-hris/internal/domains"
 )
+
+type GetUsersRequest struct {
+	domains.OffsetQuery
+
+	Name string         `schema:"name"`
+	Role constants.Role `schema:"role"`
+}
 
 type GetUserResponse struct {
 	ID              uint   `json:"id"`
