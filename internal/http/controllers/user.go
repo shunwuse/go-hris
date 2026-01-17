@@ -42,8 +42,8 @@ func (c *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get pagination parameters.
-	var query domains.OffsetQuery
+	// Get pagination and filter parameters.
+	var query dtos.GetUsersRequest
 	if err := request.DecodeQuery(r, &query); err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to decode query params", zap.Error(err))
 		response.Error(w, errors.ErrInvalidInput)
@@ -51,7 +51,12 @@ func (c *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
 	}
 	query.Normalize()
 
-	result, err := c.userService.GetUsersWithOffset(r.Context(), query)
+	filter := domains.UserFilter{
+		Name: query.Name,
+		Role: query.Role,
+	}
+
+	result, err := c.userService.GetUsersWithOffset(r.Context(), query.OffsetQuery, filter)
 	if err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to get users", zap.Error(err))
 		response.Error(w, err)
