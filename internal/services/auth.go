@@ -25,8 +25,9 @@ import (
 )
 
 type authService struct {
-	logger *infra.Logger
-	cache  *infra.Cache
+	logger     *infra.Logger
+	cache      *infra.Cache
+	transactor infra.Transactor
 
 	refreshTokenRepository *repositories.AuthRepository
 
@@ -41,6 +42,7 @@ func NewAuthService(
 	config infra.Config,
 	logger *infra.Logger,
 	cache *infra.Cache,
+	transactor infra.Transactor,
 	userService service.UserService,
 	refreshTokenRepository *repositories.AuthRepository,
 ) service.AuthService {
@@ -76,6 +78,7 @@ func NewAuthService(
 	return &authService{
 		logger:                 logger,
 		cache:                  cache,
+		transactor:             transactor,
 		refreshTokenRepository: refreshTokenRepository,
 		userService:            userService,
 		jwtKey:                 key,
@@ -258,7 +261,7 @@ func (s *authService) RefreshAccessToken(ctx context.Context, refreshToken strin
 
 	var tokenPair *domains.TokenPair
 	// Use WithTx to ensure token rotation is atomic (revoke old + create new).
-	err := s.refreshTokenRepository.WithTx(ctx, func(txCtx context.Context) error {
+	err := s.transactor.WithTx(ctx, func(txCtx context.Context) error {
 		tokenRecord, err := s.refreshTokenRepository.FindRefreshTokenByTokenHash(txCtx, tokenHash)
 		if err != nil {
 			return err
