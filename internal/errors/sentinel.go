@@ -10,7 +10,6 @@ var (
 
 	// Authentication & Authorization errors
 	ErrUnauthorized       = &Error{Code: CodeUnauthorized, Message: "unauthorized"}
-	ErrForbidden          = &Error{Code: CodeForbidden, Message: "forbidden"}
 	ErrInvalidCredentials = &Error{Code: CodeInvalidCredentials, Message: "invalid credentials"}
 	ErrTokenExpired       = &Error{Code: CodeTokenExpired, Message: "token expired"}
 	ErrTokenInvalid       = &Error{Code: CodeTokenInvalid, Message: "token invalid"}
@@ -19,9 +18,9 @@ var (
 	ErrValidationFailed = &Error{Code: CodeValidationFailed, Message: "validation failed"}
 
 	// Business logic errors
-	ErrInsufficientPermissions = &Error{Code: CodeInsufficientPermissions, Message: "insufficient permissions"}
-	ErrOperationNotAllowed     = &Error{Code: CodeOperationNotAllowed, Message: "operation not allowed"}
-	ErrConflict                = &Error{Code: CodeConflict, Message: "conflict"}
+	ErrForbidden           = &Error{Code: CodeForbidden, Message: "forbidden"}
+	ErrOperationNotAllowed = &Error{Code: CodeOperationNotAllowed, Message: "operation not allowed"}
+	ErrConflict            = &Error{Code: CodeConflict, Message: "conflict"}
 
 	// Infrastructure errors
 	ErrDatabaseError = &Error{Code: CodeDatabaseError, Message: "database error"}

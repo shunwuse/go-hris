@@ -114,9 +114,8 @@ var codeToStatus = map[string]int{
 	errors.CodeTokenExpired:       http.StatusUnauthorized,
 	errors.CodeTokenInvalid:       http.StatusUnauthorized,
 	// 403 [Forbidden]
-	errors.CodeForbidden:               http.StatusForbidden,
-	errors.CodeInsufficientPermissions: http.StatusForbidden,
-	errors.CodeOperationNotAllowed:     http.StatusForbidden,
+	errors.CodeForbidden:           http.StatusForbidden,
+	errors.CodeOperationNotAllowed: http.StatusForbidden,
 	// 404 [Not Found]
 	errors.CodeNotFound: http.StatusNotFound,
 	// 409 [Conflict]

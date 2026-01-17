@@ -127,7 +127,7 @@ func (r *UserRepository) Create(ctx context.Context, username string, name strin
 		Save(ctx)
 	if err != nil {
 		if entgen.IsConstraintError(err) {
-			return nil, errors.ErrConflict
+			return nil, errors.ErrAlreadyExists
 		}
 		r.logger.WithContext(ctx).Error("failed to create user", zap.Error(err))
 		return nil, errors.ErrDatabaseError
