@@ -37,7 +37,7 @@ func (c *ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request
 	// Check if user has permission to read approvals.
 	if hasPermission := permissions.Contains(constants.PermissionReadApproval); !hasPermission {
 		c.logger.WithContext(r.Context()).Error("user not authorized to get approvals")
-		response.Error(w, errors.ErrInsufficientPermissions)
+		response.Error(w, errors.ErrForbidden)
 		return
 	}
 
@@ -89,7 +89,7 @@ func (c *ApprovalController) GetApproval(w http.ResponseWriter, r *http.Request)
 	// Check if user has permission to read approvals.
 	if hasPermission := permissions.Contains(constants.PermissionReadApproval); !hasPermission {
 		c.logger.WithContext(r.Context()).Error("user not authorized to get approval")
-		response.Error(w, errors.ErrInsufficientPermissions)
+		response.Error(w, errors.ErrForbidden)
 		return
 	}
 
@@ -127,7 +127,7 @@ func (c *ApprovalController) AddApproval(w http.ResponseWriter, r *http.Request)
 	// Check if user has permission to create approvals.
 	if hasPermission := permissions.Contains(constants.PermissionCreateApproval); !hasPermission {
 		c.logger.WithContext(r.Context()).Error("user not authorized to add approval")
-		response.Error(w, errors.ErrInsufficientPermissions)
+		response.Error(w, errors.ErrForbidden)
 		return
 	}
 
@@ -158,7 +158,7 @@ func (c *ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Reque
 		constants.PermissionActionApproval,
 	}); !hasPermission {
 		c.logger.WithContext(r.Context()).Error("user not authorized to action approval")
-		response.Error(w, errors.ErrInsufficientPermissions)
+		response.Error(w, errors.ErrForbidden)
 		return
 	}
 

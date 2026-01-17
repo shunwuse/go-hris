@@ -9,7 +9,6 @@ const (
 
 	// Authentication & Authorization errors
 	CodeUnauthorized       = "UNAUTHORIZED"
-	CodeForbidden          = "FORBIDDEN"
 	CodeInvalidCredentials = "INVALID_CREDENTIALS"
 	CodeTokenExpired       = "TOKEN_EXPIRED"
 	CodeTokenInvalid       = "TOKEN_INVALID"
@@ -18,9 +17,9 @@ const (
 	CodeValidationFailed = "VALIDATION_FAILED"
 
 	// Business logic errors
-	CodeInsufficientPermissions = "INSUFFICIENT_PERMISSIONS"
-	CodeOperationNotAllowed     = "OPERATION_NOT_ALLOWED"
-	CodeConflict                = "CONFLICT"
+	CodeForbidden           = "FORBIDDEN"
+	CodeOperationNotAllowed = "OPERATION_NOT_ALLOWED"
+	CodeConflict            = "CONFLICT"
 
 	// Infrastructure errors
 	CodeDatabaseError = "DATABASE_ERROR"

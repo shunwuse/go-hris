@@ -38,7 +38,7 @@ func (c *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
 	// Check if user has permission to read users.
 	if hasPermission := permissions.Contains(constants.PermissionReadUser); !hasPermission {
 		c.logger.WithContext(r.Context()).Error("user not authorized to get users")
-		response.Error(w, errors.ErrInsufficientPermissions)
+		response.Error(w, errors.ErrForbidden)
 		return
 	}
 
@@ -89,7 +89,7 @@ func (c *UserController) GetUser(w http.ResponseWriter, r *http.Request) {
 	// Check if user has permission to read users.
 	if hasPermission := permissions.Contains(constants.PermissionReadUser); !hasPermission {
 		c.logger.WithContext(r.Context()).Error("user not authorized to get user")
-		response.Error(w, errors.ErrInsufficientPermissions)
+		response.Error(w, errors.ErrForbidden)
 		return
 	}
 
@@ -125,7 +125,7 @@ func (c *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 	// Check if user has permission to create users.
 	if hasPermission := permissions.Contains(constants.PermissionCreateUser); !hasPermission {
 		c.logger.WithContext(r.Context()).Error("user not authorized to create user")
-		response.Error(w, errors.ErrInsufficientPermissions)
+		response.Error(w, errors.ErrForbidden)
 		return
 	}
 
@@ -158,7 +158,7 @@ func (c *UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	// Check if user has permission to update users.
 	if hasPermission := permissions.Contains(constants.PermissionUpdateUser); !hasPermission {
 		c.logger.WithContext(r.Context()).Error("user not authorized to update user")
-		response.Error(w, errors.ErrInsufficientPermissions)
+		response.Error(w, errors.ErrForbidden)
 		return
 	}
 
