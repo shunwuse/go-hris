@@ -5,9 +5,7 @@ package main
 
 import (
 	"github.com/google/wire"
-	"github.com/shunwuse/go-hris/internal/http/controllers"
-	"github.com/shunwuse/go-hris/internal/http/middlewares"
-	"github.com/shunwuse/go-hris/internal/http/routes"
+	"github.com/shunwuse/go-hris/internal/http"
 	"github.com/shunwuse/go-hris/internal/infra"
 	"github.com/shunwuse/go-hris/internal/repositories"
 	"github.com/shunwuse/go-hris/internal/services"
@@ -18,9 +16,7 @@ func InitializeServer() *Server {
 		infra.ProviderSet,
 		repositories.ProviderSet,
 		services.ProviderSet,
-		middlewares.ProviderSet,
-		controllers.ProviderSet,
-		routes.ProviderSet,
+		http.ProviderSet,
 		NewServer,
 	)
 

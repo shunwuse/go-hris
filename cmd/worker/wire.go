@@ -8,8 +8,7 @@ import (
 	"github.com/shunwuse/go-hris/internal/infra"
 	"github.com/shunwuse/go-hris/internal/repositories"
 	"github.com/shunwuse/go-hris/internal/services"
-	"github.com/shunwuse/go-hris/internal/worker/consumer"
-	"github.com/shunwuse/go-hris/internal/worker/scheduler"
+	"github.com/shunwuse/go-hris/internal/worker"
 )
 
 func InitializeWorker() *Worker {
@@ -17,8 +16,7 @@ func InitializeWorker() *Worker {
 		infra.ProviderSet,
 		repositories.ProviderSet,
 		services.ProviderSet,
-		scheduler.ProviderSet,
-		consumer.ProviderSet,
+		worker.ProviderSet,
 		NewWorker,
 	)
 
