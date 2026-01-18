@@ -74,12 +74,12 @@ func Error(w http.ResponseWriter, err error) {
 	// Extract custom Error (including sentinel errors)
 	var appErr *errors.Error
 	if stderrors.As(err, &appErr) {
-		status := domainCodeToHTTPStatus(appErr.Code)
+		status := domainCodeToHTTPStatus(appErr.Code())
 		JSON(w, status, ErrorResponse{
 			Error: ErrorDetail{
-				Code:    appErr.Code,
-				Message: appErr.Message,
-				Details: appErr.Details,
+				Code:    appErr.Code(),
+				Message: appErr.Message(),
+				Details: appErr.Details(),
 			},
 		})
 

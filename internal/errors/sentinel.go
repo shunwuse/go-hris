@@ -3,25 +3,25 @@ package errors
 // Sentinel errors - predefined common errors
 var (
 	// Common errors
-	ErrNotFound      = &Error{Code: CodeNotFound, Message: "resource not found"}
-	ErrAlreadyExists = &Error{Code: CodeAlreadyExists, Message: "resource already exists"}
-	ErrInvalidInput  = &Error{Code: CodeInvalidInput, Message: "invalid input"}
-	ErrInternalError = &Error{Code: CodeInternalError, Message: "internal error"}
+	ErrNotFound      = New(CodeNotFound, "resource not found")
+	ErrAlreadyExists = New(CodeAlreadyExists, "resource already exists")
+	ErrInvalidInput  = New(CodeInvalidInput, "invalid input")
+	ErrInternalError = New(CodeInternalError, "internal error")
 
 	// Authentication & Authorization errors
-	ErrUnauthorized       = &Error{Code: CodeUnauthorized, Message: "unauthorized"}
-	ErrInvalidCredentials = &Error{Code: CodeInvalidCredentials, Message: "invalid credentials"}
-	ErrTokenExpired       = &Error{Code: CodeTokenExpired, Message: "token expired"}
-	ErrTokenInvalid       = &Error{Code: CodeTokenInvalid, Message: "token invalid"}
+	ErrUnauthorized       = New(CodeUnauthorized, "unauthorized")
+	ErrInvalidCredentials = New(CodeInvalidCredentials, "invalid credentials")
+	ErrTokenExpired       = New(CodeTokenExpired, "token expired")
+	ErrTokenInvalid       = New(CodeTokenInvalid, "token invalid")
 
 	// Validation errors
-	ErrValidationFailed = &Error{Code: CodeValidationFailed, Message: "validation failed"}
+	ErrValidationFailed = New(CodeValidationFailed, "validation failed")
 
 	// Business logic errors
-	ErrForbidden           = &Error{Code: CodeForbidden, Message: "forbidden"}
-	ErrOperationNotAllowed = &Error{Code: CodeOperationNotAllowed, Message: "operation not allowed"}
-	ErrConflict            = &Error{Code: CodeConflict, Message: "conflict"}
+	ErrForbidden           = New(CodeForbidden, "forbidden")
+	ErrOperationNotAllowed = New(CodeOperationNotAllowed, "operation not allowed")
+	ErrConflict            = New(CodeConflict, "conflict")
 
 	// Infrastructure errors
-	ErrDatabaseError = &Error{Code: CodeDatabaseError, Message: "database error"}
+	ErrDatabaseError = New(CodeDatabaseError, "database error")
 )
