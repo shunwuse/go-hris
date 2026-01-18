@@ -15,54 +15,75 @@ import (
 
 type Worker struct {
 	logger    *infra.Logger
+	database  *infra.Database
+	cache     *infra.Cache
 	scheduler *scheduler.Scheduler
 	consumer  *consumer.Consumer
 }
 
 func NewWorker(
 	logger *infra.Logger,
+	database *infra.Database,
+	cache *infra.Cache,
 	scheduler *scheduler.Scheduler,
 	consumer *consumer.Consumer,
 ) *Worker {
 	return &Worker{
 		logger:    logger,
+		database:  database,
+		cache:     cache,
 		scheduler: scheduler,
 		consumer:  consumer,
 	}
 }
 
-func (w *Worker) Run() {
-	w.logger.Info("starting worker initialization")
+func (worker *Worker) Run() {
+	worker.logger.Info("starting worker initialization")
 
 	ctx, cancel := context.WithCancel(context.Background())
 
 	// Start Scheduler.
-	go w.scheduler.Start(ctx)
+	go worker.scheduler.Start(ctx)
 
 	// Start Consumer.
-	go w.consumer.Start(ctx)
+	go worker.consumer.Start(ctx)
 
-	w.logger.Info("worker is running and waiting for tasks")
+	worker.logger.Info("worker is running and waiting for tasks")
 
-	// Block until we receive an interrupt signal.
+	// Channel to listen for interrupt signals.
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+
+	gracefulShutdown := func() {
+		worker.logger.Info("initiating graceful shutdown", zap.Duration("timeout", 30*time.Second))
+
+		// Stop components.
+		cancel()
+
+		// Give components some time to shut down.
+		shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer shutdownCancel()
+
+		// Wait for components to stop.
+		worker.scheduler.Stop(shutdownCtx)
+		worker.consumer.Stop(shutdownCtx)
+
+		// Close cache connection.
+		if err := worker.cache.Close(); err != nil {
+			worker.logger.Error("failed to close cache connection", zap.Error(err))
+		}
+
+		// Close database connection.
+		if err := worker.database.Close(); err != nil {
+			worker.logger.Error("failed to close database connection", zap.Error(err))
+		}
+
+		worker.logger.Info("worker stopped gracefully")
+
+		_ = worker.logger.Sync()
+	}
+
 	sig := <-quit
-
-	w.logger.Info("shutdown signal received", zap.String("signal", sig.String()))
-
-	// Initiate graceful shutdown.
-	cancel()
-
-	// Give components some time to shut down.
-	shutdownCtx, shutdownCancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer shutdownCancel()
-
-	w.logger.Info("initiating graceful shutdown", zap.Duration("timeout", 30*time.Second))
-
-	// Wait for components to stop.
-	w.scheduler.Stop(shutdownCtx)
-	w.consumer.Stop(shutdownCtx)
-
-	w.logger.Info("worker stopped gracefully")
+	worker.logger.Info("shutdown signal received", zap.String("signal", sig.String()))
+	gracefulShutdown()
 }

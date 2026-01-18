@@ -16,31 +16,31 @@ import (
 
 type Server struct {
 	config            infra.Config
-	handler           *infra.RequestHandler
-	routes            routes.Routes
-	commonMiddlewares middlewares.CommonMiddlewares
 	logger            *infra.Logger
 	database          *infra.Database
 	cache             *infra.Cache
+	handler           *infra.RequestHandler
+	commonMiddlewares middlewares.CommonMiddlewares
+	routes            routes.Routes
 }
 
 func NewServer(
 	config infra.Config,
-	handler *infra.RequestHandler,
-	routes routes.Routes,
-	commonMiddlewares middlewares.CommonMiddlewares,
 	logger *infra.Logger,
 	database *infra.Database,
 	cache *infra.Cache,
+	handler *infra.RequestHandler,
+	commonMiddlewares middlewares.CommonMiddlewares,
+	routes routes.Routes,
 ) *Server {
 	return &Server{
 		config:            config,
-		handler:           handler,
-		routes:            routes,
-		commonMiddlewares: commonMiddlewares,
 		logger:            logger,
 		database:          database,
 		cache:             cache,
+		handler:           handler,
+		commonMiddlewares: commonMiddlewares,
+		routes:            routes,
 	}
 }
 
