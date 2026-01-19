@@ -4,11 +4,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-chi/render"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/dtos"
 	"github.com/shunwuse/go-hris/internal/errors"
+	"github.com/shunwuse/go-hris/internal/http/request"
 	"github.com/shunwuse/go-hris/internal/http/response"
 	"github.com/shunwuse/go-hris/internal/infra"
 	"github.com/shunwuse/go-hris/internal/ports/service"
@@ -33,7 +33,7 @@ func NewAuthController(
 func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 	var userLogin dtos.UserLogin
 
-	if err := render.DecodeJSON(r.Body, &userLogin); err != nil {
+	if err := request.DecodeJSON(r, &userLogin); err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to decode login request", zap.Error(err))
 		response.Error(w, errors.ErrInvalidInput)
 		return
@@ -59,7 +59,7 @@ func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 func (c *AuthController) RefreshToken(w http.ResponseWriter, r *http.Request) {
 	var req dtos.RefreshRequest
 
-	if err := render.DecodeJSON(r.Body, &req); err != nil {
+	if err := request.DecodeJSON(r, &req); err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to decode refresh request", zap.Error(err))
 		response.Error(w, errors.ErrInvalidInput)
 		return
@@ -89,7 +89,7 @@ func (c *AuthController) RefreshToken(w http.ResponseWriter, r *http.Request) {
 func (c *AuthController) Logout(w http.ResponseWriter, r *http.Request) {
 	var req dtos.LogoutRequest
 
-	_ = render.DecodeJSON(r.Body, &req)
+	_ = request.DecodeJSON(r, &req)
 
 	if req.RefreshToken != "" {
 		// Revoke refresh token.

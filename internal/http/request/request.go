@@ -1,10 +1,10 @@
 package request
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/render"
 	"github.com/gorilla/schema"
 )
 
@@ -15,32 +15,31 @@ func init() {
 	decoder.IgnoreUnknownKeys(true)
 }
 
-// Decode decodes path, query, and JSON body into a struct.
+// Decode decodes path, query, and JSON body.
 // It follows the order: Path -> Query -> Body (JSON).
 // Later values will override earlier ones if they share the same tag/field name.
 func Decode(r *http.Request, dst any) error {
 	if err := DecodePath(r, dst); err != nil {
 		return err
 	}
+
 	if err := DecodeQuery(r, dst); err != nil {
 		return err
 	}
 
-	if r.ContentLength > 0 {
-		if err := render.DecodeJSON(r.Body, dst); err != nil {
-			return err
-		}
+	if err := DecodeJSON(r, dst); err != nil {
+		return err
 	}
 
 	return nil
 }
 
-// DecodeQuery decodes URL query parameters into a struct.
+// DecodeQuery decodes URL query parameters.
 func DecodeQuery(r *http.Request, dst any) error {
 	return decoder.Decode(dst, r.URL.Query())
 }
 
-// DecodePath decodes chi URL parameters into a struct.
+// DecodePath decodes URL path parameters.
 func DecodePath(r *http.Request, dst any) error {
 	rctx := chi.RouteContext(r.Context())
 	if rctx == nil {
@@ -53,4 +52,13 @@ func DecodePath(r *http.Request, dst any) error {
 	}
 
 	return decoder.Decode(dst, params)
+}
+
+// DecodeJSON decodes the JSON request body.
+func DecodeJSON(r *http.Request, dst any) error {
+	if r.ContentLength <= 0 {
+		return nil
+	}
+
+	return json.NewDecoder(r.Body).Decode(dst)
 }
