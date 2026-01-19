@@ -42,7 +42,7 @@ func (c *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get pagination and filter parameters.
-	var query dtos.GetUsersRequest
+	var query dtos.UserGetList
 	if err := request.DecodeQuery(r, &query); err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to decode query params", zap.Error(err))
 		response.Error(w, errors.ErrInvalidInput)
@@ -62,9 +62,9 @@ func (c *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	usersResponse := make([]dtos.GetUserResponse, len(result.Items))
+	usersResponse := make([]dtos.UserResponse, len(result.Items))
 	for idx, user := range result.Items {
-		usersResponse[idx] = dtos.GetUserResponse{
+		usersResponse[idx] = dtos.UserResponse{
 			ID:              user.ID,
 			Username:        user.Username,
 			Name:            user.Name,
@@ -106,7 +106,7 @@ func (c *UserController) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := dtos.GetUserResponse{
+	resp := dtos.UserResponse{
 		ID:              user.ID,
 		Username:        user.Username,
 		Name:            user.Name,
@@ -141,7 +141,8 @@ func (c *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 		Password: userCreate.Password,
 	}
 
-	if err := c.userService.CreateUser(r.Context(), user, userCreate.Role); err != nil {
+	err := c.userService.CreateUser(r.Context(), user, userCreate.Role)
+	if err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to create user", zap.Error(err))
 		response.Error(w, err)
 		return
@@ -180,7 +181,8 @@ func (c *UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		Name: userUpdate.Name,
 	}
 
-	if err := c.userService.UpdateUser(r.Context(), user); err != nil {
+	err := c.userService.UpdateUser(r.Context(), user)
+	if err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to update user", zap.Error(err))
 		response.Error(w, err)
 		return

@@ -46,7 +46,7 @@ func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := dtos.LoginResponse{
+	resp := dtos.UserLoginResponse{
 		Username:     result.Username,
 		Roles:        result.Roles,
 		AccessToken:  result.AccessToken,
@@ -89,7 +89,7 @@ func (c *AuthController) RefreshToken(w http.ResponseWriter, r *http.Request) {
 func (c *AuthController) Logout(w http.ResponseWriter, r *http.Request) {
 	var req dtos.LogoutRequest
 
-	_ = request.DecodeJSON(r, &req)
+	_ = request.DecodeJSON(r, &req) // Ignore error, as refresh token is optional
 
 	if req.RefreshToken != "" {
 		// Revoke refresh token.

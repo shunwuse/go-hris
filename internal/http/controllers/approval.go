@@ -41,7 +41,7 @@ func (c *ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request
 	}
 
 	// Get pagination parameters.
-	var query dtos.GetApprovalsRequest
+	var query dtos.ApprovalGetList
 	if err := request.DecodeQuery(r, &query); err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to decode query params", zap.Error(err))
 		response.Error(w, errors.ErrInvalidInput)
@@ -171,14 +171,13 @@ func (c *ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Reque
 	}
 
 	var actionRequest dtos.ApprovalAction
-	err := request.DecodeJSON(r, &actionRequest)
-	if err != nil {
+	if err := request.DecodeJSON(r, &actionRequest); err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to decode action request", zap.Error(err))
 		response.Error(w, errors.ErrInvalidInput)
 		return
 	}
 
-	err = c.approvalService.ActionApproval(r.Context(), pathParams.ID, actionRequest.Action, userID)
+	err := c.approvalService.ActionApproval(r.Context(), pathParams.ID, actionRequest.Action, userID)
 	if err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to action approval", zap.Error(err))
 		response.Error(w, err)

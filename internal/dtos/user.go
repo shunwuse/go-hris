@@ -5,14 +5,14 @@ import (
 	"github.com/shunwuse/go-hris/internal/domains"
 )
 
-type GetUsersRequest struct {
+type UserGetList struct {
 	domains.OffsetQuery
 
 	Name string         `schema:"name"`
 	Role constants.Role `schema:"role"`
 }
 
-type GetUserResponse struct {
+type UserResponse struct {
 	ID              uint   `json:"id"`
 	Username        string `json:"username"`
 	Name            string `json:"name"`
@@ -25,22 +25,22 @@ type UserPathParams struct {
 }
 
 type UserCreate struct {
-	Username string         `json:"username" binding:"required" validate:"alphanum"`
-	Password string         `json:"password" binding:"required"`
-	Name     string         `json:"name" binding:"required"`
-	Role     constants.Role `json:"role" binding:"required"`
+	Username string         `json:"username"`
+	Password string         `json:"password"`
+	Name     string         `json:"name"`
+	Role     constants.Role `json:"role"`
 }
 
 type UserUpdate struct {
-	Name string `json:"name" binding:"omitempty"` // name is optional
+	Name string `json:"name"` // name is optional
 }
 
 type UserLogin struct {
-	Username string `json:"username" binding:"required" validate:"alphanum"`
-	Password string `json:"password" binding:"required"`
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
-type LoginResponse struct {
+type UserLoginResponse struct {
 	Username     string           `json:"username"`
 	Roles        []constants.Role `json:"roles"`
 	AccessToken  string           `json:"access_token"`
