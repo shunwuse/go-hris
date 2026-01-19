@@ -5,7 +5,7 @@ import (
 	"github.com/shunwuse/go-hris/internal/domains"
 )
 
-type GetApprovalsRequest struct {
+type ApprovalGetList struct {
 	domains.CursorQuery
 
 	Status constants.ApprovalStatus `schema:"status"`
@@ -23,5 +23,5 @@ type ApprovalPathParams struct {
 }
 
 type ApprovalAction struct {
-	Action constants.ApprovalStatus `json:"action" binding:"required"`
+	Action constants.ApprovalStatus `json:"action"`
 }
