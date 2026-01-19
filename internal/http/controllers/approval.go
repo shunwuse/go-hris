@@ -3,7 +3,6 @@ package controllers
 import (
 	"net/http"
 
-	"github.com/go-chi/render"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/dtos"
@@ -172,7 +171,7 @@ func (c *ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Reque
 	}
 
 	var actionRequest dtos.ApprovalAction
-	err := render.DecodeJSON(r.Body, &actionRequest)
+	err := request.DecodeJSON(r, &actionRequest)
 	if err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to decode action request", zap.Error(err))
 		response.Error(w, errors.ErrInvalidInput)

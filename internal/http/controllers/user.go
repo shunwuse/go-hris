@@ -4,7 +4,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/go-chi/render"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/dtos"
@@ -130,7 +129,7 @@ func (c *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var userCreate dtos.UserCreate
-	if err := render.DecodeJSON(r.Body, &userCreate); err != nil {
+	if err := request.DecodeJSON(r, &userCreate); err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to decode user request", zap.Error(err))
 		response.Error(w, errors.ErrInvalidInput)
 		return
@@ -170,7 +169,7 @@ func (c *UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var userUpdate dtos.UserUpdate
-	if err := render.DecodeJSON(r.Body, &userUpdate); err != nil {
+	if err := request.DecodeJSON(r, &userUpdate); err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to decode user request", zap.Error(err))
 		response.Error(w, errors.ErrInvalidInput)
 		return

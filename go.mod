@@ -7,7 +7,6 @@ require (
 	github.com/alicebob/miniredis/v2 v2.35.0
 	github.com/go-chi/chi/v5 v5.2.3
 	github.com/go-chi/cors v1.2.2
-	github.com/go-chi/render v1.0.3
 	github.com/golang-migrate/migrate/v4 v4.19.0
 	github.com/google/wire v0.7.0
 	github.com/gorilla/schema v1.4.1
@@ -30,7 +29,6 @@ require (
 require (
 	ariga.io/atlas v0.37.0 // indirect
 	github.com/agext/levenshtein v1.2.3 // indirect
-	github.com/ajg/form v1.5.1 // indirect
 	github.com/apparentlymart/go-textseg/v15 v15.0.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bmatcuk/doublestar v1.3.4 // indirect
