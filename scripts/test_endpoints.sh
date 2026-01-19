@@ -71,6 +71,7 @@ BODY=$(echo "$LOGIN_RESPONSE" | sed '$d')
 
 if test_result "Login returns 200" "200" "$HTTP_CODE"; then
     TOKEN=$(echo "$BODY" | grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
+    REFRESH_TOKEN=$(echo "$BODY" | grep -o '"refresh_token":"[^"]*"' | cut -d'"' -f4)
 
     if [ -n "$TOKEN" ]; then
         echo -e "   ${GREEN}✓${NC} Token received: ${TOKEN:0:50}..."
@@ -78,6 +79,17 @@ if test_result "Login returns 200" "200" "$HTTP_CODE"; then
         echo -e "   ${RED}✗${NC} No token in response: $BODY"
         FAILED_TESTS=$((FAILED_TESTS + 1))
     fi
+fi
+
+# Test 2.1: Refresh Token
+if [ -n "$REFRESH_TOKEN" ]; then
+    echo -n "2.1 POST /auth/refresh... "
+    REFRESH_RESPONSE=$(curl -s -w "\n%{http_code}" -X POST $BASE_URL/auth/refresh \
+        -H "Content-Type: application/json" \
+        -d "{\"refresh_token\":\"$REFRESH_TOKEN\"}")
+
+    HTTP_CODE=$(echo "$REFRESH_RESPONSE" | tail -n1)
+    test_result "Refresh token returns 200" "200" "$HTTP_CODE"
 fi
 
 # Test 3: Login with incorrect credentials
@@ -131,6 +143,12 @@ if [ -n "$TOKEN" ]; then
         fi
     fi
 
+    # Test 6.1: Get user by ID
+    echo -n "6.1 GET /users/1... "
+    RESPONSE=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer $TOKEN" $BASE_URL/users/1)
+    HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+    test_result "Get user by ID returns 200" "200" "$HTTP_CODE"
+
     # Test 7: Get approvals
     echo -n "7. GET /approvals... "
     RESPONSE=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer $TOKEN" $BASE_URL/approvals)
@@ -146,6 +164,12 @@ if [ -n "$TOKEN" ]; then
             echo -e "   ${BLUE}ℹ${NC} Found $APPROVAL_COUNT approvals"
         fi
     fi
+
+    # Test 7.1: Get approval by ID
+    echo -n "7.1 GET /approvals/1... "
+    RESPONSE=$(curl -s -w "\n%{http_code}" -H "Authorization: Bearer $TOKEN" $BASE_URL/approvals/1)
+    HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+    test_result "Get approval by ID returns 200" "200" "$HTTP_CODE"
 
     # Test 8: Create user (testing POST with data)
     echo -n "8. POST /users (create user)... "
@@ -163,11 +187,11 @@ if [ -n "$TOKEN" ]; then
     fi
 
     # Test 9: Update user
-    echo -n "9. PUT /users (update user)... "
-    RESPONSE=$(curl -s -w "\n%{http_code}" -X PUT $BASE_URL/users \
+    echo -n "9. PUT /users/1 (update user)... "
+    RESPONSE=$(curl -s -w "\n%{http_code}" -X PUT $BASE_URL/users/1 \
         -H "Authorization: Bearer $TOKEN" \
         -H "Content-Type: application/json" \
-        -d '{"id":1,"name":"Admin Updated"}')
+        -d '{"name":"Admin Updated"}')
 
     HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
 
@@ -180,11 +204,29 @@ if [ -n "$TOKEN" ]; then
         -H "Content-Type: application/json")
 
     HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+    BODY=$(echo "$RESPONSE" | sed '$d')
 
     test_result "Create approval returns 201" "201" "$HTTP_CODE"
+
+    # Test 11: Logout
+    echo -n "11. POST /auth/logout... "
+    RESPONSE=$(curl -s -w "\n%{http_code}" -X POST $BASE_URL/auth/logout \
+        -H "Authorization: Bearer $TOKEN" \
+        -H "Content-Type: application/json" \
+        -d "{\"refresh_token\":\"$REFRESH_TOKEN\"}")
+
+    HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+    test_result "Logout returns 200" "200" "$HTTP_CODE"
 else
     echo -e "${RED}Skipping protected endpoint tests (no token available)${NC}"
 fi
+
+# Test 12: Metrics (public)
+section "Monitoring Tests"
+echo -n "12. GET /metrics... "
+RESPONSE=$(curl -s -w "\n%{http_code}" $BASE_URL/metrics)
+HTTP_CODE=$(echo "$RESPONSE" | tail -n1)
+test_result "Metrics returns 200" "200" "$HTTP_CODE"
 
 # Test summary
 section "Test Summary"
