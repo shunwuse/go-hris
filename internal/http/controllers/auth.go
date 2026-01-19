@@ -4,8 +4,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/shunwuse/go-hris/internal/constants"
-	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/dtos"
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/http/request"
@@ -99,7 +97,7 @@ func (c *AuthController) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Blacklist current access token.
-	payload, ok := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
+	payload, ok := request.GetClaims(r)
 	if ok && payload.JTI != "" {
 		expiration := time.Until(payload.ExpiresAt)
 		if expiration > 0 {
@@ -114,7 +112,7 @@ func (c *AuthController) Logout(w http.ResponseWriter, r *http.Request) {
 
 func (c *AuthController) LogoutAll(w http.ResponseWriter, r *http.Request) {
 	// Get user ID from JWT claims.
-	token, ok := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
+	token, ok := request.GetClaims(r)
 	if !ok {
 		c.logger.WithContext(r.Context()).Error("failed to get claims from context")
 		response.Error(w, errors.ErrUnauthorized)

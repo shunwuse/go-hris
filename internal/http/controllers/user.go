@@ -31,7 +31,12 @@ func NewUserController(
 }
 
 func (c *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
-	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
+	token, ok := request.GetClaims(r)
+	if !ok {
+		c.logger.WithContext(r.Context()).Error("failed to get claims from context")
+		response.Error(w, errors.ErrUnauthorized)
+		return
+	}
 	permissions := token.Permissions
 
 	// Check if user has permission to read users.
@@ -82,7 +87,12 @@ func (c *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *UserController) GetUser(w http.ResponseWriter, r *http.Request) {
-	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
+	token, ok := request.GetClaims(r)
+	if !ok {
+		c.logger.WithContext(r.Context()).Error("failed to get claims from context")
+		response.Error(w, errors.ErrUnauthorized)
+		return
+	}
 	permissions := token.Permissions
 
 	// Check if user has permission to read users.
@@ -118,7 +128,12 @@ func (c *UserController) GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
-	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
+	token, ok := request.GetClaims(r)
+	if !ok {
+		c.logger.WithContext(r.Context()).Error("failed to get claims from context")
+		response.Error(w, errors.ErrUnauthorized)
+		return
+	}
 	permissions := token.Permissions
 
 	// Check if user has permission to create users.
@@ -152,7 +167,12 @@ func (c *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
-	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
+	token, ok := request.GetClaims(r)
+	if !ok {
+		c.logger.WithContext(r.Context()).Error("failed to get claims from context")
+		response.Error(w, errors.ErrUnauthorized)
+		return
+	}
 	permissions := token.Permissions
 
 	// Check if user has permission to update users.
