@@ -30,7 +30,12 @@ func NewApprovalController(
 }
 
 func (c *ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request) {
-	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
+	token, ok := request.GetClaims(r)
+	if !ok {
+		c.logger.WithContext(r.Context()).Error("failed to get claims from context")
+		response.Error(w, errors.ErrUnauthorized)
+		return
+	}
 	permissions := token.Permissions
 
 	// Check if user has permission to read approvals.
@@ -82,7 +87,12 @@ func (c *ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request
 }
 
 func (c *ApprovalController) GetApproval(w http.ResponseWriter, r *http.Request) {
-	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
+	token, ok := request.GetClaims(r)
+	if !ok {
+		c.logger.WithContext(r.Context()).Error("failed to get claims from context")
+		response.Error(w, errors.ErrUnauthorized)
+		return
+	}
 	permissions := token.Permissions
 
 	// Check if user has permission to read approvals.
@@ -120,7 +130,12 @@ func (c *ApprovalController) GetApproval(w http.ResponseWriter, r *http.Request)
 }
 
 func (c *ApprovalController) AddApproval(w http.ResponseWriter, r *http.Request) {
-	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
+	token, ok := request.GetClaims(r)
+	if !ok {
+		c.logger.WithContext(r.Context()).Error("failed to get claims from context")
+		response.Error(w, errors.ErrUnauthorized)
+		return
+	}
 	permissions := token.Permissions
 
 	// Check if user has permission to create approvals.
@@ -148,7 +163,12 @@ func (c *ApprovalController) AddApproval(w http.ResponseWriter, r *http.Request)
 }
 
 func (c *ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Request) {
-	token := r.Context().Value(constants.JWTClaims).(domains.TokenPayload)
+	token, ok := request.GetClaims(r)
+	if !ok {
+		c.logger.WithContext(r.Context()).Error("failed to get claims from context")
+		response.Error(w, errors.ErrUnauthorized)
+		return
+	}
 	permissions := token.Permissions
 
 	// Check if user has permission to action approvals.
