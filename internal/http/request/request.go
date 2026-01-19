@@ -2,6 +2,7 @@ package request
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -59,6 +60,12 @@ func DecodeJSON(r *http.Request, dst any) error {
 	if r.ContentLength <= 0 {
 		return nil
 	}
+
+	// Drain and close the body to ensure connection reuse
+	defer func() {
+		_, _ = io.Copy(io.Discard, r.Body)
+		_ = r.Body.Close()
+	}()
 
 	return json.NewDecoder(r.Body).Decode(dst)
 }
