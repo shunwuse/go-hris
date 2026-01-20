@@ -38,7 +38,7 @@ func (c *ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request
 	}
 
 	// Check if user has permission to read approvals.
-	if hasPermission := identity.Permissions.Contains(constants.PermissionReadApproval); !hasPermission {
+	if !identity.Can(constants.PermissionReadApproval) {
 		c.logger.WithContext(r.Context()).Error("user not authorized to get approvals")
 		response.Error(w, errors.ErrForbidden)
 		return
@@ -100,7 +100,7 @@ func (c *ApprovalController) GetApproval(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Check if user has permission to read approvals.
-	if hasPermission := identity.Permissions.Contains(constants.PermissionReadApproval); !hasPermission {
+	if !identity.Can(constants.PermissionReadApproval) {
 		c.logger.WithContext(r.Context()).Error("user not authorized to get approval")
 		response.Error(w, errors.ErrForbidden)
 		return
@@ -148,7 +148,7 @@ func (c *ApprovalController) AddApproval(w http.ResponseWriter, r *http.Request)
 	}
 
 	// Check if user has permission to create approvals.
-	if hasPermission := identity.Permissions.Contains(constants.PermissionCreateApproval); !hasPermission {
+	if !identity.Can(constants.PermissionCreateApproval) {
 		c.logger.WithContext(r.Context()).Error("user not authorized to add approval")
 		response.Error(w, errors.ErrForbidden)
 		return
@@ -178,10 +178,7 @@ func (c *ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Reque
 	}
 
 	// Check if user has permission to action approvals.
-	if hasPermission := identity.Permissions.ContainsAll(constants.Permissions{
-		constants.PermissionReadApproval,
-		constants.PermissionActionApproval,
-	}); !hasPermission {
+	if !identity.CanAll(constants.PermissionReadApproval, constants.PermissionActionApproval) {
 		c.logger.WithContext(r.Context()).Error("user not authorized to action approval")
 		response.Error(w, errors.ErrForbidden)
 		return

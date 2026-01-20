@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"net/http"
-	"time"
 
 	"github.com/shunwuse/go-hris/internal/dtos"
 	"github.com/shunwuse/go-hris/internal/errors"
@@ -105,7 +104,7 @@ func (c *AuthController) Logout(w http.ResponseWriter, r *http.Request) {
 	// Blacklist current access token.
 	claims, ok := request.GetClaims(r)
 	if ok && claims.JTI != "" {
-		expiration := time.Until(claims.ExpiresAt)
+		expiration := claims.ExpiresIn()
 		if expiration > 0 {
 			if err := c.authService.BlacklistToken(r.Context(), claims.JTI, expiration); err != nil {
 				c.logger.WithContext(r.Context()).Error("failed to blacklist token", zap.Error(err))
@@ -133,7 +132,7 @@ func (c *AuthController) LogoutAll(w http.ResponseWriter, r *http.Request) {
 
 	// Blacklist current access token.
 	if claims.JTI != "" {
-		expiration := time.Until(claims.ExpiresAt)
+		expiration := claims.ExpiresIn()
 		if expiration > 0 {
 			if err := c.authService.BlacklistToken(r.Context(), claims.JTI, expiration); err != nil {
 				c.logger.WithContext(r.Context()).Error("failed to blacklist token", zap.Error(err))
