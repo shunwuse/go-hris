@@ -54,6 +54,12 @@ func (c *ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request
 	}
 	query.Normalize()
 
+	if err := query.Validate(); err != nil {
+		c.logger.WithContext(r.Context()).Error("failed to validate query params", zap.Error(err))
+		response.Error(w, err)
+		return
+	}
+
 	filter := domains.ApprovalFilter{
 		Status: query.Status,
 	}
@@ -106,6 +112,12 @@ func (c *ApprovalController) GetApproval(w http.ResponseWriter, r *http.Request)
 	if err := request.DecodePath(r, &pathParams); err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to decode path params", zap.Error(err))
 		response.Error(w, errors.ErrInvalidInput)
+		return
+	}
+
+	if err := pathParams.Validate(); err != nil {
+		c.logger.WithContext(r.Context()).Error("failed to validate path params", zap.Error(err))
+		response.Error(w, err)
 		return
 	}
 
@@ -190,10 +202,22 @@ func (c *ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	if err := pathParams.Validate(); err != nil {
+		c.logger.WithContext(r.Context()).Error("failed to validate path params", zap.Error(err))
+		response.Error(w, err)
+		return
+	}
+
 	var actionRequest dtos.ApprovalAction
 	if err := request.DecodeJSON(r, &actionRequest); err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to decode action request", zap.Error(err))
 		response.Error(w, errors.ErrInvalidInput)
+		return
+	}
+
+	if err := actionRequest.Validate(); err != nil {
+		c.logger.WithContext(r.Context()).Error("failed to validate action request", zap.Error(err))
+		response.Error(w, err)
 		return
 	}
 

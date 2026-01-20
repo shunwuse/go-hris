@@ -37,6 +37,12 @@ func (c *AuthController) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := userLogin.Validate(); err != nil {
+		c.logger.WithContext(r.Context()).Error("failed to validate login request", zap.Error(err))
+		response.Error(w, err)
+		return
+	}
+
 	result, err := c.authService.Login(r.Context(), userLogin.Username, userLogin.Password)
 	if err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to login", zap.String("username", userLogin.Username), zap.Error(err))
@@ -63,9 +69,9 @@ func (c *AuthController) RefreshToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if req.RefreshToken == "" {
-		c.logger.WithContext(r.Context()).Error("refresh token is required")
-		response.Error(w, errors.ErrInvalidInput)
+	if err := req.Validate(); err != nil {
+		c.logger.WithContext(r.Context()).Error("failed to validate refresh request", zap.Error(err))
+		response.Error(w, err)
 		return
 	}
 
