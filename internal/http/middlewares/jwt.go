@@ -58,7 +58,7 @@ func (m *JWTMiddleware) Handler() func(http.Handler) http.Handler {
 				return
 			}
 
-			ctx := context.WithValue(r.Context(), constants.JWTClaims, claims.TokenPayload)
+			ctx := context.WithValue(r.Context(), constants.JWTClaims, claims)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

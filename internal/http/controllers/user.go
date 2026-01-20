@@ -31,16 +31,15 @@ func NewUserController(
 }
 
 func (c *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
-	token, ok := request.GetClaims(r)
+	identity, ok := request.GetIdentity(r)
 	if !ok {
-		c.logger.WithContext(r.Context()).Error("failed to get claims from context")
+		c.logger.WithContext(r.Context()).Error("failed to get identity from context")
 		response.Error(w, errors.ErrUnauthorized)
 		return
 	}
-	permissions := token.Permissions
 
 	// Check if user has permission to read users.
-	if hasPermission := permissions.Contains(constants.PermissionReadUser); !hasPermission {
+	if hasPermission := identity.Permissions.Contains(constants.PermissionReadUser); !hasPermission {
 		c.logger.WithContext(r.Context()).Error("user not authorized to get users")
 		response.Error(w, errors.ErrForbidden)
 		return
@@ -93,16 +92,15 @@ func (c *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *UserController) GetUser(w http.ResponseWriter, r *http.Request) {
-	token, ok := request.GetClaims(r)
+	identity, ok := request.GetIdentity(r)
 	if !ok {
-		c.logger.WithContext(r.Context()).Error("failed to get claims from context")
+		c.logger.WithContext(r.Context()).Error("failed to get identity from context")
 		response.Error(w, errors.ErrUnauthorized)
 		return
 	}
-	permissions := token.Permissions
 
 	// Check if user has permission to read users.
-	if hasPermission := permissions.Contains(constants.PermissionReadUser); !hasPermission {
+	if hasPermission := identity.Permissions.Contains(constants.PermissionReadUser); !hasPermission {
 		c.logger.WithContext(r.Context()).Error("user not authorized to get user")
 		response.Error(w, errors.ErrForbidden)
 		return
@@ -140,16 +138,15 @@ func (c *UserController) GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
-	token, ok := request.GetClaims(r)
+	identity, ok := request.GetIdentity(r)
 	if !ok {
-		c.logger.WithContext(r.Context()).Error("failed to get claims from context")
+		c.logger.WithContext(r.Context()).Error("failed to get identity from context")
 		response.Error(w, errors.ErrUnauthorized)
 		return
 	}
-	permissions := token.Permissions
 
 	// Check if user has permission to create users.
-	if hasPermission := permissions.Contains(constants.PermissionCreateUser); !hasPermission {
+	if hasPermission := identity.Permissions.Contains(constants.PermissionCreateUser); !hasPermission {
 		c.logger.WithContext(r.Context()).Error("user not authorized to create user")
 		response.Error(w, errors.ErrForbidden)
 		return
@@ -185,16 +182,15 @@ func (c *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
-	token, ok := request.GetClaims(r)
+	identity, ok := request.GetIdentity(r)
 	if !ok {
-		c.logger.WithContext(r.Context()).Error("failed to get claims from context")
+		c.logger.WithContext(r.Context()).Error("failed to get identity from context")
 		response.Error(w, errors.ErrUnauthorized)
 		return
 	}
-	permissions := token.Permissions
 
 	// Check if user has permission to update users.
-	if hasPermission := permissions.Contains(constants.PermissionUpdateUser); !hasPermission {
+	if hasPermission := identity.Permissions.Contains(constants.PermissionUpdateUser); !hasPermission {
 		c.logger.WithContext(r.Context()).Error("user not authorized to update user")
 		response.Error(w, errors.ErrForbidden)
 		return

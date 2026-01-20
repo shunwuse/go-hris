@@ -30,16 +30,15 @@ func NewApprovalController(
 }
 
 func (c *ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request) {
-	token, ok := request.GetClaims(r)
+	identity, ok := request.GetIdentity(r)
 	if !ok {
-		c.logger.WithContext(r.Context()).Error("failed to get claims from context")
+		c.logger.WithContext(r.Context()).Error("failed to get identity from context")
 		response.Error(w, errors.ErrUnauthorized)
 		return
 	}
-	permissions := token.Permissions
 
 	// Check if user has permission to read approvals.
-	if hasPermission := permissions.Contains(constants.PermissionReadApproval); !hasPermission {
+	if hasPermission := identity.Permissions.Contains(constants.PermissionReadApproval); !hasPermission {
 		c.logger.WithContext(r.Context()).Error("user not authorized to get approvals")
 		response.Error(w, errors.ErrForbidden)
 		return
@@ -93,16 +92,15 @@ func (c *ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request
 }
 
 func (c *ApprovalController) GetApproval(w http.ResponseWriter, r *http.Request) {
-	token, ok := request.GetClaims(r)
+	identity, ok := request.GetIdentity(r)
 	if !ok {
-		c.logger.WithContext(r.Context()).Error("failed to get claims from context")
+		c.logger.WithContext(r.Context()).Error("failed to get identity from context")
 		response.Error(w, errors.ErrUnauthorized)
 		return
 	}
-	permissions := token.Permissions
 
 	// Check if user has permission to read approvals.
-	if hasPermission := permissions.Contains(constants.PermissionReadApproval); !hasPermission {
+	if hasPermission := identity.Permissions.Contains(constants.PermissionReadApproval); !hasPermission {
 		c.logger.WithContext(r.Context()).Error("user not authorized to get approval")
 		response.Error(w, errors.ErrForbidden)
 		return
@@ -142,25 +140,22 @@ func (c *ApprovalController) GetApproval(w http.ResponseWriter, r *http.Request)
 }
 
 func (c *ApprovalController) AddApproval(w http.ResponseWriter, r *http.Request) {
-	token, ok := request.GetClaims(r)
+	identity, ok := request.GetIdentity(r)
 	if !ok {
-		c.logger.WithContext(r.Context()).Error("failed to get claims from context")
+		c.logger.WithContext(r.Context()).Error("failed to get identity from context")
 		response.Error(w, errors.ErrUnauthorized)
 		return
 	}
-	permissions := token.Permissions
 
 	// Check if user has permission to create approvals.
-	if hasPermission := permissions.Contains(constants.PermissionCreateApproval); !hasPermission {
+	if hasPermission := identity.Permissions.Contains(constants.PermissionCreateApproval); !hasPermission {
 		c.logger.WithContext(r.Context()).Error("user not authorized to add approval")
 		response.Error(w, errors.ErrForbidden)
 		return
 	}
 
-	userID := token.UserID
-
 	approval := domains.ApprovalCreate{
-		CreatorID: userID,
+		CreatorID: identity.UserID,
 		Status:    constants.ApprovalStatusPending,
 	}
 
@@ -175,16 +170,15 @@ func (c *ApprovalController) AddApproval(w http.ResponseWriter, r *http.Request)
 }
 
 func (c *ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Request) {
-	token, ok := request.GetClaims(r)
+	identity, ok := request.GetIdentity(r)
 	if !ok {
-		c.logger.WithContext(r.Context()).Error("failed to get claims from context")
+		c.logger.WithContext(r.Context()).Error("failed to get identity from context")
 		response.Error(w, errors.ErrUnauthorized)
 		return
 	}
-	permissions := token.Permissions
 
 	// Check if user has permission to action approvals.
-	if hasPermission := permissions.ContainsAll(constants.Permissions{
+	if hasPermission := identity.Permissions.ContainsAll(constants.Permissions{
 		constants.PermissionReadApproval,
 		constants.PermissionActionApproval,
 	}); !hasPermission {
@@ -192,8 +186,6 @@ func (c *ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Reque
 		response.Error(w, errors.ErrForbidden)
 		return
 	}
-
-	userID := token.UserID
 
 	var pathParams dtos.ApprovalPathParams
 	if err := request.DecodePath(r, &pathParams); err != nil {
@@ -221,7 +213,7 @@ func (c *ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	err := c.approvalService.ActionApproval(r.Context(), pathParams.ID, actionRequest.Action, userID)
+	err := c.approvalService.ActionApproval(r.Context(), pathParams.ID, actionRequest.Action, identity.UserID)
 	if err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to action approval", zap.Error(err))
 		response.Error(w, err)
