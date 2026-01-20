@@ -201,30 +201,30 @@ func (s *authService) ValidateAccessToken(ctx context.Context, tokenString strin
 	// Parse Subject (User ID) from string back to uint.
 	if sub := token.Subject(); sub != "" {
 		if id, err := strconv.ParseUint(sub, 10, 64); err == nil {
-			claims.UserID = uint(id)
+			claims.Identity.UserID = uint(id)
 		}
 	}
 
 	// Fetch user data.
-	if claims.UserID != 0 {
-		user, err := s.userService.GetUserByID(ctx, claims.UserID)
+	if claims.Identity.UserID != 0 {
+		user, err := s.userService.GetUserByID(ctx, claims.Identity.UserID)
 		if err != nil {
-			s.logger.WithContext(ctx).Error("failed to get user data", zap.Uint("userID", claims.UserID), zap.Error(err))
+			s.logger.WithContext(ctx).Error("failed to get user data", zap.Uint("userID", claims.Identity.UserID), zap.Error(err))
 			return nil, errors.ErrInternalError
 		}
 
 		// Set user info.
-		claims.Username = user.Username
-		claims.CreatedAt = user.CreatedAt
+		claims.Identity.Username = user.Username
+		claims.Identity.CreatedAt = user.CreatedAt
 
 		// Set roles.
-		claims.Roles = make([]constants.Role, len(user.Edges.Roles))
+		claims.Identity.Roles = make([]constants.Role, len(user.Edges.Roles))
 		for idx, role := range user.Edges.Roles {
-			claims.Roles[idx] = role.Name
+			claims.Identity.Roles[idx] = role.Name
 		}
 
 		// Set permissions.
-		claims.Permissions = user.Permissions
+		claims.Identity.Permissions = user.Permissions
 	}
 
 	return claims, nil

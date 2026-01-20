@@ -103,11 +103,11 @@ func (c *AuthController) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Blacklist current access token.
-	payload, ok := request.GetClaims(r)
-	if ok && payload.JTI != "" {
-		expiration := time.Until(payload.ExpiresAt)
+	claims, ok := request.GetClaims(r)
+	if ok && claims.JTI != "" {
+		expiration := time.Until(claims.ExpiresAt)
 		if expiration > 0 {
-			if err := c.authService.BlacklistToken(r.Context(), payload.JTI, expiration); err != nil {
+			if err := c.authService.BlacklistToken(r.Context(), claims.JTI, expiration); err != nil {
 				c.logger.WithContext(r.Context()).Error("failed to blacklist token", zap.Error(err))
 			}
 		}
@@ -117,8 +117,7 @@ func (c *AuthController) Logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *AuthController) LogoutAll(w http.ResponseWriter, r *http.Request) {
-	// Get user ID from JWT claims.
-	token, ok := request.GetClaims(r)
+	claims, ok := request.GetClaims(r)
 	if !ok {
 		c.logger.WithContext(r.Context()).Error("failed to get claims from context")
 		response.Error(w, errors.ErrUnauthorized)
@@ -126,17 +125,17 @@ func (c *AuthController) LogoutAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Revoke all refresh tokens for this user.
-	if err := c.authService.RevokeAllUserTokens(r.Context(), token.UserID); err != nil {
-		c.logger.WithContext(r.Context()).Error("failed to revoke all tokens", zap.Uint("user_id", token.UserID), zap.Error(err))
+	if err := c.authService.RevokeAllUserTokens(r.Context(), claims.Identity.UserID); err != nil {
+		c.logger.WithContext(r.Context()).Error("failed to revoke all tokens", zap.Uint("user_id", claims.Identity.UserID), zap.Error(err))
 		response.Error(w, err)
 		return
 	}
 
 	// Blacklist current access token.
-	if token.JTI != "" {
-		expiration := time.Until(token.ExpiresAt)
+	if claims.JTI != "" {
+		expiration := time.Until(claims.ExpiresAt)
 		if expiration > 0 {
-			if err := c.authService.BlacklistToken(r.Context(), token.JTI, expiration); err != nil {
+			if err := c.authService.BlacklistToken(r.Context(), claims.JTI, expiration); err != nil {
 				c.logger.WithContext(r.Context()).Error("failed to blacklist token", zap.Error(err))
 			}
 		}

@@ -7,8 +7,6 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/gorilla/schema"
-	"github.com/shunwuse/go-hris/internal/constants"
-	"github.com/shunwuse/go-hris/internal/domains"
 )
 
 var decoder = schema.NewDecoder()
@@ -70,16 +68,4 @@ func DecodeJSON(r *http.Request, dst any) error {
 	}()
 
 	return json.NewDecoder(r.Body).Decode(dst)
-}
-
-// GetClaims extracts the TokenPayload from the request context.
-// It returns the payload and true if found and valid, otherwise zero-value and false.
-func GetClaims(r *http.Request) (domains.TokenPayload, bool) {
-	val := r.Context().Value(constants.JWTClaims)
-	if val == nil {
-		return domains.TokenPayload{}, false
-	}
-
-	claims, ok := val.(domains.TokenPayload)
-	return claims, ok
 }
