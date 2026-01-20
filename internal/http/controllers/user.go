@@ -55,6 +55,12 @@ func (c *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
 	}
 	query.Normalize()
 
+	if err := query.Validate(); err != nil {
+		c.logger.WithContext(r.Context()).Error("failed to validate query params", zap.Error(err))
+		response.Error(w, err)
+		return
+	}
+
 	filter := domains.UserFilter{
 		Name: query.Name,
 		Role: query.Role,
@@ -109,6 +115,12 @@ func (c *UserController) GetUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := pathParams.Validate(); err != nil {
+		c.logger.WithContext(r.Context()).Error("failed to validate path params", zap.Error(err))
+		response.Error(w, err)
+		return
+	}
+
 	user, err := c.userService.GetUserByID(r.Context(), pathParams.ID)
 	if err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to get user", zap.Error(err), zap.Uint("user_id", pathParams.ID))
@@ -147,6 +159,12 @@ func (c *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 	if err := request.DecodeJSON(r, &userCreate); err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to decode user request", zap.Error(err))
 		response.Error(w, errors.ErrInvalidInput)
+		return
+	}
+
+	if err := userCreate.Validate(); err != nil {
+		c.logger.WithContext(r.Context()).Error("failed to validate user request", zap.Error(err))
+		response.Error(w, err)
 		return
 	}
 
@@ -189,10 +207,22 @@ func (c *UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err := pathParams.Validate(); err != nil {
+		c.logger.WithContext(r.Context()).Error("failed to validate path params", zap.Error(err))
+		response.Error(w, err)
+		return
+	}
+
 	var userUpdate dtos.UserUpdate
 	if err := request.DecodeJSON(r, &userUpdate); err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to decode user request", zap.Error(err))
 		response.Error(w, errors.ErrInvalidInput)
+		return
+	}
+
+	if err := userUpdate.Validate(); err != nil {
+		c.logger.WithContext(r.Context()).Error("failed to validate user request", zap.Error(err))
+		response.Error(w, err)
 		return
 	}
 
