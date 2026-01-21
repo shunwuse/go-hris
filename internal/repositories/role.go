@@ -8,6 +8,7 @@ import (
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/ports/repository"
 	"go.uber.org/zap"
 )
 
@@ -21,7 +22,7 @@ func NewRoleRepository(
 	logger *infra.Logger,
 	db *infra.Database,
 	cache *infra.Cache,
-) *RoleRepository {
+) repository.RoleRepository {
 	return &RoleRepository{
 		logger:   logger,
 		Database: db,

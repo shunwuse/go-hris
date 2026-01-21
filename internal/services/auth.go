@@ -18,8 +18,8 @@ import (
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/ports/repository"
 	"github.com/shunwuse/go-hris/internal/ports/service"
-	"github.com/shunwuse/go-hris/internal/repositories"
 	"github.com/shunwuse/go-hris/internal/utils"
 	"go.uber.org/zap"
 )
@@ -29,7 +29,7 @@ type authService struct {
 	cache      *infra.Cache
 	transactor infra.Transactor
 
-	refreshTokenRepository *repositories.AuthRepository
+	refreshTokenRepository repository.AuthRepository
 
 	userService service.UserService
 
@@ -44,7 +44,7 @@ func NewAuthService(
 	cache *infra.Cache,
 	transactor infra.Transactor,
 	userService service.UserService,
-	refreshTokenRepository *repositories.AuthRepository,
+	refreshTokenRepository repository.AuthRepository,
 ) service.AuthService {
 	key, err := jwk.FromRaw([]byte(config.JWTSecret))
 	if err != nil {
