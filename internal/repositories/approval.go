@@ -10,6 +10,7 @@ import (
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/ports/repository"
 	"github.com/shunwuse/go-hris/internal/utils"
 	"go.uber.org/zap"
 )
@@ -22,7 +23,7 @@ type ApprovalRepository struct {
 func NewApprovalRepository(
 	logger *infra.Logger,
 	db *infra.Database,
-) *ApprovalRepository {
+) repository.ApprovalRepository {
 	return &ApprovalRepository{
 		logger:   logger,
 		Database: db,

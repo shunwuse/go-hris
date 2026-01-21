@@ -7,18 +7,18 @@ import (
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/ports/repository"
 	"github.com/shunwuse/go-hris/internal/ports/service"
-	"github.com/shunwuse/go-hris/internal/repositories"
 )
 
 type monitorService struct {
 	logger            *infra.Logger
-	monitorRepository *repositories.MonitorRepository
+	monitorRepository repository.MonitorRepository
 }
 
 func NewMonitorService(
 	logger *infra.Logger,
-	monitorRepository *repositories.MonitorRepository,
+	monitorRepository repository.MonitorRepository,
 ) service.MonitorService {
 	return &monitorService{
 		logger:            logger,

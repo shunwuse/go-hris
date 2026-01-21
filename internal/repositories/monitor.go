@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/ports/repository"
 	"go.uber.org/zap"
 )
 
@@ -17,7 +18,7 @@ func NewMonitorRepository(
 	logger *infra.Logger,
 	db *infra.Database,
 	cache *infra.Cache,
-) *MonitorRepository {
+) repository.MonitorRepository {
 	return &MonitorRepository{
 		logger:   logger,
 		Database: db,

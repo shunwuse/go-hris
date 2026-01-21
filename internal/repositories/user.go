@@ -11,6 +11,7 @@ import (
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/ports/repository"
 	"go.uber.org/zap"
 )
 
@@ -24,7 +25,7 @@ func NewUserRepository(
 	logger *infra.Logger,
 	db *infra.Database,
 	cache *infra.Cache,
-) *UserRepository {
+) repository.UserRepository {
 	return &UserRepository{
 		logger:   logger,
 		Database: db,

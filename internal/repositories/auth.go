@@ -8,6 +8,7 @@ import (
 	"github.com/shunwuse/go-hris/ent/entgen/refreshtoken"
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/ports/repository"
 	"go.uber.org/zap"
 )
 
@@ -19,7 +20,7 @@ type AuthRepository struct {
 func NewAuthRepository(
 	logger *infra.Logger,
 	db *infra.Database,
-) *AuthRepository {
+) repository.AuthRepository {
 	return &AuthRepository{
 		logger:   logger,
 		Database: db,
