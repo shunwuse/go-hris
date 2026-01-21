@@ -8,12 +8,14 @@ import (
 	"github.com/alicebob/miniredis/v2"
 	"github.com/redis/go-redis/v9"
 	"go.uber.org/zap"
+	"golang.org/x/sync/singleflight"
 )
 
 type Cache struct {
 	Client *redis.Client
 
 	miniRedis *miniredis.Miniredis
+	sf        singleflight.Group
 }
 
 func NewCache(config Config, logger *Logger) *Cache {
@@ -53,6 +55,7 @@ func NewCache(config Config, logger *Logger) *Cache {
 	return &Cache{
 		Client:    rdb,
 		miniRedis: miniRedis,
+		sf:        singleflight.Group{},
 	}
 }
 
@@ -79,16 +82,33 @@ func CacheGetOrSet[T any](ctx context.Context, c *Cache, key string, ttl time.Du
 		}
 	}
 
-	// 2. Cache miss, call fetcher.
-	result, err := fetcher()
+	// 2. Cache miss, call fetcher with singleflight.
+	v, err, _ := c.sf.Do(key, func() (any, error) {
+		val, err := c.Client.Get(ctx, key).Result() // Double check cache
+		if err == nil {
+			var result T
+			if err := json.Unmarshal([]byte(val), &result); err == nil {
+				return result, nil
+			}
+		}
+
+		result, err := fetcher()
+		if err != nil {
+			return nil, err
+		}
+
+		// 3. Save to cache.
+		if data, err := json.Marshal(result); err == nil {
+			c.Client.Set(ctx, key, data, ttl)
+		}
+
+		return result, nil
+	})
+
 	if err != nil {
-		return result, err
+		var zero T
+		return zero, err
 	}
 
-	// 3. Save to cache.
-	if data, err := json.Marshal(result); err == nil {
-		c.Client.Set(ctx, key, data, ttl)
-	}
-
-	return result, nil
+	return v.(T), nil
 }
