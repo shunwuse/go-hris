@@ -2,9 +2,11 @@ package infra
 
 import (
 	"context"
-	"strings"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestRoutineGroup_RunAndWait(t *testing.T) {
@@ -22,15 +24,11 @@ func TestRoutineGroup_RunAndWait(t *testing.T) {
 	defer cancel()
 
 	err := g.Wait(waitCtx)
-	if err != nil {
-		t.Errorf("expected no error, got %v", err)
-	}
+	require.NoError(t, err)
 
 	select {
 	case finished := <-taskFinished:
-		if !finished {
-			t.Error("expected task to finish successfully")
-		}
+		assert.True(t, finished)
 	case <-time.After(500 * time.Millisecond):
 		t.Error("task did not complete in time")
 	}
@@ -49,9 +47,7 @@ func TestRoutineGroup_PanicRecovery(t *testing.T) {
 	defer cancel()
 
 	err := g.Wait(waitCtx)
-	if err != nil {
-		t.Errorf("expected no error after panic recovery, got %v", err)
-	}
+	require.NoError(t, err)
 }
 
 func TestRoutineGroup_Timeout(t *testing.T) {
@@ -68,10 +64,6 @@ func TestRoutineGroup_Timeout(t *testing.T) {
 	defer cancel()
 
 	err := g.Wait(waitCtx)
-	if err == nil {
-		t.Error("expected timeout error, got nil")
-	}
-	if !strings.Contains(err.Error(), "context deadline exceeded") {
-		t.Errorf("expected deadline exceeded error, got %v", err)
-	}
+	require.Error(t, err)
+	assert.Contains(t, err.Error(), "context deadline exceeded")
 }
