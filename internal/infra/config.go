@@ -4,6 +4,7 @@ import (
 	"log"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/knadh/koanf/parsers/dotenv"
 	"github.com/knadh/koanf/providers/env"
@@ -33,16 +34,43 @@ type Config struct {
 }
 
 var (
-	globalConfig   *Config
+	globalConfig   atomic.Pointer[Config]
 	loadConfigOnce sync.Once
+
+	configReloadMu    sync.Mutex
+	configReloadHooks []func(*Config)
 )
 
-// GetConfig returns a copy of the config
+// GetConfig returns the current configuration.
 func GetConfig() Config {
 	loadConfigOnce.Do(func() {
-		globalConfig = loadConfig()
+		globalConfig.Store(loadConfig())
 	})
-	return *globalConfig
+
+	return *globalConfig.Load()
+}
+
+// ReloadConfig reloads the configuration from all sources and triggers registered hooks.
+func ReloadConfig() error {
+	configReloadMu.Lock()
+	defer configReloadMu.Unlock()
+
+	newConfig := loadConfig()
+	globalConfig.Store(newConfig)
+
+	// Trigger hooks
+	for _, hook := range configReloadHooks {
+		hook(newConfig)
+	}
+
+	return nil
+}
+
+// OnConfigChange registers a hook to be called when the configuration is reloaded.
+func OnConfigChange(hook func(*Config)) {
+	configReloadMu.Lock()
+	defer configReloadMu.Unlock()
+	configReloadHooks = append(configReloadHooks, hook)
 }
 
 func loadConfig() *Config {
