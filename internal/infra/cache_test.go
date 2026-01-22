@@ -4,6 +4,9 @@ import (
 	"context"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestCacheGetOrSet(t *testing.T) {
@@ -30,27 +33,15 @@ func TestCacheGetOrSet(t *testing.T) {
 
 		// 1. First call: Cache Miss
 		got, err := CacheGetOrSet(ctx, cache, key, time.Minute, fetcher)
-		if err != nil {
-			t.Fatalf("first call failed: %v", err)
-		}
-		if fetcherCalled != 1 {
-			t.Errorf("expected fetcher to be called once, got %d", fetcherCalled)
-		}
-		if got != expected {
-			t.Errorf("expected %+v, got %+v", expected, got)
-		}
+		require.NoError(t, err)
+		assert.Equal(t, 1, fetcherCalled)
+		assert.Equal(t, expected, got)
 
 		// 2. Second call: Cache Hit
 		got, err = CacheGetOrSet(ctx, cache, key, time.Minute, fetcher)
-		if err != nil {
-			t.Fatalf("second call failed: %v", err)
-		}
-		if fetcherCalled != 1 {
-			t.Errorf("expected fetcher to still be called only once, got %d", fetcherCalled)
-		}
-		if got != expected {
-			t.Errorf("expected %+v, got %+v", expected, got)
-		}
+		require.NoError(t, err)
+		assert.Equal(t, 1, fetcherCalled)
+		assert.Equal(t, expected, got)
 	})
 
 	t.Run("Expiration", func(t *testing.T) {
@@ -71,27 +62,17 @@ func TestCacheGetOrSet(t *testing.T) {
 
 		// 3. Call again: should be a Cache Miss
 		_, err := CacheGetOrSet(ctx, cache, key, ttl, fetcher)
-		if err != nil {
-			t.Fatalf("call after expiration failed: %v", err)
-		}
-		if fetcherCalled != 2 {
-			t.Errorf("expected fetcher to be called twice due to expiration, got %d", fetcherCalled)
-		}
+		require.NoError(t, err)
+		assert.Equal(t, 2, fetcherCalled)
 	})
 
 	t.Run("FetcherError", func(t *testing.T) {
 		key := "user:error"
-		expectedErr := "database down"
 		fetcher := func() (TestUser, error) {
 			return TestUser{}, context.DeadlineExceeded // Using a standard error for comparison
 		}
 
 		_, err := CacheGetOrSet(ctx, cache, key, time.Minute, fetcher)
-		if err == nil {
-			t.Fatal("expected error from fetcher, got nil")
-		}
-		if err != context.DeadlineExceeded {
-			t.Errorf("expected error %v, got %v", expectedErr, err)
-		}
+		require.ErrorIs(t, err, context.DeadlineExceeded)
 	})
 }

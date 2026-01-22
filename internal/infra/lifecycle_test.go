@@ -4,6 +4,9 @@ import (
 	"context"
 	"errors"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestLifecycle_Start(t *testing.T) {
@@ -24,13 +27,9 @@ func TestLifecycle_Start(t *testing.T) {
 	})
 
 	err := lc.Start(context.Background())
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
-	}
+	require.NoError(t, err)
 
-	if len(startOrder) != 2 || startOrder[0] != 1 || startOrder[1] != 2 {
-		t.Errorf("incorrect start order, expected [1, 2], got %v", startOrder)
-	}
+	assert.Equal(t, []int{1, 2}, startOrder)
 }
 
 func TestLifecycle_StopLIFO(t *testing.T) {
@@ -51,13 +50,9 @@ func TestLifecycle_StopLIFO(t *testing.T) {
 	})
 
 	err := lc.Stop(context.Background())
-	if err != nil {
-		t.Fatalf("expected no error, got %v", err)
-	}
+	require.NoError(t, err)
 
-	if len(stopOrder) != 2 || stopOrder[0] != 2 || stopOrder[1] != 1 {
-		t.Errorf("incorrect stop order (LIFO), expected [2, 1], got %v", stopOrder)
-	}
+	assert.Equal(t, []int{2, 1}, stopOrder)
 }
 
 func TestLifecycle_StartError(t *testing.T) {
@@ -69,9 +64,7 @@ func TestLifecycle_StartError(t *testing.T) {
 	})
 
 	err := lc.Start(context.Background())
-	if err == nil || err.Error() != "start failed" {
-		t.Errorf("expected 'start failed' error, got %v", err)
-	}
+	assert.EqualError(t, err, "start failed")
 }
 
 func TestLifecycle_StopMultiError(t *testing.T) {
@@ -88,21 +81,14 @@ func TestLifecycle_StopMultiError(t *testing.T) {
 	})
 
 	err := lc.Stop(context.Background())
-	if err == nil {
-		t.Fatal("expected multi-error, got nil")
-	}
+	require.Error(t, err)
 
 	errMsg := err.Error()
-	if !hasError(errMsg, "stop 1 failed") || !hasError(errMsg, "stop 2 failed") {
-		t.Errorf("combined error should contains both failures, got: %s", errMsg)
-	}
+	assert.Contains(t, errMsg, "stop 1 failed")
+	assert.Contains(t, errMsg, "stop 2 failed")
 }
 
-func hasError(msg, target string) bool {
-	return errors.New(msg).Error() == target || (errors.Unwrap(errors.New(msg)) != nil && hasError(errors.Unwrap(errors.New(msg)).Error(), target)) || (len(msg) >= len(target) && (msg[:len(target)] == target || msg[len(msg)-len(target):] == target))
-}
-
-// Simplified error check for Join
+// Simple test for ErrorJoin consistency
 func TestLifecycle_ErrorJoin(t *testing.T) {
 	lc := NewLifecycle()
 	err1 := errors.New("error 1")
@@ -112,15 +98,8 @@ func TestLifecycle_ErrorJoin(t *testing.T) {
 	lc.Append(Hook{OnStop: func(ctx context.Context) error { return err2 }})
 
 	err := lc.Stop(context.Background())
-	if err == nil {
-		t.Fatal("expected error")
-	}
+	require.Error(t, err)
 
-	// errors.Join preserves the individual errors
-	if !errors.Is(err, err1) {
-		t.Error("error 1 not found in joined error")
-	}
-	if !errors.Is(err, err2) {
-		t.Error("error 2 not found in joined error")
-	}
+	assert.ErrorIs(t, err, err1)
+	assert.ErrorIs(t, err, err2)
 }
