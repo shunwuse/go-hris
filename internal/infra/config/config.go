@@ -27,6 +27,8 @@ type Config struct {
 	JWTExpireMinutes        int    `koanf:"jwt_expire_minutes"`
 	JWTRefreshExpireMinutes int    `koanf:"jwt_refresh_expire_minutes"`
 
+	IdempotencyExpireMinutes int `koanf:"idempotency_expire_minutes"`
+
 	UseMiniredis  bool   `koanf:"use_miniredis"`
 	RedisAddr     string `koanf:"redis_addr"`
 	RedisPassword string `koanf:"redis_password"`
