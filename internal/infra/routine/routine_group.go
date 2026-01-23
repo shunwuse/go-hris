@@ -19,8 +19,8 @@ type RoutineGroup struct {
 	wg     sync.WaitGroup
 }
 
-// NewRoutineGroup creates a new RoutineGroup.
-func NewRoutineGroup(log *logger.Logger) *RoutineGroup {
+// New creates a new RoutineGroup.
+func New(log *logger.Logger) *RoutineGroup {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &RoutineGroup{
 		logger: log,

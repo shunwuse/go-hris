@@ -9,13 +9,13 @@ var (
 	configReloadHooks []func(*Config)
 )
 
-// ReloadConfig reloads the configuration from all sources and triggers registered hooks.
-func ReloadConfig() error {
+// Reload reloads the configuration from all sources and triggers registered hooks.
+func Reload() error {
 	configReloadMu.Lock()
 	defer configReloadMu.Unlock()
 
-	newConfig := loadConfig()
-	globalConfig.Store(newConfig)
+	newConfig := load()
+	instance.Store(newConfig)
 
 	// Trigger hooks
 	for _, hook := range configReloadHooks {
@@ -25,8 +25,8 @@ func ReloadConfig() error {
 	return nil
 }
 
-// OnConfigChange registers a hook to be called when the configuration is reloaded.
-func OnConfigChange(hook func(*Config)) {
+// OnChange registers a hook to be called when the configuration is reloaded.
+func OnChange(hook func(*Config)) {
 	configReloadMu.Lock()
 	defer configReloadMu.Unlock()
 	configReloadHooks = append(configReloadHooks, hook)

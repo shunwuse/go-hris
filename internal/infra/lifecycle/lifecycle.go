@@ -19,8 +19,8 @@ type Lifecycle struct {
 	hooks []Hook
 }
 
-// NewLifecycle creates a new Lifecycle manager.
-func NewLifecycle() *Lifecycle {
+// New creates a new Lifecycle manager.
+func New() *Lifecycle {
 	return &Lifecycle{
 		hooks: make([]Hook, 0),
 	}

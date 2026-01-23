@@ -9,7 +9,7 @@ type RequestHandler struct {
 	Router chi.Router
 }
 
-func NewRequestHandler() *RequestHandler {
+func New() *RequestHandler {
 	router := chi.NewRouter()
 
 	return &RequestHandler{

@@ -34,20 +34,20 @@ type Config struct {
 }
 
 var (
-	globalConfig   atomic.Pointer[Config]
-	loadConfigOnce sync.Once
+	instance atomic.Pointer[Config]
+	loadOnce sync.Once
 )
 
-// GetConfig returns the current configuration.
-func GetConfig() Config {
-	loadConfigOnce.Do(func() {
-		globalConfig.Store(loadConfig())
+// Get returns the current configuration.
+func Get() Config {
+	loadOnce.Do(func() {
+		instance.Store(load())
 	})
 
-	return *globalConfig.Load()
+	return *instance.Load()
 }
 
-func loadConfig() *Config {
+func load() *Config {
 	config := &Config{}
 
 	k := koanf.New(".")

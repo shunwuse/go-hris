@@ -11,8 +11,8 @@ import (
 )
 
 func TestRoutineGroup_RunAndWait(t *testing.T) {
-	log := logger.GetLogger()
-	g := NewRoutineGroup(log)
+	log := logger.L()
+	g := New(log)
 
 	taskFinished := make(chan bool, 1)
 
@@ -36,8 +36,8 @@ func TestRoutineGroup_RunAndWait(t *testing.T) {
 }
 
 func TestRoutineGroup_PanicRecovery(t *testing.T) {
-	log := logger.GetLogger()
-	g := NewRoutineGroup(log)
+	log := logger.L()
+	g := New(log)
 
 	// This task will panic; should be recovered and not crash the test
 	g.Run("panic_task", func(ctx context.Context) {
@@ -52,8 +52,8 @@ func TestRoutineGroup_PanicRecovery(t *testing.T) {
 }
 
 func TestRoutineGroup_Timeout(t *testing.T) {
-	log := logger.GetLogger()
-	g := NewRoutineGroup(log)
+	log := logger.L()
+	g := New(log)
 
 	// Hanging task
 	g.Run("hanging_task", func(ctx context.Context) {

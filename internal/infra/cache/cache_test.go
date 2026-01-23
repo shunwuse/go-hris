@@ -11,10 +11,10 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestCacheGetOrSet(t *testing.T) {
-	log := logger.GetLogger()
+func TestFetch(t *testing.T) {
+	log := logger.L()
 	cfg := config.Config{UseMiniredis: true}
-	cache := NewCache(cfg, log)
+	cache := New(cfg, log)
 	defer func() { _ = cache.Close() }()
 
 	ctx := context.Background()
@@ -34,13 +34,13 @@ func TestCacheGetOrSet(t *testing.T) {
 		}
 
 		// 1. First call: Cache Miss
-		got, err := CacheGetOrSet(ctx, cache, key, time.Minute, fetcher)
+		got, err := Fetch(ctx, cache, key, time.Minute, fetcher)
 		require.NoError(t, err)
 		assert.Equal(t, 1, fetcherCalled)
 		assert.Equal(t, expected, got)
 
 		// 2. Second call: Cache Hit
-		got, err = CacheGetOrSet(ctx, cache, key, time.Minute, fetcher)
+		got, err = Fetch(ctx, cache, key, time.Minute, fetcher)
 		require.NoError(t, err)
 		assert.Equal(t, 1, fetcherCalled)
 		assert.Equal(t, expected, got)
@@ -57,13 +57,13 @@ func TestCacheGetOrSet(t *testing.T) {
 
 		// 1. Set cache with short TTL
 		ttl := time.Second
-		_, _ = CacheGetOrSet(ctx, cache, key, ttl, fetcher)
+		_, _ = Fetch(ctx, cache, key, ttl, fetcher)
 
 		// 2. Fast forward time in the cache's internal miniredis
 		cache.miniRedis.FastForward(ttl + time.Second)
 
 		// 3. Call again: should be a Cache Miss
-		_, err := CacheGetOrSet(ctx, cache, key, ttl, fetcher)
+		_, err := Fetch(ctx, cache, key, ttl, fetcher)
 		require.NoError(t, err)
 		assert.Equal(t, 2, fetcherCalled)
 	})
@@ -74,7 +74,7 @@ func TestCacheGetOrSet(t *testing.T) {
 			return TestUser{}, context.DeadlineExceeded // Using a standard error for comparison
 		}
 
-		_, err := CacheGetOrSet(ctx, cache, key, time.Minute, fetcher)
+		_, err := Fetch(ctx, cache, key, time.Minute, fetcher)
 		require.ErrorIs(t, err, context.DeadlineExceeded)
 	})
 }

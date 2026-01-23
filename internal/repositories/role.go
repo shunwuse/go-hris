@@ -33,7 +33,7 @@ func NewRoleRepository(
 }
 
 func (r *RoleRepository) FindAllRoles(ctx context.Context) ([]*entgen.Role, error) {
-	return cache.CacheGetOrSet(ctx, r.cache, constants.GetAllRolesKey(), constants.CacheTTLAllRoles, func() ([]*entgen.Role, error) {
+	return cache.Fetch(ctx, r.cache, constants.GetAllRolesKey(), constants.CacheTTLAllRoles, func() ([]*entgen.Role, error) {
 		roles, err := r.GetClient(ctx).Role.Query().
 			All(ctx)
 		if err != nil {
@@ -74,7 +74,7 @@ func (r *RoleRepository) CreateRole(ctx context.Context, name constants.Role) (*
 }
 
 func (r *RoleRepository) GetPermissionsByRole(ctx context.Context, roleName constants.Role) constants.Permissions {
-	permissions, _ := cache.CacheGetOrSet(ctx, r.cache, constants.GetRolePermissionsKey(roleName), constants.CacheTTLRolePermissions, func() (constants.Permissions, error) {
+	permissions, _ := cache.Fetch(ctx, r.cache, constants.GetRolePermissionsKey(roleName), constants.CacheTTLRolePermissions, func() (constants.Permissions, error) {
 		roleData, err := r.GetClient(ctx).Role.Query().
 			Where(role.NameEQ(roleName)).
 			WithPermissions().

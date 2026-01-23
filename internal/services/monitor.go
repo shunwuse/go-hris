@@ -55,7 +55,7 @@ func (s *monitorService) HealthCheck(ctx context.Context) *domains.Health {
 		},
 		Info: domains.HealthInfo{
 			Version:     app.Version,
-			Environment: config.GetConfig().Environment,
+			Environment: config.Get().Environment,
 			Uptime:      uptime,
 			InstanceID:  app.InstanceID,
 			Hostname:    app.Hostname,

@@ -9,8 +9,9 @@ type Transactor interface {
 	WithTx(ctx context.Context, work func(ctx context.Context) error) error
 }
 
+// NewTransactor returns the database instance as a Transactor.
 func NewTransactor() Transactor {
-	return GetDatabase()
+	return DB()
 }
 
 type txKey struct{}

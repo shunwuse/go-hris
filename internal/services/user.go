@@ -61,7 +61,7 @@ func (s *userService) GetUserByUsername(ctx context.Context, username string) (*
 }
 
 func (s *userService) GetUserByID(ctx context.Context, id uint) (*domains.UserWithPermissions, error) {
-	return cache.CacheGetOrSet(ctx, s.cache, constants.GetUserPermissionsKey(id), constants.CacheTTLUser, func() (*domains.UserWithPermissions, error) {
+	return cache.Fetch(ctx, s.cache, constants.GetUserPermissionsKey(id), constants.CacheTTLUser, func() (*domains.UserWithPermissions, error) {
 		user, err := s.userRepository.FindByID(ctx, id)
 		if err != nil {
 			return nil, err

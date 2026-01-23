@@ -24,18 +24,18 @@ type Logger struct {
 }
 
 var (
-	globalLogger  *Logger
-	newLoggerOnce sync.Once
+	instance *Logger
+	initOnce sync.Once
 )
 
-// GetLogger returns the global logger instance.
-func GetLogger() *Logger {
-	newLoggerOnce.Do(func() {
-		logger := newLogger(config.GetConfig())
-		globalLogger = &logger
+// L returns the global logger instance.
+func L() *Logger {
+	initOnce.Do(func() {
+		logger := newLogger(config.Get())
+		instance = &logger
 	})
 
-	return globalLogger
+	return instance
 }
 
 func newLogger(cfg config.Config) Logger {
