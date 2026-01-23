@@ -1,7 +1,6 @@
 package logger
 
 import (
-	"context"
 	"io"
 	"os"
 	"path/filepath"
@@ -22,15 +21,6 @@ const (
 // Logger structure.
 type Logger struct {
 	*zap.Logger
-}
-
-// WithContext returns a logger with trace ID from context if available.
-func (l *Logger) WithContext(ctx context.Context) *zap.Logger {
-	if traceID, ok := ctx.Value(constants.TraceID).(string); ok {
-		return l.With(zap.String("trace_id", traceID))
-	}
-
-	return l.Logger
 }
 
 var (
