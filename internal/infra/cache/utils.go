@@ -6,10 +6,10 @@ import (
 	"time"
 )
 
-// CacheGetOrSet is a helper to implement the Cache-Aside pattern.
+// Fetch is a helper to implement the Cache-Aside pattern.
 // It tries to get data from Redis, and if it fails, it calls the fetcher function,
 // saves the result to Redis, and returns it.
-func CacheGetOrSet[T any](ctx context.Context, c *Cache, key string, ttl time.Duration, fetcher func() (T, error)) (T, error) {
+func Fetch[T any](ctx context.Context, c *Cache, key string, ttl time.Duration, fetcher func() (T, error)) (T, error) {
 	// 1. Try to get from cache.
 	val, err := c.Client.Get(ctx, key).Result()
 	if err == nil {

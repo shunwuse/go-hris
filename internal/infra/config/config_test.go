@@ -8,8 +8,8 @@ import (
 
 func TestConfig_Reload(t *testing.T) {
 	// 1. Initialize global state
-	_ = GetConfig()
-	initialEnv := GetConfig().Environment
+	_ = Get()
+	initialEnv := Get().Environment
 
 	// 2. Prepare for reload with a new environment variable value using t.Setenv
 	testEnvValue := "reload-test-env"
@@ -18,13 +18,13 @@ func TestConfig_Reload(t *testing.T) {
 	// 3. Register a hook to verify it's called during reload
 	hookCalled := false
 	var hookCfg *Config
-	OnConfigChange(func(cfg *Config) {
+	OnChange(func(cfg *Config) {
 		hookCalled = true
 		hookCfg = cfg
 	})
 
 	// 4. Trigger reload
-	err := ReloadConfig()
+	err := Reload()
 	assert.NoError(t, err)
 
 	// 5. Assertions
@@ -32,20 +32,20 @@ func TestConfig_Reload(t *testing.T) {
 	assert.NotNil(t, hookCfg)
 	assert.Equal(t, testEnvValue, hookCfg.Environment, "Hook should receive the new value")
 
-	// Verify GetConfig returns the updated value
-	current := GetConfig()
-	assert.Equal(t, testEnvValue, current.Environment, "GetConfig should return the new value")
+	// Verify Get returns the updated value
+	current := Get()
+	assert.Equal(t, testEnvValue, current.Environment, "Get should return the new value")
 	assert.NotEqual(t, initialEnv, current.Environment, "Value should have changed from initial")
 }
 
 func TestConfig_ConcurrentAccess(t *testing.T) {
-	// Verify that GetConfig is thread-safe with Reload
+	// Verify that Get is thread-safe with Reload
 	for range 100 {
 		go func() {
-			_ = GetConfig()
+			_ = Get()
 		}()
 		go func() {
-			_ = ReloadConfig()
+			_ = Reload()
 		}()
 	}
 }

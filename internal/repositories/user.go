@@ -105,7 +105,7 @@ func (r *UserRepository) FindByUsername(ctx context.Context, username string) (*
 }
 
 func (r *UserRepository) FindByID(ctx context.Context, id uint) (*entgen.User, error) {
-	return cache.CacheGetOrSet(ctx, r.cache, constants.GetUserKey(id), constants.CacheTTLUser, func() (*entgen.User, error) {
+	return cache.Fetch(ctx, r.cache, constants.GetUserKey(id), constants.CacheTTLUser, func() (*entgen.User, error) {
 		u, err := r.GetClient(ctx).User.Query().
 			WithPassword().
 			WithRoles().

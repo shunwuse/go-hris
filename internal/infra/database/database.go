@@ -20,18 +20,21 @@ type Database struct {
 	rawDB  *sqlx.DB
 }
 
-var globalDatabase *Database
+var (
+	instance *Database
+)
 
-func GetDatabase() *Database {
-	if globalDatabase == nil {
-		db := newDatabase(config.GetConfig(), logger.GetLogger())
-		globalDatabase = &db
+// DB returns the database client.
+func DB() *Database {
+	if instance == nil {
+		db := connect(config.Get(), logger.L())
+		instance = &db
 	}
 
-	return globalDatabase
+	return instance
 }
 
-func newDatabase(cfg config.Config, log *logger.Logger) Database {
+func connect(cfg config.Config, log *logger.Logger) Database {
 	db, err := sqlx.Open(dialect.SQLite, cfg.SqliteDBPath)
 	if err != nil {
 		log.Fatal("failed to open database", zap.Error(err))

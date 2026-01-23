@@ -10,7 +10,7 @@ type Metrics struct {
 	HttpRequestDuration *prometheus.HistogramVec
 }
 
-func NewMetrics() *Metrics {
+func New() *Metrics {
 	return &Metrics{
 		HttpRequestsTotal: promauto.NewCounterVec(
 			prometheus.CounterOpts{

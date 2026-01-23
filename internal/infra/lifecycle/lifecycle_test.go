@@ -10,7 +10,7 @@ import (
 )
 
 func TestLifecycle_Start(t *testing.T) {
-	lc := NewLifecycle()
+	lc := New()
 	startOrder := []int{}
 
 	lc.Append(Hook{
@@ -33,7 +33,7 @@ func TestLifecycle_Start(t *testing.T) {
 }
 
 func TestLifecycle_StopLIFO(t *testing.T) {
-	lc := NewLifecycle()
+	lc := New()
 	stopOrder := []int{}
 
 	lc.Append(Hook{
@@ -56,7 +56,7 @@ func TestLifecycle_StopLIFO(t *testing.T) {
 }
 
 func TestLifecycle_StartError(t *testing.T) {
-	lc := NewLifecycle()
+	lc := New()
 	lc.Append(Hook{
 		OnStart: func(ctx context.Context) error {
 			return errors.New("start failed")
@@ -68,7 +68,7 @@ func TestLifecycle_StartError(t *testing.T) {
 }
 
 func TestLifecycle_StopMultiError(t *testing.T) {
-	lc := NewLifecycle()
+	lc := New()
 	lc.Append(Hook{
 		OnStop: func(ctx context.Context) error {
 			return errors.New("stop 1 failed")
@@ -90,7 +90,7 @@ func TestLifecycle_StopMultiError(t *testing.T) {
 
 // Simple test for ErrorJoin consistency
 func TestLifecycle_ErrorJoin(t *testing.T) {
-	lc := NewLifecycle()
+	lc := New()
 	err1 := errors.New("error 1")
 	err2 := errors.New("error 2")
 

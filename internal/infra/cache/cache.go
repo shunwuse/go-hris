@@ -18,7 +18,7 @@ type Cache struct {
 	sf        singleflight.Group
 }
 
-func NewCache(cfg config.Config, log *logger.Logger) *Cache {
+func New(cfg config.Config, log *logger.Logger) *Cache {
 	addr := cfg.RedisAddr
 	password := cfg.RedisPassword
 	db := cfg.RedisDB

@@ -13,13 +13,13 @@ import (
 )
 
 var ProviderSet = wire.NewSet(
-	config.GetConfig,
-	logger.GetLogger,
-	database.GetDatabase,
+	config.Get,
+	logger.L,
+	database.DB,
 	database.NewTransactor,
-	cache.NewCache,
-	metrics.NewMetrics,
-	handler.NewRequestHandler,
-	routine.NewRoutineGroup,
-	lifecycle.NewLifecycle,
+	cache.New,
+	metrics.New,
+	handler.New,
+	routine.New,
+	lifecycle.New,
 )
