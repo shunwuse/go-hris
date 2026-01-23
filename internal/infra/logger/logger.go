@@ -21,6 +21,8 @@ const (
 // Logger structure.
 type Logger struct {
 	*zap.Logger
+
+	level zap.AtomicLevel
 }
 
 var (
@@ -33,12 +35,36 @@ func L() *Logger {
 	initOnce.Do(func() {
 		logger := newLogger(config.Get())
 		instance = &logger
+
+		// Register reload hook.
+		config.OnChange(func(cfg *config.Config) {
+			instance.UpdateLevel(cfg.LogLevel)
+		})
 	})
 
 	return instance
 }
 
+// UpdateLevel dynamically changes the logger level.
+func (l *Logger) UpdateLevel(levelStr string) {
+	var level zapcore.Level
+	if err := level.UnmarshalText([]byte(levelStr)); err != nil {
+		l.Error("failed to update log level", zap.String("level", levelStr), zap.Error(err))
+		return
+	}
+
+	l.level.SetLevel(level)
+
+	l.Info("log level updated", zap.String("new_level", level.String()))
+}
+
 func newLogger(cfg config.Config) Logger {
+	// Parse level.
+	atomicLevel := zap.NewAtomicLevel()
+	if err := atomicLevel.UnmarshalText([]byte(cfg.LogLevel)); err != nil {
+		atomicLevel.SetLevel(zapcore.InfoLevel) // Default if invalid.
+	}
+
 	// Get directory path.
 	dir := filepath.Dir(cfg.LogOutput)
 
@@ -60,9 +86,9 @@ func newLogger(cfg config.Config) Logger {
 	// Create logger core based on environment.
 	var core zapcore.Core
 	if cfg.Environment == constants.EnvDevelopment {
-		core = createDevelopmentCore(cfg, fields)
+		core = createDevelopmentCore(cfg, atomicLevel, fields)
 	} else {
-		core = createProductionCore(cfg, fields)
+		core = createProductionCore(cfg, atomicLevel, fields)
 	}
 
 	// Create logger with caller.
@@ -71,10 +97,10 @@ func newLogger(cfg config.Config) Logger {
 	// Set global logger.
 	zap.ReplaceGlobals(logger)
 
-	return Logger{logger}
+	return Logger{logger, atomicLevel}
 }
 
-func createDevelopmentCore(cfg config.Config, fields []zapcore.Field) zapcore.Core {
+func createDevelopmentCore(cfg config.Config, level zap.AtomicLevel, fields []zapcore.Field) zapcore.Core {
 	encoderConfig := createEncoderConfig()
 	writer := createFileWriter(cfg)
 
@@ -82,7 +108,7 @@ func createDevelopmentCore(cfg config.Config, fields []zapcore.Field) zapcore.Co
 	fileCore := zapcore.NewCore(
 		zapcore.NewJSONEncoder(encoderConfig),
 		zapcore.AddSync(writer),
-		zapcore.DebugLevel,
+		level,
 	).With(fields)
 
 	// Console core with colored output.
@@ -93,14 +119,14 @@ func createDevelopmentCore(cfg config.Config, fields []zapcore.Field) zapcore.Co
 	consoleCore := zapcore.NewCore(
 		zapcore.NewConsoleEncoder(consoleConfig),
 		zapcore.AddSync(os.Stdout),
-		zapcore.DebugLevel,
+		level,
 	)
 
 	// Combine both cores.
 	return zapcore.NewTee(fileCore, consoleCore)
 }
 
-func createProductionCore(cfg config.Config, fields []zapcore.Field) zapcore.Core {
+func createProductionCore(cfg config.Config, level zap.AtomicLevel, fields []zapcore.Field) zapcore.Core {
 	encoderConfig := createEncoderConfig()
 	writer := createFileWriter(cfg)
 
@@ -108,7 +134,7 @@ func createProductionCore(cfg config.Config, fields []zapcore.Field) zapcore.Cor
 	return zapcore.NewCore(
 		zapcore.NewJSONEncoder(encoderConfig),
 		zapcore.AddSync(writer),
-		zapcore.InfoLevel,
+		level,
 	).With(fields)
 }
 
