@@ -6,6 +6,7 @@ import (
 	"github.com/shunwuse/go-hris/internal/infra/config"
 	"github.com/shunwuse/go-hris/internal/infra/database"
 	"github.com/shunwuse/go-hris/internal/infra/handler"
+	"github.com/shunwuse/go-hris/internal/infra/idempotency"
 	"github.com/shunwuse/go-hris/internal/infra/lifecycle"
 	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"github.com/shunwuse/go-hris/internal/infra/metrics"
@@ -18,6 +19,7 @@ var ProviderSet = wire.NewSet(
 	database.DB,
 	database.NewTransactor,
 	cache.New,
+	idempotency.New,
 	metrics.New,
 	handler.New,
 	routine.New,
