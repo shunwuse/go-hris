@@ -6,22 +6,24 @@ import (
 
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
-	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/infra/app"
+	"github.com/shunwuse/go-hris/internal/infra/config"
+	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"github.com/shunwuse/go-hris/internal/ports/repository"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 )
 
 type monitorService struct {
-	logger            *infra.Logger
+	logger            *logger.Logger
 	monitorRepository repository.MonitorRepository
 }
 
 func NewMonitorService(
-	logger *infra.Logger,
+	log *logger.Logger,
 	monitorRepository repository.MonitorRepository,
 ) service.MonitorService {
 	return &monitorService{
-		logger:            logger,
+		logger:            log,
 		monitorRepository: monitorRepository,
 	}
 }
@@ -43,7 +45,7 @@ func (s *monitorService) HealthCheck(ctx context.Context) *domains.Health {
 		status = constants.StatusDown
 	}
 
-	uptime := time.Since(infra.AppStartTime).Round(time.Second).String()
+	uptime := time.Since(app.AppStartTime).Round(time.Second).String()
 
 	return &domains.Health{
 		Status: status,
@@ -52,12 +54,12 @@ func (s *monitorService) HealthCheck(ctx context.Context) *domains.Health {
 			Redis:    redisStatus,
 		},
 		Info: domains.HealthInfo{
-			Version:     infra.Version,
-			Environment: infra.GetConfig().Environment,
+			Version:     app.Version,
+			Environment: config.GetConfig().Environment,
 			Uptime:      uptime,
-			InstanceID:  infra.InstanceID,
-			Hostname:    infra.Hostname,
-			GoVersion:   infra.GoVersion,
+			InstanceID:  app.InstanceID,
+			Hostname:    app.Hostname,
+			GoVersion:   app.GoVersion,
 		},
 	}
 }

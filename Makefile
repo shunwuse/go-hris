@@ -3,7 +3,7 @@ APP_NAME = myapp
 MIGRATIONS_DIR = ./migrations
 DB_URL = ./test.db
 VERSION = $(shell git rev-parse --short HEAD 2>/dev/null || echo "dev")
-LDFLAGS = -X github.com/shunwuse/go-hris/internal/infra.Version=$(VERSION)
+LDFLAGS = -X github.com/shunwuse/go-hris/internal/infra/app.Version=$(VERSION)
 
 # Colors for help
 BLUE = \033[0;34m

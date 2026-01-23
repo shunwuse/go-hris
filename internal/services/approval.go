@@ -7,23 +7,23 @@ import (
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/errors"
-	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"github.com/shunwuse/go-hris/internal/ports/repository"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"go.uber.org/zap"
 )
 
 type approvalService struct {
-	logger             *infra.Logger
+	logger             *logger.Logger
 	approvalRepository repository.ApprovalRepository
 }
 
 func NewApprovalService(
-	logger *infra.Logger,
+	log *logger.Logger,
 	approvalRepository repository.ApprovalRepository,
 ) service.ApprovalService {
 	return &approvalService{
-		logger:             logger,
+		logger:             log,
 		approvalRepository: approvalRepository,
 	}
 }

@@ -3,22 +3,22 @@ package consumer
 import (
 	"context"
 
-	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"github.com/shunwuse/go-hris/internal/worker/consumer/handlers"
 	"go.uber.org/zap"
 )
 
 type Consumer struct {
-	logger   *infra.Logger
+	logger   *logger.Logger
 	handlers handlers.Handlers
 }
 
 func NewConsumer(
-	logger *infra.Logger,
+	log *logger.Logger,
 	handlers handlers.Handlers,
 ) *Consumer {
 	return &Consumer{
-		logger:   logger,
+		logger:   log,
 		handlers: handlers,
 	}
 }

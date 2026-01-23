@@ -6,19 +6,19 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/shunwuse/go-hris/internal/constants"
-	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"github.com/shunwuse/go-hris/internal/utils"
 )
 
 type TraceMiddleware struct {
-	logger *infra.Logger
+	logger *logger.Logger
 }
 
 func NewTraceMiddleware(
-	logger *infra.Logger,
+	log *logger.Logger,
 ) *TraceMiddleware {
 	return &TraceMiddleware{
-		logger: logger,
+		logger: log,
 	}
 }
 

@@ -17,7 +17,10 @@ import (
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/errors"
-	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/infra/cache"
+	"github.com/shunwuse/go-hris/internal/infra/config"
+	"github.com/shunwuse/go-hris/internal/infra/database"
+	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"github.com/shunwuse/go-hris/internal/ports/repository"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"github.com/shunwuse/go-hris/internal/utils"
@@ -25,9 +28,9 @@ import (
 )
 
 type authService struct {
-	logger     *infra.Logger
-	cache      *infra.Cache
-	transactor infra.Transactor
+	logger     *logger.Logger
+	cache      *cache.Cache
+	transactor database.Transactor
 
 	refreshTokenRepository repository.AuthRepository
 
@@ -39,45 +42,45 @@ type authService struct {
 }
 
 func NewAuthService(
-	config infra.Config,
-	logger *infra.Logger,
-	cache *infra.Cache,
-	transactor infra.Transactor,
+	cfg config.Config,
+	log *logger.Logger,
+	c *cache.Cache,
+	transactor database.Transactor,
 	userService service.UserService,
 	refreshTokenRepository repository.AuthRepository,
 ) service.AuthService {
-	key, err := jwk.FromRaw([]byte(config.JWTSecret))
+	key, err := jwk.FromRaw([]byte(cfg.JWTSecret))
 	if err != nil {
-		logger.Fatal("failed to create JWK from secret", zap.Error(err))
+		log.Fatal("failed to create JWK from secret", zap.Error(err))
 	}
 
 	_ = key.Set(jwk.AlgorithmKey, jwa.HS256)
 
-	hash := sha256.Sum256([]byte(config.JWTSecret))
+	hash := sha256.Sum256([]byte(cfg.JWTSecret))
 	kid := hex.EncodeToString(hash[:])[:8]
 	_ = key.Set(jwk.KeyIDKey, kid)
 
 	// Set expire hours with default value.
-	expireDuration := time.Duration(config.JWTExpireMinutes) * time.Minute
+	expireDuration := time.Duration(cfg.JWTExpireMinutes) * time.Minute
 	if expireDuration <= 0 {
 		expireDuration = 1 * time.Hour // default to 1 hour
 	}
 
 	// Set refresh expire hours with default value.
-	refreshExpireDuration := time.Duration(config.JWTRefreshExpireMinutes) * time.Minute
+	refreshExpireDuration := time.Duration(cfg.JWTRefreshExpireMinutes) * time.Minute
 	if refreshExpireDuration <= 0 {
 		refreshExpireDuration = 24 * time.Hour // default to 24 hours
 	}
 
-	logger.Info("Auth service initialized",
+	log.Info("Auth service initialized",
 		zap.String("kid", kid),
 		zap.Duration("access_token_expire", expireDuration),
 		zap.Duration("refresh_token_expire", refreshExpireDuration),
 	)
 
 	return &authService{
-		logger:                 logger,
-		cache:                  cache,
+		logger:                 log,
+		cache:                  c,
 		transactor:             transactor,
 		refreshTokenRepository: refreshTokenRepository,
 		userService:            userService,

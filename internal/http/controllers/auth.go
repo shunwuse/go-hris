@@ -7,22 +7,22 @@ import (
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/http/request"
 	"github.com/shunwuse/go-hris/internal/http/response"
-	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"go.uber.org/zap"
 )
 
 type AuthController struct {
-	logger      *infra.Logger
+	logger      *logger.Logger
 	authService service.AuthService
 }
 
 func NewAuthController(
-	logger *infra.Logger,
+	log *logger.Logger,
 	authService service.AuthService,
 ) *AuthController {
 	return &AuthController{
-		logger:      logger,
+		logger:      log,
 		authService: authService,
 	}
 }

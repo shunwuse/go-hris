@@ -7,31 +7,33 @@ import (
 	"github.com/shunwuse/go-hris/ent/entgen/role"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/errors"
-	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/infra/cache"
+	"github.com/shunwuse/go-hris/internal/infra/database"
+	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"github.com/shunwuse/go-hris/internal/ports/repository"
 	"go.uber.org/zap"
 )
 
 type RoleRepository struct {
-	logger *infra.Logger
-	*infra.Database
-	cache *infra.Cache
+	logger *logger.Logger
+	*database.Database
+	cache *cache.Cache
 }
 
 func NewRoleRepository(
-	logger *infra.Logger,
-	db *infra.Database,
-	cache *infra.Cache,
+	log *logger.Logger,
+	db *database.Database,
+	c *cache.Cache,
 ) repository.RoleRepository {
 	return &RoleRepository{
-		logger:   logger,
+		logger:   log,
 		Database: db,
-		cache:    cache,
+		cache:    c,
 	}
 }
 
 func (r *RoleRepository) FindAllRoles(ctx context.Context) ([]*entgen.Role, error) {
-	return infra.CacheGetOrSet(ctx, r.cache, constants.GetAllRolesKey(), constants.CacheTTLAllRoles, func() ([]*entgen.Role, error) {
+	return cache.CacheGetOrSet(ctx, r.cache, constants.GetAllRolesKey(), constants.CacheTTLAllRoles, func() ([]*entgen.Role, error) {
 		roles, err := r.GetClient(ctx).Role.Query().
 			All(ctx)
 		if err != nil {
@@ -72,7 +74,7 @@ func (r *RoleRepository) CreateRole(ctx context.Context, name constants.Role) (*
 }
 
 func (r *RoleRepository) GetPermissionsByRole(ctx context.Context, roleName constants.Role) constants.Permissions {
-	permissions, _ := infra.CacheGetOrSet(ctx, r.cache, constants.GetRolePermissionsKey(roleName), constants.CacheTTLRolePermissions, func() (constants.Permissions, error) {
+	permissions, _ := cache.CacheGetOrSet(ctx, r.cache, constants.GetRolePermissionsKey(roleName), constants.CacheTTLRolePermissions, func() (constants.Permissions, error) {
 		roleData, err := r.GetClient(ctx).Role.Query().
 			Where(role.NameEQ(roleName)).
 			WithPermissions().

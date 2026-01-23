@@ -9,7 +9,9 @@ import (
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/errors"
-	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/infra/cache"
+	"github.com/shunwuse/go-hris/internal/infra/database"
+	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"github.com/shunwuse/go-hris/internal/ports/repository"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"github.com/shunwuse/go-hris/internal/utils"
@@ -17,24 +19,24 @@ import (
 )
 
 type userService struct {
-	logger     *infra.Logger
-	cache      *infra.Cache
-	transactor infra.Transactor
+	logger     *logger.Logger
+	cache      *cache.Cache
+	transactor database.Transactor
 
 	userRepository repository.UserRepository
 	roleRepository repository.RoleRepository
 }
 
 func NewUserService(
-	logger *infra.Logger,
-	cache *infra.Cache,
-	transactor infra.Transactor,
+	log *logger.Logger,
+	c *cache.Cache,
+	transactor database.Transactor,
 	userRepository repository.UserRepository,
 	roleRepository repository.RoleRepository,
 ) service.UserService {
 	return &userService{
-		logger:         logger,
-		cache:          cache,
+		logger:         log,
+		cache:          c,
 		transactor:     transactor,
 		userRepository: userRepository,
 		roleRepository: roleRepository,
@@ -59,7 +61,7 @@ func (s *userService) GetUserByUsername(ctx context.Context, username string) (*
 }
 
 func (s *userService) GetUserByID(ctx context.Context, id uint) (*domains.UserWithPermissions, error) {
-	return infra.CacheGetOrSet(ctx, s.cache, constants.GetUserPermissionsKey(id), constants.CacheTTLUser, func() (*domains.UserWithPermissions, error) {
+	return cache.CacheGetOrSet(ctx, s.cache, constants.GetUserPermissionsKey(id), constants.CacheTTLUser, func() (*domains.UserWithPermissions, error) {
 		user, err := s.userRepository.FindByID(ctx, id)
 		if err != nil {
 			return nil, err

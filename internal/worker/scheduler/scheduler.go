@@ -5,24 +5,24 @@ import (
 
 	"github.com/robfig/cron/v3"
 	"github.com/shunwuse/go-hris/internal/constants"
-	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"github.com/shunwuse/go-hris/internal/utils"
 	"github.com/shunwuse/go-hris/internal/worker/scheduler/jobs"
 	"go.uber.org/zap"
 )
 
 type Scheduler struct {
-	logger *infra.Logger
+	logger *logger.Logger
 	cron   *cron.Cron
 	jobs   jobs.CronJobs
 }
 
 func NewScheduler(
-	logger *infra.Logger,
+	log *logger.Logger,
 	jobs jobs.CronJobs,
 ) *Scheduler {
 	return &Scheduler{
-		logger: logger,
+		logger: log,
 		cron:   cron.New(),
 		jobs:   jobs,
 	}
@@ -60,16 +60,16 @@ func (s *Scheduler) registerJobs() {
 			traceID := utils.NewTraceID()
 			ctx := context.WithValue(context.Background(), constants.TraceID, traceID)
 
-			logger := s.logger.WithContext(ctx).With(zap.String("job_name", job.Name()))
+			log := s.logger.WithContext(ctx).With(zap.String("job_name", job.Name()))
 
-			logger.Info("running job")
+			log.Info("running job")
 
 			if err := job.Run(ctx); err != nil {
-				logger.Error("job failed", zap.Error(err))
+				log.Error("job failed", zap.Error(err))
 				return
 			}
 
-			logger.Info("job completed successfully")
+			log.Info("job completed successfully")
 		})
 
 		if err != nil {

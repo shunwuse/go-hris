@@ -7,30 +7,32 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/infra/cache"
+	"github.com/shunwuse/go-hris/internal/infra/database"
+	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"github.com/shunwuse/go-hris/internal/worker/consumer"
 	"github.com/shunwuse/go-hris/internal/worker/scheduler"
 	"go.uber.org/zap"
 )
 
 type Worker struct {
-	logger    *infra.Logger
-	database  *infra.Database
-	cache     *infra.Cache
+	logger    *logger.Logger
+	database  *database.Database
+	cache     *cache.Cache
 	scheduler *scheduler.Scheduler
 	consumer  *consumer.Consumer
 }
 
 func NewWorker(
-	logger *infra.Logger,
-	database *infra.Database,
-	cache *infra.Cache,
+	log *logger.Logger,
+	db *database.Database,
+	cache *cache.Cache,
 	scheduler *scheduler.Scheduler,
 	consumer *consumer.Consumer,
 ) *Worker {
 	return &Worker{
-		logger:    logger,
-		database:  database,
+		logger:    log,
+		database:  db,
 		cache:     cache,
 		scheduler: scheduler,
 		consumer:  consumer,

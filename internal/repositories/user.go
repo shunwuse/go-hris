@@ -10,26 +10,28 @@ import (
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/errors"
-	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/infra/cache"
+	"github.com/shunwuse/go-hris/internal/infra/database"
+	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"github.com/shunwuse/go-hris/internal/ports/repository"
 	"go.uber.org/zap"
 )
 
 type UserRepository struct {
-	logger *infra.Logger
-	*infra.Database
-	cache *infra.Cache
+	logger *logger.Logger
+	*database.Database
+	cache *cache.Cache
 }
 
 func NewUserRepository(
-	logger *infra.Logger,
-	db *infra.Database,
-	cache *infra.Cache,
+	log *logger.Logger,
+	db *database.Database,
+	c *cache.Cache,
 ) repository.UserRepository {
 	return &UserRepository{
-		logger:   logger,
+		logger:   log,
 		Database: db,
-		cache:    cache,
+		cache:    c,
 	}
 }
 
@@ -103,7 +105,7 @@ func (r *UserRepository) FindByUsername(ctx context.Context, username string) (*
 }
 
 func (r *UserRepository) FindByID(ctx context.Context, id uint) (*entgen.User, error) {
-	return infra.CacheGetOrSet(ctx, r.cache, constants.GetUserKey(id), constants.CacheTTLUser, func() (*entgen.User, error) {
+	return cache.CacheGetOrSet(ctx, r.cache, constants.GetUserKey(id), constants.CacheTTLUser, func() (*entgen.User, error) {
 		u, err := r.GetClient(ctx).User.Query().
 			WithPassword().
 			WithRoles().

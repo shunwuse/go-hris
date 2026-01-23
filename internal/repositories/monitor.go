@@ -3,26 +3,28 @@ package repositories
 import (
 	"context"
 
-	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/infra/cache"
+	"github.com/shunwuse/go-hris/internal/infra/database"
+	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"github.com/shunwuse/go-hris/internal/ports/repository"
 	"go.uber.org/zap"
 )
 
 type MonitorRepository struct {
-	logger *infra.Logger
-	*infra.Database
-	*infra.Cache
+	logger *logger.Logger
+	*database.Database
+	*cache.Cache
 }
 
 func NewMonitorRepository(
-	logger *infra.Logger,
-	db *infra.Database,
-	cache *infra.Cache,
+	log *logger.Logger,
+	db *database.Database,
+	c *cache.Cache,
 ) repository.MonitorRepository {
 	return &MonitorRepository{
-		logger:   logger,
+		logger:   log,
 		Database: db,
-		Cache:    cache,
+		Cache:    c,
 	}
 }
 

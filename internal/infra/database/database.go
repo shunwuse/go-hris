@@ -1,4 +1,4 @@
-package infra
+package database
 
 import (
 	"context"
@@ -9,6 +9,8 @@ import (
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/jmoiron/sqlx"
 	"github.com/shunwuse/go-hris/ent/entgen"
+	"github.com/shunwuse/go-hris/internal/infra/config"
+	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"go.uber.org/zap"
 
 	_ "github.com/mattn/go-sqlite3"
@@ -23,30 +25,30 @@ var globalDatabase *Database
 
 func GetDatabase() *Database {
 	if globalDatabase == nil {
-		db := newDatabase(GetConfig(), GetLogger())
+		db := newDatabase(config.GetConfig(), logger.GetLogger())
 		globalDatabase = &db
 	}
 
 	return globalDatabase
 }
 
-func newDatabase(config Config, logger *Logger) Database {
-	db, err := sqlx.Open(dialect.SQLite, config.SqliteDBPath)
+func newDatabase(cfg config.Config, log *logger.Logger) Database {
+	db, err := sqlx.Open(dialect.SQLite, cfg.SqliteDBPath)
 	if err != nil {
-		logger.Fatal("failed to open database", zap.Error(err))
+		log.Fatal("failed to open database", zap.Error(err))
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
 	if err := db.PingContext(ctx); err != nil {
-		logger.Fatal("failed to ping database", zap.Error(err))
+		log.Fatal("failed to ping database", zap.Error(err))
 	}
 
 	drv := entsql.OpenDB(dialect.SQLite, db.DB)
 	client := entgen.NewClient(entgen.Driver(drv))
 
-	logger.Info("database connected successfully")
+	log.Info("database connected successfully")
 
 	return Database{
 		client: client,

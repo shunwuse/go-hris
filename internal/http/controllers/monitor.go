@@ -6,22 +6,22 @@ import (
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/dtos"
 	"github.com/shunwuse/go-hris/internal/http/response"
-	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 )
 
 // MonitorController struct
 type MonitorController struct {
-	logger         *infra.Logger
+	logger         *logger.Logger
 	monitorService service.MonitorService
 }
 
 func NewMonitorController(
-	logger *infra.Logger,
+	log *logger.Logger,
 	monitorService service.MonitorService,
 ) *MonitorController {
 	return &MonitorController{
-		logger:         logger,
+		logger:         log,
 		monitorService: monitorService,
 	}
 }

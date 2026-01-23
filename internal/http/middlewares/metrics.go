@@ -7,14 +7,14 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/infra/metrics"
 )
 
 type MetricsMiddleware struct {
-	metrics *infra.Metrics
+	metrics *metrics.Metrics
 }
 
-func NewMetricsMiddleware(metrics *infra.Metrics) *MetricsMiddleware {
+func NewMetricsMiddleware(metrics *metrics.Metrics) *MetricsMiddleware {
 	return &MetricsMiddleware{
 		metrics: metrics,
 	}

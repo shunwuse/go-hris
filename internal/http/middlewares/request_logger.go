@@ -6,17 +6,17 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"go.uber.org/zap"
 )
 
 type RequestLoggerMiddleware struct {
-	logger *infra.Logger
+	logger *logger.Logger
 }
 
-func NewRequestLoggerMiddleware(logger *infra.Logger) *RequestLoggerMiddleware {
+func NewRequestLoggerMiddleware(log *logger.Logger) *RequestLoggerMiddleware {
 	return &RequestLoggerMiddleware{
-		logger: logger,
+		logger: log,
 	}
 }
 
