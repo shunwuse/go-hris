@@ -13,8 +13,10 @@ import (
 )
 
 type Config struct {
-	Environment   string `koanf:"env"`
-	ServerPort    string `koanf:"server_port"`
+	Environment string `koanf:"env"`
+	ServerPort  string `koanf:"server_port"`
+
+	LogLevel      string `koanf:"log_level"` // debug, info, warn, error
 	LogOutput     string `koanf:"log_output"`
 	LogMaxSize    int    `koanf:"log_max_size"`    // megabytes
 	LogMaxBackups int    `koanf:"log_max_backups"` // number of backups
