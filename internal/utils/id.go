@@ -16,9 +16,17 @@ var (
 	}
 )
 
-// NewTraceID generates a new unique trace ID using ULID.
+// NewTraceID generates a new unique trace ID using ULID (for global journey).
 // It uses a sync.Pool of entropy sources for better performance and thread safety.
 func NewTraceID() string {
+	entropy := entropyPool.Get().(io.Reader)
+	defer entropyPool.Put(entropy)
+
+	return ulid.MustNew(ulid.Now(), entropy).String()
+}
+
+// NewSpanID generates a new unique span ID using ULID (for local execution).
+func NewSpanID() string {
 	entropy := entropyPool.Get().(io.Reader)
 	defer entropyPool.Put(entropy)
 
