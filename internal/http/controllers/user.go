@@ -10,22 +10,22 @@ import (
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/http/request"
 	"github.com/shunwuse/go-hris/internal/http/response"
-	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"go.uber.org/zap"
 )
 
 type UserController struct {
-	logger      *infra.Logger
+	logger      *logger.Logger
 	userService service.UserService
 }
 
 func NewUserController(
-	logger *infra.Logger,
+	log *logger.Logger,
 	userService service.UserService,
 ) *UserController {
 	return &UserController{
-		logger:      logger,
+		logger:      log,
 		userService: userService,
 	}
 }

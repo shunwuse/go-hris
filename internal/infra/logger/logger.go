@@ -1,4 +1,4 @@
-package infra
+package logger
 
 import (
 	"context"
@@ -8,6 +8,8 @@ import (
 	"sync"
 
 	"github.com/shunwuse/go-hris/internal/constants"
+	"github.com/shunwuse/go-hris/internal/infra/app"
+	"github.com/shunwuse/go-hris/internal/infra/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -39,16 +41,16 @@ var (
 // GetLogger returns the global logger instance.
 func GetLogger() *Logger {
 	newLoggerOnce.Do(func() {
-		logger := newLogger(GetConfig())
+		logger := newLogger(config.GetConfig())
 		globalLogger = &logger
 	})
 
 	return globalLogger
 }
 
-func newLogger(config Config) Logger {
+func newLogger(cfg config.Config) Logger {
 	// Get directory path.
-	dir := filepath.Dir(config.LogOutput)
+	dir := filepath.Dir(cfg.LogOutput)
 
 	// Check if logs directory exists, if not create it.
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
@@ -59,18 +61,18 @@ func newLogger(config Config) Logger {
 
 	// Define common fields.
 	fields := []zapcore.Field{
-		zap.String("instance_id", InstanceID),
-		zap.String("hostname", Hostname),
+		zap.String("instance_id", app.InstanceID),
+		zap.String("hostname", app.Hostname),
 		zap.Int("pid", os.Getpid()),
-		zap.String("environment", config.Environment),
+		zap.String("environment", cfg.Environment),
 	}
 
 	// Create logger core based on environment.
 	var core zapcore.Core
-	if config.Environment == constants.EnvDevelopment {
-		core = createDevelopmentCore(config, fields)
+	if cfg.Environment == constants.EnvDevelopment {
+		core = createDevelopmentCore(cfg, fields)
 	} else {
-		core = createProductionCore(config, fields)
+		core = createProductionCore(cfg, fields)
 	}
 
 	// Create logger with caller.
@@ -82,9 +84,9 @@ func newLogger(config Config) Logger {
 	return Logger{logger}
 }
 
-func createDevelopmentCore(config Config, fields []zapcore.Field) zapcore.Core {
+func createDevelopmentCore(cfg config.Config, fields []zapcore.Field) zapcore.Core {
 	encoderConfig := createEncoderConfig()
-	writer := createFileWriter(config)
+	writer := createFileWriter(cfg)
 
 	// File core with JSON format and metadata.
 	fileCore := zapcore.NewCore(
@@ -108,9 +110,9 @@ func createDevelopmentCore(config Config, fields []zapcore.Field) zapcore.Core {
 	return zapcore.NewTee(fileCore, consoleCore)
 }
 
-func createProductionCore(config Config, fields []zapcore.Field) zapcore.Core {
+func createProductionCore(cfg config.Config, fields []zapcore.Field) zapcore.Core {
 	encoderConfig := createEncoderConfig()
-	writer := createFileWriter(config)
+	writer := createFileWriter(cfg)
 
 	// Only file output with JSON format and metadata.
 	return zapcore.NewCore(
@@ -137,12 +139,12 @@ func createEncoderConfig() zapcore.EncoderConfig {
 	}
 }
 
-func createFileWriter(config Config) io.Writer {
+func createFileWriter(cfg config.Config) io.Writer {
 	return &lumberjack.Logger{
-		Filename:   config.LogOutput,
-		MaxSize:    config.LogMaxSize,    // megabytes
-		MaxBackups: config.LogMaxBackups, // number of backups
-		MaxAge:     config.LogMaxAge,     // days
-		Compress:   config.LogCompress,   // compress old files
+		Filename:   cfg.LogOutput,
+		MaxSize:    cfg.LogMaxSize,    // megabytes
+		MaxBackups: cfg.LogMaxBackups, // number of backups
+		MaxAge:     cfg.LogMaxAge,     // days
+		Compress:   cfg.LogCompress,   // compress old files
 	}
 }

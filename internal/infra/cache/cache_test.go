@@ -1,18 +1,20 @@
-package infra
+package cache
 
 import (
 	"context"
 	"testing"
 	"time"
 
+	"github.com/shunwuse/go-hris/internal/infra/config"
+	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestCacheGetOrSet(t *testing.T) {
-	logger := GetLogger()
-	config := Config{UseMiniredis: true}
-	cache := NewCache(config, logger)
+	log := logger.GetLogger()
+	cfg := config.Config{UseMiniredis: true}
+	cache := NewCache(cfg, log)
 	defer func() { _ = cache.Close() }()
 
 	ctx := context.Background()

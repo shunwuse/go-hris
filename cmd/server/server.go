@@ -10,33 +10,37 @@ import (
 
 	"github.com/shunwuse/go-hris/internal/http/middlewares"
 	"github.com/shunwuse/go-hris/internal/http/routes"
-	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/infra/cache"
+	"github.com/shunwuse/go-hris/internal/infra/config"
+	"github.com/shunwuse/go-hris/internal/infra/database"
+	"github.com/shunwuse/go-hris/internal/infra/handler"
+	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"go.uber.org/zap"
 )
 
 type Server struct {
-	config            infra.Config
-	logger            *infra.Logger
-	database          *infra.Database
-	cache             *infra.Cache
-	handler           *infra.RequestHandler
+	config            config.Config
+	logger            *logger.Logger
+	database          *database.Database
+	cache             *cache.Cache
+	handler           *handler.RequestHandler
 	commonMiddlewares middlewares.CommonMiddlewares
 	routes            routes.Routes
 }
 
 func NewServer(
-	config infra.Config,
-	logger *infra.Logger,
-	database *infra.Database,
-	cache *infra.Cache,
-	handler *infra.RequestHandler,
+	cfg config.Config,
+	log *logger.Logger,
+	db *database.Database,
+	cache *cache.Cache,
+	handler *handler.RequestHandler,
 	commonMiddlewares middlewares.CommonMiddlewares,
 	routes routes.Routes,
 ) *Server {
 	return &Server{
-		config:            config,
-		logger:            logger,
-		database:          database,
+		config:            cfg,
+		logger:            log,
+		database:          db,
 		cache:             cache,
 		handler:           handler,
 		commonMiddlewares: commonMiddlewares,

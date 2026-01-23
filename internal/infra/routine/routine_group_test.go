@@ -1,17 +1,18 @@
-package infra
+package routine
 
 import (
 	"context"
 	"testing"
 	"time"
 
+	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestRoutineGroup_RunAndWait(t *testing.T) {
-	logger := GetLogger()
-	g := NewRoutineGroup(logger)
+	log := logger.GetLogger()
+	g := NewRoutineGroup(log)
 
 	taskFinished := make(chan bool, 1)
 
@@ -35,8 +36,8 @@ func TestRoutineGroup_RunAndWait(t *testing.T) {
 }
 
 func TestRoutineGroup_PanicRecovery(t *testing.T) {
-	logger := GetLogger()
-	g := NewRoutineGroup(logger)
+	log := logger.GetLogger()
+	g := NewRoutineGroup(log)
 
 	// This task will panic; should be recovered and not crash the test
 	g.Run("panic_task", func(ctx context.Context) {
@@ -51,8 +52,8 @@ func TestRoutineGroup_PanicRecovery(t *testing.T) {
 }
 
 func TestRoutineGroup_Timeout(t *testing.T) {
-	logger := GetLogger()
-	g := NewRoutineGroup(logger)
+	log := logger.GetLogger()
+	g := NewRoutineGroup(log)
 
 	// Hanging task
 	g.Run("hanging_task", func(ctx context.Context) {

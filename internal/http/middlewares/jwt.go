@@ -8,22 +8,22 @@ import (
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/http/response"
-	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"go.uber.org/zap"
 )
 
 type JWTMiddleware struct {
-	logger      *infra.Logger
+	logger      *logger.Logger
 	authService service.AuthService
 }
 
 func NewJWTMiddleware(
-	logger *infra.Logger,
+	log *logger.Logger,
 	authService service.AuthService,
 ) *JWTMiddleware {
 	return &JWTMiddleware{
-		logger:      logger,
+		logger:      log,
 		authService: authService,
 	}
 }

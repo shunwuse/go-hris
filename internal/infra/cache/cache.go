@@ -1,4 +1,4 @@
-package infra
+package cache
 
 import (
 	"context"
@@ -7,6 +7,8 @@ import (
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/redis/go-redis/v9"
+	"github.com/shunwuse/go-hris/internal/infra/config"
+	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"go.uber.org/zap"
 	"golang.org/x/sync/singleflight"
 )
@@ -18,17 +20,17 @@ type Cache struct {
 	sf        singleflight.Group
 }
 
-func NewCache(config Config, logger *Logger) *Cache {
-	addr := config.RedisAddr
-	password := config.RedisPassword
-	db := config.RedisDB
+func NewCache(cfg config.Config, log *logger.Logger) *Cache {
+	addr := cfg.RedisAddr
+	password := cfg.RedisPassword
+	db := cfg.RedisDB
 
 	var miniRedis *miniredis.Miniredis
 
-	if config.UseMiniredis {
+	if cfg.UseMiniredis {
 		mini, err := miniredis.Run()
 		if err != nil {
-			logger.Fatal("failed to start miniredis", zap.Error(err))
+			log.Fatal("failed to start miniredis", zap.Error(err))
 		}
 
 		miniRedis = mini
@@ -37,9 +39,9 @@ func NewCache(config Config, logger *Logger) *Cache {
 		password = ""
 		db = 0
 
-		logger.Info("using embedded miniredis", zap.String("addr", addr))
+		log.Info("using embedded miniredis", zap.String("addr", addr))
 	} else {
-		logger.Info("connecting to external redis", zap.String("addr", addr))
+		log.Info("connecting to external redis", zap.String("addr", addr))
 	}
 
 	rdb := redis.NewClient(&redis.Options{
@@ -49,7 +51,7 @@ func NewCache(config Config, logger *Logger) *Cache {
 	})
 
 	if _, err := rdb.Ping(context.Background()).Result(); err != nil {
-		logger.Fatal("failed to connect to redis", zap.Error(err))
+		log.Fatal("failed to connect to redis", zap.Error(err))
 	}
 
 	return &Cache{

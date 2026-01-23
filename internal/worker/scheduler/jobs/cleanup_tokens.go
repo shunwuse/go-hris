@@ -3,22 +3,22 @@ package jobs
 import (
 	"context"
 
-	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"go.uber.org/zap"
 )
 
 type CleanupTokensJob struct {
-	logger      *infra.Logger
+	logger      *logger.Logger
 	authService service.AuthService
 }
 
 func NewCleanupTokensJob(
-	logger *infra.Logger,
+	log *logger.Logger,
 	authService service.AuthService,
 ) *CleanupTokensJob {
 	return &CleanupTokensJob{
-		logger:      logger,
+		logger:      log,
 		authService: authService,
 	}
 }

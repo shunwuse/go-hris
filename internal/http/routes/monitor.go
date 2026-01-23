@@ -4,21 +4,21 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/shunwuse/go-hris/internal/http/controllers"
-	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/infra/logger"
 )
 
 // MonitorRoute struct
 type MonitorRoute struct {
-	logger            *infra.Logger
+	logger            *logger.Logger
 	monitorController *controllers.MonitorController
 }
 
 func NewMonitorRoute(
-	logger *infra.Logger,
+	log *logger.Logger,
 	monitorController *controllers.MonitorController,
 ) *MonitorRoute {
 	return &MonitorRoute{
-		logger:            logger,
+		logger:            log,
 		monitorController: monitorController,
 	}
 }

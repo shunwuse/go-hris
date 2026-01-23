@@ -4,22 +4,22 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/shunwuse/go-hris/internal/http/controllers"
 	"github.com/shunwuse/go-hris/internal/http/middlewares"
-	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/infra/logger"
 )
 
 type AuthRoute struct {
-	logger         *infra.Logger
+	logger         *logger.Logger
 	jwtMiddleware  *middlewares.JWTMiddleware
 	authController *controllers.AuthController
 }
 
 func NewAuthRoute(
-	logger *infra.Logger,
+	log *logger.Logger,
 	jwtMiddleware *middlewares.JWTMiddleware,
 	authController *controllers.AuthController,
 ) *AuthRoute {
 	return &AuthRoute{
-		logger:         logger,
+		logger:         log,
 		jwtMiddleware:  jwtMiddleware,
 		authController: authController,
 	}

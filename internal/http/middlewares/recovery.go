@@ -7,17 +7,17 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/http/response"
-	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"go.uber.org/zap"
 )
 
 type RecoveryMiddleware struct {
-	logger *infra.Logger
+	logger *logger.Logger
 }
 
-func NewRecoveryMiddleware(logger *infra.Logger) *RecoveryMiddleware {
+func NewRecoveryMiddleware(log *logger.Logger) *RecoveryMiddleware {
 	return &RecoveryMiddleware{
-		logger: logger,
+		logger: log,
 	}
 }
 

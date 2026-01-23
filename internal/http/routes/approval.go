@@ -4,22 +4,22 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/shunwuse/go-hris/internal/http/controllers"
 	"github.com/shunwuse/go-hris/internal/http/middlewares"
-	"github.com/shunwuse/go-hris/internal/infra"
+	"github.com/shunwuse/go-hris/internal/infra/logger"
 )
 
 type ApprovalRoute struct {
-	logger             *infra.Logger
+	logger             *logger.Logger
 	jwtMiddleware      *middlewares.JWTMiddleware
 	approvalController *controllers.ApprovalController
 }
 
 func NewApprovalRoute(
-	logger *infra.Logger,
+	log *logger.Logger,
 	jwtMiddleware *middlewares.JWTMiddleware,
 	approvalController *controllers.ApprovalController,
 ) *ApprovalRoute {
 	return &ApprovalRoute{
-		logger:             logger,
+		logger:             log,
 		jwtMiddleware:      jwtMiddleware,
 		approvalController: approvalController,
 	}

@@ -1,4 +1,4 @@
-package infra
+package routine
 
 import (
 	"context"
@@ -6,23 +6,24 @@ import (
 	"runtime/debug"
 	"sync"
 
+	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"go.uber.org/zap"
 )
 
 // RoutineGroup manages the lifecycle of background goroutines.
 // It provides structured concurrency, panic recovery, and graceful shutdown.
 type RoutineGroup struct {
-	logger *Logger
+	logger *logger.Logger
 	ctx    context.Context
 	cancel context.CancelFunc
 	wg     sync.WaitGroup
 }
 
 // NewRoutineGroup creates a new RoutineGroup.
-func NewRoutineGroup(logger *Logger) *RoutineGroup {
+func NewRoutineGroup(log *logger.Logger) *RoutineGroup {
 	ctx, cancel := context.WithCancel(context.Background())
 	return &RoutineGroup{
-		logger: logger,
+		logger: log,
 		ctx:    ctx,
 		cancel: cancel,
 	}
