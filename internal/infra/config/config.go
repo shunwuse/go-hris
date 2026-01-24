@@ -35,6 +35,8 @@ type Config struct {
 	RedisAddr     string `koanf:"redis_addr"`
 	RedisPassword string `koanf:"redis_password"`
 	RedisDB       int    `koanf:"redis_db"`
+
+	ProfilerToken string `koanf:"profiler_token"` // token for pprof access
 }
 
 var (
