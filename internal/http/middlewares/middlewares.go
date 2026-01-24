@@ -16,6 +16,7 @@ func NewCommonMiddlewares(
 	metricsMiddleware *MetricsMiddleware,
 	requestLoggerMiddleware *RequestLoggerMiddleware,
 	recoveryMiddleware *RecoveryMiddleware,
+	exceptionMiddleware *ExceptionMiddleware,
 ) CommonMiddlewares {
 	return CommonMiddlewares{
 		traceMiddleware,
@@ -23,6 +24,7 @@ func NewCommonMiddlewares(
 		metricsMiddleware,
 		requestLoggerMiddleware,
 		recoveryMiddleware,
+		exceptionMiddleware,
 	}
 }
 
