@@ -10,6 +10,7 @@ var ProviderSet = wire.NewSet(
 	NewMetricsMiddleware,
 	NewRequestLoggerMiddleware,
 	NewRecoveryMiddleware,
+	NewExceptionMiddleware,
 	NewJWTMiddleware,
 
 	NewCommonMiddlewares,
