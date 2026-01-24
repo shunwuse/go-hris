@@ -12,19 +12,19 @@ type ICommonMiddleware interface {
 
 func NewCommonMiddlewares(
 	traceMiddleware *TraceMiddleware,
-	idempotencyMiddleware *IdempotencyMiddleware,
 	metricsMiddleware *MetricsMiddleware,
 	requestLoggerMiddleware *RequestLoggerMiddleware,
 	recoveryMiddleware *RecoveryMiddleware,
+	idempotencyMiddleware *IdempotencyMiddleware,
 	exceptionMiddleware *ExceptionMiddleware,
 ) CommonMiddlewares {
 	return CommonMiddlewares{
-		traceMiddleware,
-		idempotencyMiddleware,
-		metricsMiddleware,
-		requestLoggerMiddleware,
-		recoveryMiddleware,
-		exceptionMiddleware,
+		traceMiddleware,         // Trace: Request identification
+		metricsMiddleware,       // Metrics: Performance telemetry
+		requestLoggerMiddleware, // Logger: Traffic observation
+		recoveryMiddleware,      // Recovery: Panic protection & safety
+		idempotencyMiddleware,   // Idempotency: Duplicate prevention
+		exceptionMiddleware,     // Exception: Business error alerting
 	}
 }
 
