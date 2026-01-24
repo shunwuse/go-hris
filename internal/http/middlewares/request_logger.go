@@ -33,17 +33,29 @@ func (m *RequestLoggerMiddleware) Handler() func(http.Handler) http.Handler {
 
 			// Log request details.
 			latency := time.Since(start)
+			status := ww.Status()
 
-			m.logger.WithContext(r.Context()).Info("http_request",
+			// Prepare log fields.
+			fields := []zap.Field{
 				zap.String("method", r.Method),
 				zap.String("path", r.URL.Path),
 				zap.String("remote_addr", r.RemoteAddr),
 				zap.String("user_agent", r.UserAgent()),
-				zap.Int("status", ww.Status()),
+				zap.Int("status", status),
 				zap.Int("size", ww.BytesWritten()),
 				zap.Duration("latency", latency),
 				zap.String("latency_human", latency.String()),
-			)
+			}
+
+			// Determine log level based on status code.
+			log := m.logger.WithContext(r.Context())
+			if status >= 500 {
+				log.Error("http_request_error", fields...)
+			} else if status >= 400 {
+				log.Warn("http_request_warn", fields...)
+			} else {
+				log.Debug("http_request_success", fields...)
+			}
 		})
 	}
 }
