@@ -11,7 +11,6 @@ import (
 	"github.com/shunwuse/go-hris/internal/infra/logger"
 )
 
-// MonitorRoute struct
 type MonitorRoute struct {
 	logger             *logger.Logger
 	profilerMiddleware *middlewares.ProfilerMiddleware
@@ -37,7 +36,7 @@ func (r *MonitorRoute) Setup(router chi.Router) {
 
 	router.Handle("/metrics", promhttp.Handler())
 
-	// Mount pprof routes
+	// Mount pprof routes.
 	router.Route("/debug/pprof", func(router chi.Router) {
 		router.Use(r.profilerMiddleware.Handler())
 

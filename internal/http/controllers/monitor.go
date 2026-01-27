@@ -10,7 +10,6 @@ import (
 	"github.com/shunwuse/go-hris/internal/ports/service"
 )
 
-// MonitorController struct
 type MonitorController struct {
 	logger         *logger.Logger
 	monitorService service.MonitorService

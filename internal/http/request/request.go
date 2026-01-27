@@ -61,7 +61,7 @@ func DecodeJSON(r *http.Request, dst any) error {
 		return nil
 	}
 
-	// Drain and close the body to ensure connection reuse
+	// Drain and close the body to ensure connection reuse.
 	defer func() {
 		_, _ = io.Copy(io.Discard, r.Body)
 		_ = r.Body.Close()

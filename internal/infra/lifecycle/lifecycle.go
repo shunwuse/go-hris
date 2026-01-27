@@ -54,7 +54,7 @@ func (l *Lifecycle) Stop(ctx context.Context) error {
 	defer l.mu.Unlock()
 
 	var errs []error
-	// LIFO Shutdown
+	// LIFO Shutdown.
 	for i := len(l.hooks) - 1; i >= 0; i-- {
 		hook := l.hooks[i]
 		if hook.OnStop != nil {

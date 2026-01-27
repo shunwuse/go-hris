@@ -7,7 +7,7 @@ import (
 )
 
 // EncodeCursor encodes multiple values into a single opaque base64 string.
-// Example: EncodeCursor(123) or EncodeCursor("2023-01-01", 123)
+// Example: EncodeCursor(123) or EncodeCursor("2023-01-01", 123).
 func EncodeCursor(parts ...any) string {
 	strParts := make([]string, len(parts))
 	for idx, part := range parts {
