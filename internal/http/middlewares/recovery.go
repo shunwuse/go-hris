@@ -33,20 +33,20 @@ func (m *RecoveryMiddleware) Handler() func(http.Handler) http.Handler {
 				if err := recover(); err != nil {
 					if err == http.ErrAbortHandler {
 						// we don't recover http.ErrAbortHandler so the response
-						// to the client is aborted, this should not be logged
+						// to the client is aborted, this should not be logged.
 						panic(err)
 					}
 
-					// Build stack trace
+					// Build stack trace.
 					stack := string(debug.Stack())
 
-					// Log the panic
+					// Log the panic.
 					m.logger.WithContext(r.Context()).Error("panic recovered",
 						zap.Any("error", err),
 						zap.String("stack", stack),
 					)
 
-					// Send Critical Alert
+					// Send Critical Alert.
 					traceID, _ := r.Context().Value(constants.TraceID).(string)
 
 					_ = m.alerter.Send(r.Context(), alerter.Message{

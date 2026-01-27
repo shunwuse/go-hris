@@ -44,7 +44,7 @@ func (m *IdempotencyMiddleware) HandlerWithTTL(ttl time.Duration) func(http.Hand
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
 
-			// Only apply to state-changing operations
+			// Only apply to state-changing operations.
 			if r.Method == http.MethodGet || r.Method == http.MethodHead || r.Method == http.MethodOptions {
 				next.ServeHTTP(w, r)
 				return

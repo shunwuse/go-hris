@@ -9,7 +9,7 @@ import (
 	"github.com/shunwuse/go-hris/internal/errors"
 )
 
-// JSON encodes data as JSON response with status code
+// JSON encodes data as JSON response with status code.
 func JSON(w http.ResponseWriter, code int, v any) {
 	buf := &bytes.Buffer{}
 	enc := json.NewEncoder(buf)
@@ -23,12 +23,12 @@ func JSON(w http.ResponseWriter, code int, v any) {
 	w.Write(buf.Bytes()) //nolint:errcheck
 }
 
-// OK sends successful response with data (200 OK)
+// OK sends successful response with data (200 OK).
 func OK(w http.ResponseWriter, data any) {
 	JSON(w, http.StatusOK, data)
 }
 
-// Created sends resource created response (201 Created)
+// Created sends resource created response (201 Created).
 func Created(w http.ResponseWriter, data any) {
 	if data == nil {
 		w.WriteHeader(http.StatusCreated)
@@ -38,22 +38,22 @@ func Created(w http.ResponseWriter, data any) {
 	JSON(w, http.StatusCreated, data)
 }
 
-// NoContent sends no content response (204 No Content)
+// NoContent sends no content response (204 No Content).
 func NoContent(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-// ServiceUnavailable sends service unavailable response (503 Service Unavailable)
+// ServiceUnavailable sends service unavailable response (503 Service Unavailable).
 func ServiceUnavailable(w http.ResponseWriter, data any) {
 	JSON(w, http.StatusServiceUnavailable, data)
 }
 
-// List sends simple list response
+// List sends simple list response.
 func List(w http.ResponseWriter, data any) {
 	JSON(w, http.StatusOK, data)
 }
 
-// OffsetList sends offset-based paginated list response
+// OffsetList sends offset-based paginated list response.
 func OffsetList(w http.ResponseWriter, data any, meta OffsetPaginationMeta) {
 	JSON(w, http.StatusOK, OffsetListResponse{
 		Data: data,
@@ -61,7 +61,7 @@ func OffsetList(w http.ResponseWriter, data any, meta OffsetPaginationMeta) {
 	})
 }
 
-// CursorList sends cursor-based paginated list response
+// CursorList sends cursor-based paginated list response.
 func CursorList(w http.ResponseWriter, data any, meta CursorPaginationMeta) {
 	JSON(w, http.StatusOK, CursorListResponse{
 		Data: data,
@@ -69,9 +69,9 @@ func CursorList(w http.ResponseWriter, data any, meta CursorPaginationMeta) {
 	})
 }
 
-// Error encodes domain error to HTTP error response
+// Error encodes domain error to HTTP error response.
 func Error(w http.ResponseWriter, err error) {
-	// Extract custom Error (including sentinel errors)
+	// Extract custom Error (including sentinel errors).
 	var appErr *errors.Error
 	if stderrors.As(err, &appErr) {
 		status := domainCodeToHTTPStatus(appErr.Code())
@@ -86,7 +86,7 @@ func Error(w http.ResponseWriter, err error) {
 		return
 	}
 
-	// Fallback for unexpected errors
+	// Fallback for unexpected errors.
 	JSON(w, http.StatusInternalServerError, ErrorResponse{
 		Error: ErrorDetail{
 			Code:    errors.CodeInternalError,
@@ -96,7 +96,7 @@ func Error(w http.ResponseWriter, err error) {
 }
 
 // domainCodeToHTTPStatus maps domain error codes to HTTP status codes
-// This mapping is HTTP-specific, not in domain layer
+// This mapping is HTTP-specific, not in domain layer.
 func domainCodeToHTTPStatus(code string) int {
 	if status, ok := codeToStatus[code]; ok {
 		return status

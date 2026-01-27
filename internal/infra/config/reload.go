@@ -17,7 +17,7 @@ func Reload() error {
 	newConfig := load()
 	instance.Store(newConfig)
 
-	// Trigger hooks
+	// Trigger hooks.
 	for _, hook := range configReloadHooks {
 		hook(newConfig)
 	}
