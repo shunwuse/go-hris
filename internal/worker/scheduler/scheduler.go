@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/robfig/cron/v3"
-	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/infra/logger"
+	"github.com/shunwuse/go-hris/internal/pkg/contextx"
 	"github.com/shunwuse/go-hris/internal/utils"
 	"github.com/shunwuse/go-hris/internal/worker/scheduler/jobs"
 	"go.uber.org/zap"
@@ -58,7 +58,7 @@ func (s *Scheduler) registerJobs() {
 		_, err := s.cron.AddFunc(job.Schedule(), func() {
 			// Generate trace ID for the job execution.
 			traceID := utils.NewTraceID()
-			ctx := context.WithValue(context.Background(), constants.TraceID, traceID)
+			ctx := contextx.WithTraceID(context.Background(), traceID)
 
 			log := s.logger.WithContext(ctx).With(zap.String("job_name", job.Name()))
 

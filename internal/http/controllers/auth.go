@@ -8,6 +8,7 @@ import (
 	"github.com/shunwuse/go-hris/internal/http/request"
 	"github.com/shunwuse/go-hris/internal/http/response"
 	"github.com/shunwuse/go-hris/internal/infra/logger"
+	"github.com/shunwuse/go-hris/internal/pkg/contextx"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"go.uber.org/zap"
 )
@@ -102,7 +103,7 @@ func (c *AuthController) Logout(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Blacklist current access token.
-	claims, ok := request.GetClaims(r)
+	claims, ok := contextx.GetClaims(r.Context())
 	if ok && claims.JTI != "" {
 		expiration := claims.ExpiresIn()
 		if expiration > 0 {
@@ -116,7 +117,7 @@ func (c *AuthController) Logout(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *AuthController) LogoutAll(w http.ResponseWriter, r *http.Request) {
-	claims, ok := request.GetClaims(r)
+	claims, ok := contextx.GetClaims(r.Context())
 	if !ok {
 		c.logger.WithContext(r.Context()).Error("failed to get claims from context")
 		response.Error(w, errors.ErrUnauthorized)

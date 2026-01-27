@@ -10,6 +10,7 @@ import (
 	"github.com/shunwuse/go-hris/internal/http/request"
 	"github.com/shunwuse/go-hris/internal/http/response"
 	"github.com/shunwuse/go-hris/internal/infra/logger"
+	"github.com/shunwuse/go-hris/internal/pkg/contextx"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"go.uber.org/zap"
 )
@@ -30,7 +31,7 @@ func NewApprovalController(
 }
 
 func (c *ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request) {
-	identity, ok := request.GetIdentity(r)
+	identity, ok := contextx.GetIdentity(r.Context())
 	if !ok {
 		c.logger.WithContext(r.Context()).Error("failed to get identity from context")
 		response.Error(w, errors.ErrUnauthorized)
@@ -92,7 +93,7 @@ func (c *ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request
 }
 
 func (c *ApprovalController) GetApproval(w http.ResponseWriter, r *http.Request) {
-	identity, ok := request.GetIdentity(r)
+	identity, ok := contextx.GetIdentity(r.Context())
 	if !ok {
 		c.logger.WithContext(r.Context()).Error("failed to get identity from context")
 		response.Error(w, errors.ErrUnauthorized)
@@ -140,7 +141,7 @@ func (c *ApprovalController) GetApproval(w http.ResponseWriter, r *http.Request)
 }
 
 func (c *ApprovalController) AddApproval(w http.ResponseWriter, r *http.Request) {
-	identity, ok := request.GetIdentity(r)
+	identity, ok := contextx.GetIdentity(r.Context())
 	if !ok {
 		c.logger.WithContext(r.Context()).Error("failed to get identity from context")
 		response.Error(w, errors.ErrUnauthorized)
@@ -170,7 +171,7 @@ func (c *ApprovalController) AddApproval(w http.ResponseWriter, r *http.Request)
 }
 
 func (c *ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Request) {
-	identity, ok := request.GetIdentity(r)
+	identity, ok := contextx.GetIdentity(r.Context())
 	if !ok {
 		c.logger.WithContext(r.Context()).Error("failed to get identity from context")
 		response.Error(w, errors.ErrUnauthorized)

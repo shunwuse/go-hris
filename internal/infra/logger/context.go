@@ -3,7 +3,7 @@ package logger
 import (
 	"context"
 
-	"github.com/shunwuse/go-hris/internal/constants"
+	"github.com/shunwuse/go-hris/internal/pkg/contextx"
 	"go.uber.org/zap"
 )
 
@@ -11,11 +11,11 @@ import (
 func (l *Logger) WithContext(ctx context.Context) *zap.Logger {
 	fields := make([]zap.Field, 0, 2)
 
-	if traceID, ok := ctx.Value(constants.TraceID).(string); ok {
+	if traceID := contextx.GetTraceID(ctx); traceID != "" {
 		fields = append(fields, zap.String("trace_id", traceID))
 	}
 
-	if spanID, ok := ctx.Value(constants.SpanID).(string); ok {
+	if spanID := contextx.GetSpanID(ctx); spanID != "" {
 		fields = append(fields, zap.String("span_id", spanID))
 	}
 

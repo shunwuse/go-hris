@@ -11,6 +11,7 @@ import (
 	"github.com/shunwuse/go-hris/internal/http/request"
 	"github.com/shunwuse/go-hris/internal/http/response"
 	"github.com/shunwuse/go-hris/internal/infra/logger"
+	"github.com/shunwuse/go-hris/internal/pkg/contextx"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"go.uber.org/zap"
 )
@@ -31,7 +32,7 @@ func NewUserController(
 }
 
 func (c *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
-	identity, ok := request.GetIdentity(r)
+	identity, ok := contextx.GetIdentity(r.Context())
 	if !ok {
 		c.logger.WithContext(r.Context()).Error("failed to get identity from context")
 		response.Error(w, errors.ErrUnauthorized)
@@ -92,7 +93,7 @@ func (c *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *UserController) GetUser(w http.ResponseWriter, r *http.Request) {
-	identity, ok := request.GetIdentity(r)
+	identity, ok := contextx.GetIdentity(r.Context())
 	if !ok {
 		c.logger.WithContext(r.Context()).Error("failed to get identity from context")
 		response.Error(w, errors.ErrUnauthorized)
@@ -138,7 +139,7 @@ func (c *UserController) GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
-	identity, ok := request.GetIdentity(r)
+	identity, ok := contextx.GetIdentity(r.Context())
 	if !ok {
 		c.logger.WithContext(r.Context()).Error("failed to get identity from context")
 		response.Error(w, errors.ErrUnauthorized)
@@ -182,7 +183,7 @@ func (c *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
-	identity, ok := request.GetIdentity(r)
+	identity, ok := contextx.GetIdentity(r.Context())
 	if !ok {
 		c.logger.WithContext(r.Context()).Error("failed to get identity from context")
 		response.Error(w, errors.ErrUnauthorized)
