@@ -8,10 +8,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/infra/config"
 	"github.com/shunwuse/go-hris/internal/infra/idempotency"
 	"github.com/shunwuse/go-hris/internal/infra/logger"
+	"github.com/shunwuse/go-hris/internal/pkg/contextx"
 	"go.uber.org/zap"
 )
 
@@ -51,7 +51,7 @@ func (m *IdempotencyMiddleware) HandlerWithTTL(ttl time.Duration) func(http.Hand
 			}
 
 			// Get Idempotency Key (Reuse Trace ID from context).
-			key, _ := ctx.Value(constants.TraceID).(string)
+			key := contextx.GetTraceID(ctx)
 			if key == "" {
 				next.ServeHTTP(w, r)
 				return

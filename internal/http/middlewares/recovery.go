@@ -6,11 +6,11 @@ import (
 	"runtime/debug"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/http/response"
 	"github.com/shunwuse/go-hris/internal/infra/alerter"
 	"github.com/shunwuse/go-hris/internal/infra/logger"
+	"github.com/shunwuse/go-hris/internal/pkg/contextx"
 	"go.uber.org/zap"
 )
 
@@ -47,7 +47,7 @@ func (m *RecoveryMiddleware) Handler() func(http.Handler) http.Handler {
 					)
 
 					// Send Critical Alert.
-					traceID, _ := r.Context().Value(constants.TraceID).(string)
+					traceID := contextx.GetTraceID(r.Context())
 
 					_ = m.alerter.Send(r.Context(), alerter.Message{
 						Level:      alerter.LevelCritical,

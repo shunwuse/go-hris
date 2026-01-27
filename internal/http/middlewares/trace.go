@@ -1,12 +1,11 @@
 package middlewares
 
 import (
-	"context"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/infra/logger"
+	"github.com/shunwuse/go-hris/internal/pkg/contextx"
 	"github.com/shunwuse/go-hris/internal/utils"
 )
 
@@ -44,8 +43,8 @@ func (m *TraceMiddleware) Handler() func(http.Handler) http.Handler {
 
 			// Store IDs in context.
 			ctx := r.Context()
-			ctx = context.WithValue(ctx, constants.SpanID, spanID)
-			ctx = context.WithValue(ctx, constants.TraceID, traceID)
+			ctx = contextx.WithSpanID(ctx, spanID)
+			ctx = contextx.WithTraceID(ctx, traceID)
 
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})

@@ -6,8 +6,8 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/infra/alerter"
+	"github.com/shunwuse/go-hris/internal/pkg/contextx"
 )
 
 type ExceptionMiddleware struct {
@@ -31,7 +31,7 @@ func (m *ExceptionMiddleware) Handler() func(http.Handler) http.Handler {
 			// Since RecoveryMiddleware is now outside of ExceptionMiddleware,
 			// a panic will bypass this logic entirely, avoiding double alerts.
 			if ww.Status() >= 500 {
-				traceID, _ := r.Context().Value(constants.TraceID).(string)
+				traceID := contextx.GetTraceID(r.Context())
 
 				_ = m.alerter.Send(r.Context(), alerter.Message{
 					Level:   alerter.LevelError,
