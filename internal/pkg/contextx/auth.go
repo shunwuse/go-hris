@@ -7,11 +7,24 @@ import (
 	"github.com/shunwuse/go-hris/internal/domains"
 )
 
+// SystemIdentity is a predefined identity for internal system operations.
+var SystemIdentity = &domains.Identity{
+	UserID:      0,
+	Username:    "system",
+	Roles:       []constants.Role{constants.Admin},
+	Permissions: constants.AllPermissions,
+}
+
 // WithIdentity returns a new context with the Identity.
 func WithIdentity(ctx context.Context, identity *domains.Identity) context.Context {
 	return context.WithValue(ctx, constants.JWTClaims, &domains.Claims{
 		Identity: *identity,
 	})
+}
+
+// WithSystemIdentity returns a new context with the SystemIdentity.
+func WithSystemIdentity(ctx context.Context) context.Context {
+	return WithIdentity(ctx, SystemIdentity)
 }
 
 // GetIdentity extracts the Identity from the context.

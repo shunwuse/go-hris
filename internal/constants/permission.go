@@ -17,6 +17,16 @@ const (
 	PermissionActionApproval Permission = "action_approval"
 )
 
+// AllPermissions returns all available permissions.
+var AllPermissions = Permissions{
+	PermissionCreateUser,
+	PermissionReadUser,
+	PermissionUpdateUser,
+	PermissionCreateApproval,
+	PermissionReadApproval,
+	PermissionActionApproval,
+}
+
 func (p Permission) String() string {
 	return string(p)
 }

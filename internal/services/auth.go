@@ -21,6 +21,7 @@ import (
 	"github.com/shunwuse/go-hris/internal/infra/config"
 	"github.com/shunwuse/go-hris/internal/infra/database"
 	"github.com/shunwuse/go-hris/internal/infra/logger"
+	"github.com/shunwuse/go-hris/internal/pkg/contextx"
 	"github.com/shunwuse/go-hris/internal/ports/repository"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"github.com/shunwuse/go-hris/internal/utils"
@@ -94,7 +95,8 @@ func (s *authService) Login(ctx context.Context, username string, password strin
 	// Convert username to lowercase.
 	username = strings.ToLower(username)
 
-	user, err := s.userService.GetUserByUsername(ctx, username)
+	systemCtx := contextx.WithSystemIdentity(ctx)
+	user, err := s.userService.GetUserByUsername(systemCtx, username)
 	if err != nil {
 		s.logger.WithContext(ctx).Error("failed to get user", zap.String("username", username), zap.Error(err))
 		return nil, err
@@ -210,7 +212,8 @@ func (s *authService) ValidateAccessToken(ctx context.Context, tokenString strin
 
 	// Fetch user data.
 	if claims.Identity.UserID != 0 {
-		user, err := s.userService.GetUserByID(ctx, claims.Identity.UserID)
+		systemCtx := contextx.WithSystemIdentity(ctx)
+		user, err := s.userService.GetUserByID(systemCtx, claims.Identity.UserID)
 		if err != nil {
 			s.logger.WithContext(ctx).Error("failed to get user data", zap.Uint("userID", claims.Identity.UserID), zap.Error(err))
 			return nil, errors.ErrInternalError
@@ -284,7 +287,8 @@ func (s *authService) RefreshAccessToken(ctx context.Context, refreshToken strin
 			return errors.ErrTokenExpired
 		}
 
-		user, err := s.userService.GetUserByID(txCtx, tokenRecord.UserID)
+		systemCtx := contextx.WithSystemIdentity(txCtx)
+		user, err := s.userService.GetUserByID(systemCtx, tokenRecord.UserID)
 		if err != nil {
 			s.logger.WithContext(txCtx).Error("failed to get user for refresh", zap.Uint("user_id", tokenRecord.UserID), zap.Error(err))
 			return errors.ErrTokenInvalid
