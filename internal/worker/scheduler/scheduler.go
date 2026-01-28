@@ -60,6 +60,9 @@ func (s *Scheduler) registerJobs() {
 			traceID := utils.NewTraceID()
 			ctx := contextx.WithTraceID(context.Background(), traceID)
 
+			// Add system identity for background jobs.
+			ctx = contextx.WithSystemIdentity(ctx)
+
 			log := s.logger.WithContext(ctx).With(zap.String("job_name", job.Name()))
 
 			log.Info("running job")

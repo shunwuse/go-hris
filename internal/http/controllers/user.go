@@ -4,14 +4,12 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/dtos"
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/http/request"
 	"github.com/shunwuse/go-hris/internal/http/response"
 	"github.com/shunwuse/go-hris/internal/infra/logger"
-	"github.com/shunwuse/go-hris/internal/pkg/contextx"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"go.uber.org/zap"
 )
@@ -32,20 +30,6 @@ func NewUserController(
 }
 
 func (c *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
-	identity, ok := contextx.GetIdentity(r.Context())
-	if !ok {
-		c.logger.WithContext(r.Context()).Error("failed to get identity from context")
-		response.Error(w, errors.ErrUnauthorized)
-		return
-	}
-
-	// Check if user has permission to read users.
-	if !identity.Can(constants.PermissionReadUser) {
-		c.logger.WithContext(r.Context()).Error("user not authorized to get users")
-		response.Error(w, errors.ErrForbidden)
-		return
-	}
-
 	// Get pagination and filter parameters.
 	var query dtos.UserGetList
 	if err := request.DecodeQuery(r, &query); err != nil {
@@ -93,20 +77,6 @@ func (c *UserController) GetUsers(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *UserController) GetUser(w http.ResponseWriter, r *http.Request) {
-	identity, ok := contextx.GetIdentity(r.Context())
-	if !ok {
-		c.logger.WithContext(r.Context()).Error("failed to get identity from context")
-		response.Error(w, errors.ErrUnauthorized)
-		return
-	}
-
-	// Check if user has permission to read users.
-	if !identity.Can(constants.PermissionReadUser) {
-		c.logger.WithContext(r.Context()).Error("user not authorized to get user")
-		response.Error(w, errors.ErrForbidden)
-		return
-	}
-
 	var pathParams dtos.UserPathParams
 	if err := request.DecodePath(r, &pathParams); err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to decode path params", zap.Error(err))
@@ -139,20 +109,6 @@ func (c *UserController) GetUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
-	identity, ok := contextx.GetIdentity(r.Context())
-	if !ok {
-		c.logger.WithContext(r.Context()).Error("failed to get identity from context")
-		response.Error(w, errors.ErrUnauthorized)
-		return
-	}
-
-	// Check if user has permission to create users.
-	if !identity.Can(constants.PermissionCreateUser) {
-		c.logger.WithContext(r.Context()).Error("user not authorized to create user")
-		response.Error(w, errors.ErrForbidden)
-		return
-	}
-
 	var userCreate dtos.UserCreate
 	if err := request.DecodeJSON(r, &userCreate); err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to decode user request", zap.Error(err))
@@ -183,20 +139,6 @@ func (c *UserController) CreateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *UserController) UpdateUser(w http.ResponseWriter, r *http.Request) {
-	identity, ok := contextx.GetIdentity(r.Context())
-	if !ok {
-		c.logger.WithContext(r.Context()).Error("failed to get identity from context")
-		response.Error(w, errors.ErrUnauthorized)
-		return
-	}
-
-	// Check if user has permission to update users.
-	if !identity.Can(constants.PermissionUpdateUser) {
-		c.logger.WithContext(r.Context()).Error("user not authorized to update user")
-		response.Error(w, errors.ErrForbidden)
-		return
-	}
-
 	var pathParams dtos.UserPathParams
 	if err := request.DecodePath(r, &pathParams); err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to decode path params", zap.Error(err))

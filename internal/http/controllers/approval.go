@@ -10,7 +10,6 @@ import (
 	"github.com/shunwuse/go-hris/internal/http/request"
 	"github.com/shunwuse/go-hris/internal/http/response"
 	"github.com/shunwuse/go-hris/internal/infra/logger"
-	"github.com/shunwuse/go-hris/internal/pkg/contextx"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"go.uber.org/zap"
 )
@@ -31,20 +30,6 @@ func NewApprovalController(
 }
 
 func (c *ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request) {
-	identity, ok := contextx.GetIdentity(r.Context())
-	if !ok {
-		c.logger.WithContext(r.Context()).Error("failed to get identity from context")
-		response.Error(w, errors.ErrUnauthorized)
-		return
-	}
-
-	// Check if user has permission to read approvals.
-	if !identity.Can(constants.PermissionReadApproval) {
-		c.logger.WithContext(r.Context()).Error("user not authorized to get approvals")
-		response.Error(w, errors.ErrForbidden)
-		return
-	}
-
 	// Get pagination parameters.
 	var query dtos.ApprovalGetList
 	if err := request.DecodeQuery(r, &query); err != nil {
@@ -93,20 +78,6 @@ func (c *ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request
 }
 
 func (c *ApprovalController) GetApproval(w http.ResponseWriter, r *http.Request) {
-	identity, ok := contextx.GetIdentity(r.Context())
-	if !ok {
-		c.logger.WithContext(r.Context()).Error("failed to get identity from context")
-		response.Error(w, errors.ErrUnauthorized)
-		return
-	}
-
-	// Check if user has permission to read approvals.
-	if !identity.Can(constants.PermissionReadApproval) {
-		c.logger.WithContext(r.Context()).Error("user not authorized to get approval")
-		response.Error(w, errors.ErrForbidden)
-		return
-	}
-
 	var pathParams dtos.ApprovalPathParams
 	if err := request.DecodePath(r, &pathParams); err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to decode path params", zap.Error(err))
@@ -141,23 +112,8 @@ func (c *ApprovalController) GetApproval(w http.ResponseWriter, r *http.Request)
 }
 
 func (c *ApprovalController) AddApproval(w http.ResponseWriter, r *http.Request) {
-	identity, ok := contextx.GetIdentity(r.Context())
-	if !ok {
-		c.logger.WithContext(r.Context()).Error("failed to get identity from context")
-		response.Error(w, errors.ErrUnauthorized)
-		return
-	}
-
-	// Check if user has permission to create approvals.
-	if !identity.Can(constants.PermissionCreateApproval) {
-		c.logger.WithContext(r.Context()).Error("user not authorized to add approval")
-		response.Error(w, errors.ErrForbidden)
-		return
-	}
-
 	approval := domains.ApprovalCreate{
-		CreatorID: identity.UserID,
-		Status:    constants.ApprovalStatusPending,
+		Status: constants.ApprovalStatusPending,
 	}
 
 	err := c.approvalService.AddApproval(r.Context(), &approval)
@@ -171,20 +127,6 @@ func (c *ApprovalController) AddApproval(w http.ResponseWriter, r *http.Request)
 }
 
 func (c *ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Request) {
-	identity, ok := contextx.GetIdentity(r.Context())
-	if !ok {
-		c.logger.WithContext(r.Context()).Error("failed to get identity from context")
-		response.Error(w, errors.ErrUnauthorized)
-		return
-	}
-
-	// Check if user has permission to action approvals.
-	if !identity.CanAll(constants.PermissionReadApproval, constants.PermissionActionApproval) {
-		c.logger.WithContext(r.Context()).Error("user not authorized to action approval")
-		response.Error(w, errors.ErrForbidden)
-		return
-	}
-
 	var pathParams dtos.ApprovalPathParams
 	if err := request.DecodePath(r, &pathParams); err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to decode path params", zap.Error(err))
@@ -211,7 +153,7 @@ func (c *ApprovalController) ActionApproval(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	err := c.approvalService.ActionApproval(r.Context(), pathParams.ID, actionRequest.Action, identity.UserID)
+	err := c.approvalService.ActionApproval(r.Context(), pathParams.ID, actionRequest.Action)
 	if err != nil {
 		c.logger.WithContext(r.Context()).Error("failed to action approval", zap.Error(err))
 		response.Error(w, err)

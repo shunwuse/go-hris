@@ -12,6 +12,7 @@ import (
 	"github.com/shunwuse/go-hris/internal/infra/cache"
 	"github.com/shunwuse/go-hris/internal/infra/database"
 	"github.com/shunwuse/go-hris/internal/infra/logger"
+	"github.com/shunwuse/go-hris/internal/pkg/contextx"
 	"github.com/shunwuse/go-hris/internal/ports/repository"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"github.com/shunwuse/go-hris/internal/utils"
@@ -44,14 +45,47 @@ func NewUserService(
 }
 
 func (s *userService) GetUsers(ctx context.Context) ([]*entgen.User, error) {
+	identity, ok := contextx.GetIdentity(ctx)
+	if !ok {
+		s.logger.WithContext(ctx).Error("failed to get identity from context")
+		return nil, errors.ErrUnauthorized
+	}
+
+	if !identity.Can(constants.PermissionReadUser) {
+		s.logger.WithContext(ctx).Error("not authorized to get users")
+		return nil, errors.ErrForbidden
+	}
+
 	return s.userRepository.FindAll(ctx)
 }
 
 func (s *userService) GetUsersWithOffset(ctx context.Context, query domains.OffsetQuery, filter domains.UserFilter) (*domains.OffsetResult[*entgen.User], error) {
+	identity, ok := contextx.GetIdentity(ctx)
+	if !ok {
+		s.logger.WithContext(ctx).Error("failed to get identity from context")
+		return nil, errors.ErrUnauthorized
+	}
+
+	if !identity.Can(constants.PermissionReadUser) {
+		s.logger.WithContext(ctx).Error("not authorized to get users")
+		return nil, errors.ErrForbidden
+	}
+
 	return s.userRepository.FindAllWithOffset(ctx, query, filter)
 }
 
 func (s *userService) GetUserByUsername(ctx context.Context, username string) (*domains.UserWithPermissions, error) {
+	identity, ok := contextx.GetIdentity(ctx)
+	if !ok {
+		s.logger.WithContext(ctx).Error("failed to get identity from context")
+		return nil, errors.ErrUnauthorized
+	}
+
+	if !identity.Can(constants.PermissionReadUser) {
+		s.logger.WithContext(ctx).Error("not authorized to get user")
+		return nil, errors.ErrForbidden
+	}
+
 	user, err := s.userRepository.FindByUsername(ctx, username)
 	if err != nil {
 		return nil, err
@@ -61,6 +95,17 @@ func (s *userService) GetUserByUsername(ctx context.Context, username string) (*
 }
 
 func (s *userService) GetUserByID(ctx context.Context, id uint) (*domains.UserWithPermissions, error) {
+	identity, ok := contextx.GetIdentity(ctx)
+	if !ok {
+		s.logger.WithContext(ctx).Error("failed to get identity from context")
+		return nil, errors.ErrUnauthorized
+	}
+
+	if !identity.Can(constants.PermissionReadUser) {
+		s.logger.WithContext(ctx).Error("not authorized to get user")
+		return nil, errors.ErrForbidden
+	}
+
 	return cache.Fetch(ctx, s.cache, constants.GetUserPermissionsKey(id), constants.CacheTTLUser, func() (*domains.UserWithPermissions, error) {
 		user, err := s.userRepository.FindByID(ctx, id)
 		if err != nil {
@@ -75,6 +120,17 @@ func (s *userService) GetUserByID(ctx context.Context, id uint) (*domains.UserWi
 }
 
 func (s *userService) CreateUser(ctx context.Context, user *domains.UserCreate, role constants.Role) error {
+	identity, ok := contextx.GetIdentity(ctx)
+	if !ok {
+		s.logger.WithContext(ctx).Error("failed to get identity from context")
+		return errors.ErrUnauthorized
+	}
+
+	if !identity.Can(constants.PermissionCreateUser) {
+		s.logger.WithContext(ctx).Error("not authorized to create user")
+		return errors.ErrForbidden
+	}
+
 	// Convert username to lowercase.
 	user.Username = strings.ToLower(user.Username)
 
@@ -117,6 +173,17 @@ func (s *userService) CreateUser(ctx context.Context, user *domains.UserCreate, 
 }
 
 func (s *userService) UpdateUser(ctx context.Context, update *domains.UserUpdate) error {
+	identity, ok := contextx.GetIdentity(ctx)
+	if !ok {
+		s.logger.WithContext(ctx).Error("failed to get identity from context")
+		return errors.ErrUnauthorized
+	}
+
+	if !identity.Can(constants.PermissionUpdateUser) {
+		s.logger.WithContext(ctx).Error("not authorized to update user")
+		return errors.ErrForbidden
+	}
+
 	return s.userRepository.Update(ctx, update.ID, update.Name)
 }
 
