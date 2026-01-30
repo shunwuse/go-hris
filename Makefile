@@ -1,7 +1,7 @@
 # Variables
 APP_NAME = myapp
 MIGRATIONS_DIR = ./migrations
-DB_URL = ./test.db
+DB_URL = postgresql://postgres:postgres@localhost:5432/hris?sslmode=disable
 VERSION = $(shell git rev-parse --short HEAD 2>/dev/null || echo "dev")
 LDFLAGS = -X github.com/shunwuse/go-hris/internal/infra/app.Version=$(VERSION)
 
@@ -77,10 +77,10 @@ migrate-create: ## Create a new migration (usage: make migrate-create name=migra
 	migrate create -ext sql -dir $(MIGRATIONS_DIR) -seq $$name
 
 migrate-up: ## Run migrations up using migrate CLI
-	migrate -path $(MIGRATIONS_DIR) -database "sqlite3://$(DB_URL)" up
+	migrate -path $(MIGRATIONS_DIR) -database "$(DB_URL)" up
 
 migrate-down: ## Run migrations down using migrate CLI
-	migrate -path $(MIGRATIONS_DIR) -database "sqlite3://$(DB_URL)" down
+	migrate -path $(MIGRATIONS_DIR) -database "$(DB_URL)" down
 
 go-migrate-up: ## Run migrations up using go run
 	go run ./cmd/migrate/main.go up
