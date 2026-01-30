@@ -1,12 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 
 	"github.com/golang-migrate/migrate/v4"
-	_ "github.com/golang-migrate/migrate/v4/database/sqlite3"
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/shunwuse/go-hris/internal/infra/config"
 )
 
 func main() {
@@ -15,7 +17,13 @@ func main() {
 		os.Exit(1)
 	}
 
-	m, err := migrate.New("file://./migrations", "sqlite3://./test.db")
+	cfg := config.Get()
+	dsn := fmt.Sprintf(
+		"postgresql://%s:%s@%s:%s/%s?sslmode=%s",
+		cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName, cfg.DBSSLMode,
+	)
+
+	m, err := migrate.New("file://./migrations", dsn)
 	if err != nil {
 		log.Fatalf("migrate connection error: %v", err)
 	}
