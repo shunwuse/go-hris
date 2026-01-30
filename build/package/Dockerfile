@@ -5,10 +5,9 @@ FROM golang:1.25.5-alpine3.23 AS builder
 WORKDIR /app
 
 # Install build tools
-RUN apk add --no-cache make gcc musl-dev
+RUN apk add --no-cache make
 
-# Install migrate tool
-RUN go install -tags 'sqlite3' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+# Install tools
 RUN go install github.com/google/wire/cmd/wire@latest
 
 # Copy dependency files and download
@@ -23,17 +22,14 @@ ARG VERSION=dev
 
 # Generate wire files and build the application
 RUN make gen
-RUN CGO_ENABLED=1 GOOS=linux make build-static VERSION=${VERSION}
-RUN CGO_ENABLED=1 GOOS=linux make build-worker-static VERSION=${VERSION}
-
-# Run the migrations
-RUN make migrate-up
+RUN CGO_ENABLED=0 GOOS=linux make build-static VERSION=${VERSION}
+RUN CGO_ENABLED=0 GOOS=linux make build-worker-static VERSION=${VERSION}
 
 # Stage 2: Runtime
 FROM alpine:3.23
 
-# Install runtime dependencies for cgo and sqlite3
-RUN apk add --no-cache libgcc libstdc++
+# Install runtime dependencies for cgo
+RUN apk add --no-cache ca-certificates
 
 WORKDIR /app
 
@@ -43,8 +39,6 @@ COPY --from=builder /app/myapp-worker .
 # Copy the environment file
 RUN mkdir -p configs
 COPY --from=builder /app/configs/default.env ./configs/default.env
-# Copy the database
-COPY --from=builder /app/test.db .
 
 # Expose the application port
 EXPOSE 8080
