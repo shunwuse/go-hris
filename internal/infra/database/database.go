@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"entgo.io/ent/dialect"
@@ -12,7 +13,7 @@ import (
 	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"go.uber.org/zap"
 
-	_ "github.com/mattn/go-sqlite3"
+	_ "github.com/lib/pq"
 )
 
 type Database struct {
@@ -35,7 +36,12 @@ func DB() *Database {
 }
 
 func connect(cfg config.Config, log *logger.Logger) Database {
-	db, err := sqlx.Open(dialect.SQLite, cfg.SqliteDBPath)
+	dsn := fmt.Sprintf(
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		cfg.DBHost, cfg.DBPort, cfg.DBUser, cfg.DBPassword, cfg.DBName, cfg.DBSSLMode,
+	)
+
+	db, err := sqlx.Open(dialect.Postgres, dsn)
 	if err != nil {
 		log.Fatal("failed to open database", zap.Error(err))
 	}
@@ -47,7 +53,7 @@ func connect(cfg config.Config, log *logger.Logger) Database {
 		log.Fatal("failed to ping database", zap.Error(err))
 	}
 
-	drv := entsql.OpenDB(dialect.SQLite, db.DB)
+	drv := entsql.OpenDB(dialect.Postgres, db.DB)
 	client := entgen.NewClient(entgen.Driver(drv))
 
 	log.Info("database connected successfully")

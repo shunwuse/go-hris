@@ -23,7 +23,12 @@ type Config struct {
 	LogMaxAge     int    `koanf:"log_max_age"`     // days
 	LogCompress   bool   `koanf:"log_compress"`    // compress old files
 
-	SqliteDBPath string `koanf:"sqlite_db_path"`
+	DBHost     string `koanf:"db_host"`
+	DBPort     string `koanf:"db_port"`
+	DBUser     string `koanf:"db_user"`
+	DBPassword string `koanf:"db_password"`
+	DBName     string `koanf:"db_name"`
+	DBSSLMode  string `koanf:"db_ssl_mode"`
 
 	JWTSecret               string `koanf:"jwt_secret"`
 	JWTExpireMinutes        int    `koanf:"jwt_expire_minutes"`

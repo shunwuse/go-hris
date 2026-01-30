@@ -10,7 +10,7 @@
 - **Framework**: Chi (HTTP Router)
 - **ORM**: Ent
 - **DI**: Google Wire
-- **Database**: SQLite
+- **Database**: PostgreSQL
 - **Container**: Docker (Multi-stage build)
 
 ## 🚀 Quick Start
