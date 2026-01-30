@@ -1,10 +1,27 @@
 services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: hris-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=hris
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - hris-network
+
   api:
     build:
       context: ..
       dockerfile: build/package/Dockerfile
     image: go-hris:latest
     container_name: hris-api
+    depends_on:
+      - postgres
     ports:
       - "8080:8080"
     environment:
@@ -18,8 +35,7 @@ services:
     image: go-hris:latest
     container_name: hris-worker
     depends_on:
-      api:
-        condition: service_started
+      - postgres
     command: ["./myapp-worker"]
     environment:
       - APP_ENV=development
@@ -30,3 +46,6 @@ services:
 networks:
   hris-network:
     driver: bridge
+
+volumes:
+  postgres_data:
