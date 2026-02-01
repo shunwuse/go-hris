@@ -13,7 +13,7 @@ NC = \033[0m
 	run run-worker \
 	gen \
 	test test-coverage \
-	test-integration test-integration-quick test-integration-endpoints \
+	test-controllers test-services \
 	build build-static \
 	build-worker build-worker-static \
 	migrate-create migrate-up migrate-down \
@@ -50,14 +50,11 @@ test-coverage: ## Run tests with coverage report
 	go test -v -coverprofile=coverage.out ./...
 	go tool cover -html=coverage.out -o coverage.html
 
-test-integration: ## Run all integration tests
-	./scripts/run_tests_with_server.sh
+test-controllers: ## Run controller unit tests
+	go test -v ./internal/http/controllers/...
 
-test-integration-quick: ## Run quick integration tests
-	./scripts/quick_test.sh
-
-test-integration-endpoints: ## Run endpoint integration tests
-	./scripts/test_endpoints.sh
+test-services: ## Run service unit tests
+	go test -v ./internal/services/...
 
 build: ## Build the api server application
 	go build -ldflags "$(LDFLAGS)" -o $(APP_NAME) ./cmd/server
