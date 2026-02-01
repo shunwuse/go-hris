@@ -1,100 +1,73 @@
 # Testing Guide
 
-Quick reference for running tests in the go-hris project.
+This guide describes how to run tests for the go-hris project. We have transitioned from legacy shell-based integration tests to a comprehensive Go-native unit testing suite.
 
-## Quick Start
+## Test Architecture
 
-```bash
-# Unit tests
-make test
+We use Go's native `testing` package along with:
+- **[testify](https://github.com/stretchr/testify)**: For assertions and mocking.
+- **net/http/httptest**: For testing HTTP controllers without starting a real server.
 
-# Integration tests (recommended for full validation)
-make test-integration
+The test suite is divided into two main layers:
 
-# Quick smoke test (server must be running)
-make test-integration-quick
+### 1. Controller Tests
+Located in `internal/http/controllers/*_test.go`.
+These tests verify:
+- HTTP request routing and validation.
+- Response Status Codes and JSON structure.
+- Correct interaction with the Service layer via mocks.
 
-# Detailed endpoint tests (server must be running)
-make test-integration-endpoints
-```
+### 2. Service Tests
+Located in `internal/services/*_test.go`.
+These tests verify:
+- Business logic in isolation.
+- Integration with the Repository layer (via mocks).
+- Error handling and complex edge cases.
 
-## Test Commands
+## Running Tests
 
-### Unit Tests
+We provide several `make` targets to run tests efficiently:
+
 | Command | Description |
 |---------|-------------|
-| `make test` | Run Go unit tests (`go test ./...`) |
-| `make test-coverage` | Run tests with coverage report (generates `coverage.html`) |
+| `make test` | Run all unit tests in the project. |
+| `make test-controllers` | Run only the HTTP controller tests. |
+| `make test-services` | Run only the service layer logic tests. |
+| `make test-coverage` | Run all tests and generate a `coverage.html` report. |
 
-### Integration Tests
-| Command | Description | Server Required? |
-|---------|-------------|------------------|
-| `make test-integration` | Full test suite with automatic server management | ❌ No (auto-starts) |
-| `make test-integration-quick` | Fast smoke test (4 core endpoints) | ✅ Yes |
-| `make test-integration-endpoints` | Comprehensive endpoint tests (10 test cases) | ✅ Yes |
-
-## Test Output Example
-
-```
-Building server...
-Server built successfully
-Starting server on port 8080...
-Waiting for server to be ready...
-Server is ready!
-
-Running tests...
-✓ Ping returns 200
-✓ Login returns 200
-✓ Get users returns 200
-...
-
-Total tests:  10
-Passed:       10
-Failed:       0
-
-All tests passed! 🎉
-```
-
-## Development Workflow
-
-### 1. During Development
-
+### Example: Running specific tests
 ```bash
-# Terminal 1: Start server
-make server
-
-# Terminal 2: Run quick tests after changes
-make test-quick
-```
-
-### 2. Before Committing
-
-```bash
-# Run full test suite
+# Run all tests
 make test
 
-# Verify build
-go build ./...
+# Run only auth controller tests
+go test -v ./internal/http/controllers/auth_test.go
 ```
 
-### 3. CI/CD
+## Writing New Tests
 
-The `make test` command is designed for CI/CD pipelines:
-- ✅ Self-contained (builds and starts server)
-- ✅ Automatic cleanup
-- ✅ Returns proper exit codes
-- ✅ No manual intervention needed
+### Mocks
+Mocks are generated or manually defined in `internal/mocks`. When adding a new service or repository interface, ensure you update the corresponding mock.
 
-## More Information
-
-For detailed documentation and CI/CD integration examples, see scripts in the `scripts/` directory.
-
-## Test Scripts Location
-
+Example of a table-driven test with mocking:
+```go
+func TestController(t *testing.T) {
+    tests := []struct {
+        name           string
+        mockSetup      func(*mocks.MockService)
+        expectedStatus int
+    }{
+        {
+            name: "Success case",
+            mockSetup: func(m *mocks.MockService) {
+                m.On("DoWork").Return(nil)
+            },
+            expectedStatus: http.StatusOK,
+        },
+    }
+    // ...
+}
 ```
-scripts/
-├── run_tests_with_server.sh  # Full automation (make test)
-├── test_endpoints.sh          # Detailed tests (make test-endpoints)
-├── quick_test.sh              # Smoke tests (make test-quick)
-└── README.md                  # Detailed documentation
-```
+
+## Legacy Integration Tests
+The project previously used shell-based integration tests. These are being phased out in favor of Go-native unit tests using `httptest`.
