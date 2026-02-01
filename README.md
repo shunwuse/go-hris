@@ -86,7 +86,7 @@ We provide a comprehensive test suite including unit and integration tests.
 | `make test-integration` | Run full integration test suite | ✅ Yes |
 | `make test-integration-quick` | Fast smoke test (requires running server) | No |
 
-For detailed testing instructions, please refer to [TESTING.md](TESTING.md).
+For detailed testing instructions, please refer to [docs/testing.md](docs/testing.md).
 
 ## 📂 Project Structure
 
