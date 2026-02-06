@@ -27,6 +27,7 @@ services:
     environment:
       - APP_ENV=development
       - APP_SERVER_PORT=8080
+      - APP_DB_HOST=postgres
     restart: unless-stopped
     networks:
       - hris-network
@@ -39,6 +40,7 @@ services:
     command: ["./myapp-worker"]
     environment:
       - APP_ENV=development
+      - APP_DB_HOST=postgres
     restart: unless-stopped
     networks:
       - hris-network
