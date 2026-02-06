@@ -32,9 +32,7 @@ func New(log *logger.Logger) *RoutineGroup {
 // Run starts a new goroutine managed by the group.
 // It includes panic recovery to prevent the entire application from crashing.
 func (g *RoutineGroup) Run(name string, fn func(ctx context.Context)) {
-	g.wg.Add(1)
-	go func() {
-		defer g.wg.Done()
+	g.wg.Go(func() {
 		defer func() {
 			if r := recover(); r != nil {
 				g.logger.Error("panic recovered in routine",
@@ -50,7 +48,7 @@ func (g *RoutineGroup) Run(name string, fn func(ctx context.Context)) {
 		fn(g.ctx)
 
 		g.logger.Debug("routine finished", zap.String("name", name))
-	}()
+	})
 }
 
 // Context returns the context associated with the group.

@@ -73,7 +73,7 @@ func TestApprovalController_GetApprovals(t *testing.T) {
 				assert.False(t, resp.Meta.HasMore)
 
 				// Check data is array
-				data, ok := resp.Data.([]interface{})
+				data, ok := resp.Data.([]any)
 				assert.True(t, ok)
 				assert.Len(t, data, 2)
 			},
