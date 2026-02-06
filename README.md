@@ -6,7 +6,7 @@
 
 ## 🛠️ Tech Stack
 
-- **Language**: Go 1.25.5
+- **Language**: Go 1.25.7
 - **Framework**: Chi (HTTP Router)
 - **ORM**: Ent
 - **DI**: Google Wire
