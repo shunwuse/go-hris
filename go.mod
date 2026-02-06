@@ -1,6 +1,6 @@
 module github.com/shunwuse/go-hris
 
-go 1.25.5
+go 1.25.7
 
 require (
 	entgo.io/ent v0.14.5
