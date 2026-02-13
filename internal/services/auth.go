@@ -22,9 +22,9 @@ import (
 	"github.com/shunwuse/go-hris/internal/infra/database"
 	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"github.com/shunwuse/go-hris/internal/pkg/contextx"
+	"github.com/shunwuse/go-hris/internal/pkg/cryptox"
 	"github.com/shunwuse/go-hris/internal/ports/repository"
 	"github.com/shunwuse/go-hris/internal/ports/service"
-	"github.com/shunwuse/go-hris/internal/utils"
 	"go.uber.org/zap"
 )
 
@@ -103,7 +103,7 @@ func (s *authService) Login(ctx context.Context, username string, password strin
 	}
 
 	// Verify password.
-	if !utils.CheckPasswordHash(password, user.Edges.Password.Hash) {
+	if !cryptox.CheckPasswordHash(password, user.Edges.Password.Hash) {
 		s.logger.WithContext(ctx).Error("password verification failed")
 		return nil, errors.ErrInvalidCredentials
 	}
@@ -245,7 +245,7 @@ func (s *authService) GenerateRefreshToken(ctx context.Context, user *domains.Us
 	}
 	rawToken := base64.URLEncoding.EncodeToString(tokenBytes)
 
-	tokenHash := utils.SHA256Hex(rawToken)
+	tokenHash := cryptox.SHA256Hex(rawToken)
 
 	expiresAt := time.Now().Add(s.jwtRefreshExpire)
 
@@ -263,7 +263,7 @@ func (s *authService) GenerateRefreshToken(ctx context.Context, user *domains.Us
 }
 
 func (s *authService) RefreshAccessToken(ctx context.Context, refreshToken string) (*domains.TokenPair, error) {
-	tokenHash := utils.SHA256Hex(refreshToken)
+	tokenHash := cryptox.SHA256Hex(refreshToken)
 
 	var tokenPair *domains.TokenPair
 	// Use WithTx to ensure token rotation is atomic (revoke old + create new).
@@ -328,7 +328,7 @@ func (s *authService) RefreshAccessToken(ctx context.Context, refreshToken strin
 }
 
 func (s *authService) RevokeRefreshToken(ctx context.Context, refreshToken string) error {
-	tokenHash := utils.SHA256Hex(refreshToken)
+	tokenHash := cryptox.SHA256Hex(refreshToken)
 	return s.refreshTokenRepository.RevokeRefreshToken(ctx, tokenHash)
 }
 

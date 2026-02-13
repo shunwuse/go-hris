@@ -13,9 +13,9 @@ import (
 	"github.com/shunwuse/go-hris/internal/infra/database"
 	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"github.com/shunwuse/go-hris/internal/pkg/contextx"
+	"github.com/shunwuse/go-hris/internal/pkg/cryptox"
 	"github.com/shunwuse/go-hris/internal/ports/repository"
 	"github.com/shunwuse/go-hris/internal/ports/service"
-	"github.com/shunwuse/go-hris/internal/utils"
 	"go.uber.org/zap"
 )
 
@@ -140,7 +140,7 @@ func (s *userService) CreateUser(ctx context.Context, user *domains.UserCreate, 
 		return errors.ErrOperationNotAllowed
 	}
 
-	hashedPassword, err := utils.HashPassword(user.Password)
+	hashedPassword, err := cryptox.HashPassword(user.Password)
 	if err != nil {
 		s.logger.WithContext(ctx).Error("failed to hash password", zap.Error(err))
 		return errors.ErrInternalError
