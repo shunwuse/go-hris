@@ -6,7 +6,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"github.com/shunwuse/go-hris/internal/pkg/contextx"
-	"github.com/shunwuse/go-hris/internal/utils"
+	"github.com/shunwuse/go-hris/internal/pkg/random"
 )
 
 type TraceMiddleware struct {
@@ -31,11 +31,11 @@ func (m *TraceMiddleware) Handler() func(http.Handler) http.Handler {
 			// Get or generate Trace ID.
 			traceID := r.Header.Get("X-Trace-Id")
 			if traceID == "" {
-				traceID = utils.NewTraceID()
+				traceID = random.NewTraceID()
 			}
 
 			// Generate a new Span ID.
-			spanID := utils.NewSpanID()
+			spanID := random.NewSpanID()
 
 			// Set IDs in response header.
 			w.Header().Set("X-Trace-Id", traceID)

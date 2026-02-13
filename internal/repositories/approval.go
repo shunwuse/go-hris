@@ -11,8 +11,8 @@ import (
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/infra/database"
 	"github.com/shunwuse/go-hris/internal/infra/logger"
+	"github.com/shunwuse/go-hris/internal/pkg/pagination"
 	"github.com/shunwuse/go-hris/internal/ports/repository"
-	"github.com/shunwuse/go-hris/internal/utils"
 	"go.uber.org/zap"
 )
 
@@ -56,7 +56,7 @@ func (r *ApprovalRepository) FindAllWithCursor(ctx context.Context, query domain
 	}
 
 	if query.Cursor != "" {
-		parts, err := utils.DecodeCursor(query.Cursor)
+		parts, err := pagination.DecodeCursor(query.Cursor)
 		if err != nil || len(parts) == 0 {
 			r.logger.WithContext(ctx).Error("failed to decode cursor", zap.Error(err))
 			return nil, errors.ErrInvalidInput
@@ -79,7 +79,7 @@ func (r *ApprovalRepository) FindAllWithCursor(ctx context.Context, query domain
 	hasMore := len(approvals) > query.Limit
 	var nextCursor string
 	if hasMore {
-		nextCursor = utils.EncodeCursor(approvals[query.Limit-1].ID)
+		nextCursor = pagination.EncodeCursor(approvals[query.Limit-1].ID)
 		approvals = approvals[:query.Limit]
 	}
 
