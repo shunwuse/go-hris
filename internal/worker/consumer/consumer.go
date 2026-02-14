@@ -3,7 +3,7 @@ package consumer
 import (
 	"context"
 
-	"github.com/shunwuse/go-hris/internal/infra/logger"
+	"github.com/shunwuse/go-hris/internal/pkg/logger"
 	"github.com/shunwuse/go-hris/internal/worker/consumer/handlers"
 	"go.uber.org/zap"
 )

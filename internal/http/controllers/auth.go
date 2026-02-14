@@ -7,8 +7,8 @@ import (
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/http/request"
 	"github.com/shunwuse/go-hris/internal/http/response"
-	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"github.com/shunwuse/go-hris/internal/pkg/contextx"
+	"github.com/shunwuse/go-hris/internal/pkg/logger"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"go.uber.org/zap"
 )

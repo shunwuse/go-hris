@@ -17,8 +17,8 @@ import (
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/http/controllers"
 	"github.com/shunwuse/go-hris/internal/http/response"
-	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"github.com/shunwuse/go-hris/internal/mocks"
+	"github.com/shunwuse/go-hris/internal/pkg/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )

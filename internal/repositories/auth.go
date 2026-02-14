@@ -8,7 +8,7 @@ import (
 	"github.com/shunwuse/go-hris/ent/entgen/refreshtoken"
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/infra/database"
-	"github.com/shunwuse/go-hris/internal/infra/logger"
+	"github.com/shunwuse/go-hris/internal/pkg/logger"
 	"github.com/shunwuse/go-hris/internal/ports/repository"
 	"go.uber.org/zap"
 )

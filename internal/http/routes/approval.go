@@ -4,7 +4,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/shunwuse/go-hris/internal/http/controllers"
 	"github.com/shunwuse/go-hris/internal/http/middlewares"
-	"github.com/shunwuse/go-hris/internal/infra/logger"
+	"github.com/shunwuse/go-hris/internal/pkg/logger"
 )
 
 type ApprovalRoute struct {
