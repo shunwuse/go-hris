@@ -18,7 +18,7 @@ func TestLocker(t *testing.T) {
 			UseMiniredis: true,
 		},
 	}
-	log := logger.L()
+	log := logger.New()
 
 	c := cache.New(cfg, log)
 	defer c.Close() //nolint:errcheck

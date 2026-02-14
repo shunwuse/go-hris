@@ -17,7 +17,7 @@ func TestFetch(t *testing.T) {
 			UseMiniredis: true,
 		},
 	}
-	log := logger.L()
+	log := logger.New()
 
 	cache := New(cfg, log)
 	defer func() { _ = cache.Close() }()
