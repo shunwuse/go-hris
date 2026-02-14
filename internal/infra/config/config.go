@@ -12,54 +12,31 @@ import (
 	"github.com/knadh/koanf/v2"
 )
 
-type Config struct {
-	Environment string `koanf:"env"`
-	ServerPort  string `koanf:"server_port"`
-
-	LogLevel      string `koanf:"log_level"` // debug, info, warn, error
-	LogOutput     string `koanf:"log_output"`
-	LogMaxSize    int    `koanf:"log_max_size"`    // megabytes
-	LogMaxBackups int    `koanf:"log_max_backups"` // number of backups
-	LogMaxAge     int    `koanf:"log_max_age"`     // days
-	LogCompress   bool   `koanf:"log_compress"`    // compress old files
-
-	DBHost     string `koanf:"db_host"`
-	DBPort     string `koanf:"db_port"`
-	DBUser     string `koanf:"db_user"`
-	DBPassword string `koanf:"db_password"`
-	DBName     string `koanf:"db_name"`
-	DBSSLMode  string `koanf:"db_ssl_mode"`
-
-	JWTSecret               string `koanf:"jwt_secret"`
-	JWTExpireMinutes        int    `koanf:"jwt_expire_minutes"`
-	JWTRefreshExpireMinutes int    `koanf:"jwt_refresh_expire_minutes"`
-
-	IdempotencyExpireMinutes int `koanf:"idempotency_expire_minutes"`
-
-	UseMiniredis  bool   `koanf:"use_miniredis"`
-	RedisAddr     string `koanf:"redis_addr"`
-	RedisPassword string `koanf:"redis_password"`
-	RedisDB       int    `koanf:"redis_db"`
-
-	ProfilerToken string `koanf:"profiler_token"` // token for pprof access
-}
-
 var (
 	instance atomic.Pointer[Config]
 	loadOnce sync.Once
 )
 
-// Get returns the current configuration.
-func Get() Config {
+// Load returns the current configuration, loading it if necessary.
+func Load() (*Config, error) {
+	var err error
 	loadOnce.Do(func() {
-		instance.Store(load())
+		var cfg *Config
+		cfg, err = load()
+		if err == nil {
+			instance.Store(cfg)
+		}
 	})
 
-	return *instance.Load()
+	if err != nil {
+		return nil, err
+	}
+
+	return instance.Load(), nil
 }
 
-func load() *Config {
-	config := &Config{}
+func load() (*Config, error) {
+	cfg := &Config{}
 
 	k := koanf.New(".")
 
@@ -82,9 +59,9 @@ func load() *Config {
 	}
 
 	// Unmarshal configuration.
-	if err := k.Unmarshal("", config); err != nil {
-		log.Fatalf("failed to unmarshal config: %v", err)
+	if err := k.Unmarshal("", cfg); err != nil {
+		return nil, err
 	}
 
-	return config
+	return cfg, nil
 }

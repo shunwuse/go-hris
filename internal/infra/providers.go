@@ -4,7 +4,6 @@ import (
 	"github.com/google/wire"
 	termalerter "github.com/shunwuse/go-hris/internal/infra/alerter/provider/terminal"
 	"github.com/shunwuse/go-hris/internal/infra/cache"
-	"github.com/shunwuse/go-hris/internal/infra/config"
 	"github.com/shunwuse/go-hris/internal/infra/database"
 	"github.com/shunwuse/go-hris/internal/infra/handler"
 	"github.com/shunwuse/go-hris/internal/infra/idempotency"
@@ -16,7 +15,6 @@ import (
 )
 
 var ProviderSet = wire.NewSet(
-	config.Get,
 	logger.L,
 	database.DB,
 	database.NewTransactor,

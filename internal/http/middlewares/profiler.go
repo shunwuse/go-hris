@@ -10,9 +10,9 @@ type ProfilerMiddleware struct {
 	token string
 }
 
-func NewProfilerMiddleware(cfg config.Config) *ProfilerMiddleware {
+func NewProfilerMiddleware(cfg *config.Config) *ProfilerMiddleware {
 	return &ProfilerMiddleware{
-		token: cfg.ProfilerToken,
+		token: cfg.Service.ProfilerToken,
 	}
 }
 

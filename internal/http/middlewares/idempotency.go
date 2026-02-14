@@ -16,16 +16,16 @@ import (
 )
 
 type IdempotencyMiddleware struct {
+	config  *config.Config
 	manager *idempotency.Manager
 	logger  *logger.Logger
-	config  config.Config
 }
 
-func NewIdempotencyMiddleware(manager *idempotency.Manager, logger *logger.Logger) *IdempotencyMiddleware {
+func NewIdempotencyMiddleware(cfg *config.Config, manager *idempotency.Manager, logger *logger.Logger) *IdempotencyMiddleware {
 	return &IdempotencyMiddleware{
+		config:  cfg,
 		manager: manager,
 		logger:  logger,
-		config:  config.Get(),
 	}
 }
 
@@ -35,7 +35,7 @@ func (m *IdempotencyMiddleware) Setup(router chi.Router) {
 
 // Handler returns a middleware with the default timeout from config.
 func (m *IdempotencyMiddleware) Handler() func(http.Handler) http.Handler {
-	return m.HandlerWithTTL(time.Duration(m.config.IdempotencyExpireMinutes) * time.Minute)
+	return m.HandlerWithTTL(time.Duration(m.config.Service.IdempotencyExpireMinutes) * time.Minute)
 }
 
 // HandlerWithTTL returns a middleware with a custom timeout.

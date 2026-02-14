@@ -19,7 +19,7 @@ import (
 )
 
 type Server struct {
-	config            config.Config
+	config            *config.Config
 	logger            *logger.Logger
 	database          *database.Database
 	cache             *cache.Cache
@@ -29,7 +29,7 @@ type Server struct {
 }
 
 func NewServer(
-	cfg config.Config,
+	cfg *config.Config,
 	log *logger.Logger,
 	db *database.Database,
 	cache *cache.Cache,
@@ -57,7 +57,7 @@ func (server *Server) Run() {
 	// Setup routes.
 	server.routes.Setup(server.handler.Router)
 
-	port := server.config.ServerPort
+	port := server.config.Service.Port
 
 	if port == "" {
 		port = "8080" // default port

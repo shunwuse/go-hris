@@ -13,10 +13,13 @@ import (
 )
 
 func TestLocker(t *testing.T) {
-	cfg := config.Config{
-		UseMiniredis: true,
+	cfg := &config.Config{
+		Cache: config.CacheConfig{
+			UseMiniredis: true,
+		},
 	}
 	log := logger.L()
+
 	c := cache.New(cfg, log)
 	defer c.Close() //nolint:errcheck
 

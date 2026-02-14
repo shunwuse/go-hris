@@ -43,32 +43,32 @@ type authService struct {
 }
 
 func NewAuthService(
-	cfg config.Config,
+	cfg *config.Config,
 	log *logger.Logger,
 	c *cache.Cache,
 	transactor database.Transactor,
 	userService service.UserService,
 	refreshTokenRepository repository.AuthRepository,
 ) service.AuthService {
-	key, err := jwk.FromRaw([]byte(cfg.JWTSecret))
+	key, err := jwk.FromRaw([]byte(cfg.Auth.JWTSecret))
 	if err != nil {
 		log.Fatal("failed to create JWK from secret", zap.Error(err))
 	}
 
 	_ = key.Set(jwk.AlgorithmKey, jwa.HS256)
 
-	hash := sha256.Sum256([]byte(cfg.JWTSecret))
+	hash := sha256.Sum256([]byte(cfg.Auth.JWTSecret))
 	kid := hex.EncodeToString(hash[:])[:8]
 	_ = key.Set(jwk.KeyIDKey, kid)
 
 	// Set expire hours with default value.
-	expireDuration := time.Duration(cfg.JWTExpireMinutes) * time.Minute
+	expireDuration := time.Duration(cfg.Auth.JWTExpireMinutes) * time.Minute
 	if expireDuration <= 0 {
 		expireDuration = 1 * time.Hour // default to 1 hour
 	}
 
 	// Set refresh expire hours with default value.
-	refreshExpireDuration := time.Duration(cfg.JWTRefreshExpireMinutes) * time.Minute
+	refreshExpireDuration := time.Duration(cfg.Auth.JWTRefreshExpireMinutes) * time.Minute
 	if refreshExpireDuration <= 0 {
 		refreshExpireDuration = 24 * time.Hour // default to 24 hours
 	}
