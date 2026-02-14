@@ -9,6 +9,7 @@ import (
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/jmoiron/sqlx"
 	"github.com/shunwuse/go-hris/ent/entgen"
+	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/infra/config"
 	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"go.uber.org/zap"
@@ -29,7 +30,21 @@ var (
 func DB() *Database {
 	if instance == nil {
 		cfg, _ := config.Load()
-		db := connect(cfg, logger.L())
+		log := logger.L()
+		if log == nil {
+			log = logger.New(
+				logger.WithConfig(logger.Config{
+					Level:      cfg.Log.Level,
+					FilePath:   cfg.Log.FilePath,
+					MaxSize:    cfg.Log.MaxSize,
+					MaxBackups: cfg.Log.MaxBackups,
+					MaxAge:     cfg.Log.MaxAge,
+					Compress:   cfg.Log.Compress,
+				}),
+				logger.WithConsole(cfg.Service.Environment == constants.EnvDevelopment),
+			)
+		}
+		db := connect(cfg, log)
 		instance = &db
 	}
 

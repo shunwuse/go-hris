@@ -12,7 +12,9 @@ func main() {
 		log.Fatalf("failed to load configuration: %v", err)
 	}
 
-	worker := InitializeWorker(cfg)
+	log := initLogger(cfg)
+
+	worker := InitializeWorker(cfg, log)
 
 	worker.Run()
 }

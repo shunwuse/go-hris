@@ -12,7 +12,9 @@ func main() {
 		log.Fatalf("failed to load configuration: %v", err)
 	}
 
-	server := InitializeServer(cfg)
+	log := initLogger(cfg)
+
+	server := InitializeServer(cfg, log)
 
 	server.Run()
 }
