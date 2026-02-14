@@ -34,8 +34,8 @@ RUN apk add --no-cache ca-certificates
 WORKDIR /app
 
 # Copy the binaries
-COPY --from=builder /app/myapp .
-COPY --from=builder /app/myapp-worker .
+COPY --from=builder /app/bin/app .
+COPY --from=builder /app/bin/app-worker .
 # Copy the environment file
 RUN mkdir -p configs
 COPY --from=builder /app/configs/default.env ./configs/default.env
@@ -44,4 +44,4 @@ COPY --from=builder /app/configs/default.env ./configs/default.env
 EXPOSE 8080
 
 # Run the application
-CMD ["./myapp"]
+CMD ["./app"]
