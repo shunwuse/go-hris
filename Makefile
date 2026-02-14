@@ -1,5 +1,5 @@
 # Variables
-APP_NAME = myapp
+APP_NAME = app
 MIGRATIONS_DIR = ./migrations
 DB_URL = postgresql://postgres:postgres@localhost:5432/hris?sslmode=disable
 VERSION = $(shell git rev-parse --short HEAD 2>/dev/null || echo "dev")
@@ -57,16 +57,16 @@ test-services: ## Run service unit tests
 	go test -v ./internal/services/...
 
 build: ## Build the api server application
-	go build -ldflags "$(LDFLAGS)" -o $(APP_NAME) ./cmd/server
+	go build -ldflags "$(LDFLAGS)" -o ./bin/$(APP_NAME) ./cmd/server
 
 build-static: ## Build the server application statically
-	go build -ldflags "$(LDFLAGS) -extldflags '-static'" -o $(APP_NAME) ./cmd/server
+	go build -ldflags "$(LDFLAGS) -extldflags '-static'" -o ./bin/$(APP_NAME) ./cmd/server
 
 build-worker: ## Build the worker application
-	go build -ldflags "$(LDFLAGS)" -o $(APP_NAME)-worker ./cmd/worker
+	go build -ldflags "$(LDFLAGS)" -o ./bin/$(APP_NAME)-worker ./cmd/worker
 
 build-worker-static: ## Build the worker application statically
-	go build -ldflags "$(LDFLAGS) -extldflags '-static'" -o $(APP_NAME)-worker ./cmd/worker
+	go build -ldflags "$(LDFLAGS) -extldflags '-static'" -o ./bin/$(APP_NAME)-worker ./cmd/worker
 
 ## Database targets
 migrate-create: ## Create a new migration (usage: make migrate-create name=migration_name)

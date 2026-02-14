@@ -10,8 +10,7 @@
 .gitignore
 
 # Binaries #
-myapp
-server
+bin/
 
 # Database files and logs
 *.db
