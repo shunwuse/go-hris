@@ -17,10 +17,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	cfg := config.Get()
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatalf("failed to load configuration: %v", err)
+	}
+
 	dsn := fmt.Sprintf(
 		"postgresql://%s:%s@%s:%s/%s?sslmode=%s",
-		cfg.DBUser, cfg.DBPassword, cfg.DBHost, cfg.DBPort, cfg.DBName, cfg.DBSSLMode,
+		cfg.Database.User, cfg.Database.Password, cfg.Database.Host, cfg.Database.Port, cfg.Database.Name, cfg.Database.SSLMode,
 	)
 
 	m, err := migrate.New("file://./migrations", dsn)

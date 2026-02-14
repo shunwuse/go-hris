@@ -33,12 +33,13 @@ var (
 // L returns the global logger instance.
 func L() *Logger {
 	initOnce.Do(func() {
-		logger := newLogger(config.Get())
+		cfg, _ := config.Load()
+		logger := newLogger(cfg)
 		instance = &logger
 
 		// Register reload hook.
 		config.OnChange(func(cfg *config.Config) {
-			instance.UpdateLevel(cfg.LogLevel)
+			instance.UpdateLevel(cfg.Log.Level)
 		})
 	})
 
@@ -58,15 +59,15 @@ func (l *Logger) UpdateLevel(levelStr string) {
 	l.Info("log level updated", zap.String("new_level", level.String()))
 }
 
-func newLogger(cfg config.Config) Logger {
+func newLogger(cfg *config.Config) Logger {
 	// Parse level.
 	atomicLevel := zap.NewAtomicLevel()
-	if err := atomicLevel.UnmarshalText([]byte(cfg.LogLevel)); err != nil {
+	if err := atomicLevel.UnmarshalText([]byte(cfg.Log.Level)); err != nil {
 		atomicLevel.SetLevel(zapcore.InfoLevel) // Default if invalid.
 	}
 
 	// Get directory path.
-	dir := filepath.Dir(cfg.LogOutput)
+	dir := filepath.Dir(cfg.Log.FilePath)
 
 	// Check if logs directory exists, if not create it.
 	if _, err := os.Stat(dir); os.IsNotExist(err) {
@@ -80,12 +81,12 @@ func newLogger(cfg config.Config) Logger {
 		zap.String("instance_id", app.InstanceID),
 		zap.String("hostname", app.Hostname),
 		zap.Int("pid", os.Getpid()),
-		zap.String("environment", cfg.Environment),
+		zap.String("environment", cfg.Service.Environment),
 	}
 
 	// Create logger core based on environment.
 	var core zapcore.Core
-	if cfg.Environment == constants.EnvDevelopment {
+	if cfg.Service.Environment == constants.EnvDevelopment {
 		core = createDevelopmentCore(cfg, atomicLevel, fields)
 	} else {
 		core = createProductionCore(cfg, atomicLevel, fields)
@@ -100,7 +101,7 @@ func newLogger(cfg config.Config) Logger {
 	return Logger{logger, atomicLevel}
 }
 
-func createDevelopmentCore(cfg config.Config, level zap.AtomicLevel, fields []zapcore.Field) zapcore.Core {
+func createDevelopmentCore(cfg *config.Config, level zap.AtomicLevel, fields []zapcore.Field) zapcore.Core {
 	encoderConfig := createEncoderConfig()
 	writer := createFileWriter(cfg)
 
@@ -126,7 +127,7 @@ func createDevelopmentCore(cfg config.Config, level zap.AtomicLevel, fields []za
 	return zapcore.NewTee(fileCore, consoleCore)
 }
 
-func createProductionCore(cfg config.Config, level zap.AtomicLevel, fields []zapcore.Field) zapcore.Core {
+func createProductionCore(cfg *config.Config, level zap.AtomicLevel, fields []zapcore.Field) zapcore.Core {
 	encoderConfig := createEncoderConfig()
 	writer := createFileWriter(cfg)
 
@@ -155,12 +156,12 @@ func createEncoderConfig() zapcore.EncoderConfig {
 	}
 }
 
-func createFileWriter(cfg config.Config) io.Writer {
+func createFileWriter(cfg *config.Config) io.Writer {
 	return &lumberjack.Logger{
-		Filename:   cfg.LogOutput,
-		MaxSize:    cfg.LogMaxSize,    // megabytes
-		MaxBackups: cfg.LogMaxBackups, // number of backups
-		MaxAge:     cfg.LogMaxAge,     // days
-		Compress:   cfg.LogCompress,   // compress old files
+		Filename:   cfg.Log.FilePath,
+		MaxSize:    cfg.Log.MaxSize,    // megabytes
+		MaxBackups: cfg.Log.MaxBackups, // number of backups
+		MaxAge:     cfg.Log.MaxAge,     // days
+		Compress:   cfg.Log.Compress,   // compress old files
 	}
 }

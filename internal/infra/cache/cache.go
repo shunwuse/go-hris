@@ -18,14 +18,14 @@ type Cache struct {
 	sf        singleflight.Group
 }
 
-func New(cfg config.Config, log *logger.Logger) *Cache {
-	addr := cfg.RedisAddr
-	password := cfg.RedisPassword
-	db := cfg.RedisDB
+func New(cfg *config.Config, log *logger.Logger) *Cache {
+	addr := cfg.Cache.RedisAddr
+	password := cfg.Cache.RedisPassword
+	db := cfg.Cache.RedisDB
 
 	var miniRedis *miniredis.Miniredis
 
-	if cfg.UseMiniredis {
+	if cfg.Cache.UseMiniredis {
 		mini, err := miniredis.Run()
 		if err != nil {
 			log.Fatal("failed to start miniredis", zap.Error(err))

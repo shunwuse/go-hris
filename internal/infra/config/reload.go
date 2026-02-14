@@ -14,7 +14,10 @@ func Reload() error {
 	configReloadMu.Lock()
 	defer configReloadMu.Unlock()
 
-	newConfig := load()
+	newConfig, err := load()
+	if err != nil {
+		return err
+	}
 	instance.Store(newConfig)
 
 	// Trigger hooks.

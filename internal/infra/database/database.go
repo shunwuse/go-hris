@@ -28,17 +28,18 @@ var (
 // DB returns the database client.
 func DB() *Database {
 	if instance == nil {
-		db := connect(config.Get(), logger.L())
+		cfg, _ := config.Load()
+		db := connect(cfg, logger.L())
 		instance = &db
 	}
 
 	return instance
 }
 
-func connect(cfg config.Config, log *logger.Logger) Database {
+func connect(cfg *config.Config, log *logger.Logger) Database {
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
-		cfg.DBHost, cfg.DBPort, cfg.DBUser, cfg.DBPassword, cfg.DBName, cfg.DBSSLMode,
+		cfg.Database.Host, cfg.Database.Port, cfg.Database.User, cfg.Database.Password, cfg.Database.Name, cfg.Database.SSLMode,
 	)
 
 	db, err := sqlx.Open(dialect.Postgres, dsn)

@@ -12,8 +12,13 @@ import (
 )
 
 func TestFetch(t *testing.T) {
+	cfg := &config.Config{
+		Cache: config.CacheConfig{
+			UseMiniredis: true,
+		},
+	}
 	log := logger.L()
-	cfg := config.Config{UseMiniredis: true}
+
 	cache := New(cfg, log)
 	defer func() { _ = cache.Close() }()
 

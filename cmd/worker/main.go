@@ -1,7 +1,18 @@
 package main
 
+import (
+	"log"
+
+	"github.com/shunwuse/go-hris/internal/infra/config"
+)
+
 func main() {
-	worker := InitializeWorker()
+	cfg, err := config.Load()
+	if err != nil {
+		log.Fatalf("failed to load configuration: %v", err)
+	}
+
+	worker := InitializeWorker(cfg)
 
 	worker.Run()
 }

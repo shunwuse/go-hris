@@ -14,15 +14,18 @@ import (
 )
 
 type monitorService struct {
+	config            *config.Config
 	logger            *logger.Logger
 	monitorRepository repository.MonitorRepository
 }
 
 func NewMonitorService(
+	cfg *config.Config,
 	log *logger.Logger,
 	monitorRepository repository.MonitorRepository,
 ) service.MonitorService {
 	return &monitorService{
+		config:            cfg,
 		logger:            log,
 		monitorRepository: monitorRepository,
 	}
@@ -55,7 +58,7 @@ func (s *monitorService) HealthCheck(ctx context.Context) *domains.Health {
 		},
 		Info: domains.HealthInfo{
 			Version:     app.Version,
-			Environment: config.Get().Environment,
+			Environment: s.config.Service.Environment,
 			Uptime:      uptime,
 			InstanceID:  app.InstanceID,
 			Hostname:    app.Hostname,
