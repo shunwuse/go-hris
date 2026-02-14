@@ -7,8 +7,8 @@ import (
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/infra/app"
-	"github.com/shunwuse/go-hris/internal/infra/config"
-	"github.com/shunwuse/go-hris/internal/infra/logger"
+	"github.com/shunwuse/go-hris/internal/pkg/config"
+	"github.com/shunwuse/go-hris/internal/pkg/logger"
 	"github.com/shunwuse/go-hris/internal/ports/repository"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 )

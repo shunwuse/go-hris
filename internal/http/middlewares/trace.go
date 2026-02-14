@@ -4,8 +4,8 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/shunwuse/go-hris/internal/infra/logger"
 	"github.com/shunwuse/go-hris/internal/pkg/contextx"
+	"github.com/shunwuse/go-hris/internal/pkg/logger"
 	"github.com/shunwuse/go-hris/internal/pkg/random"
 )
 

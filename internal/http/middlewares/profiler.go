@@ -3,7 +3,7 @@ package middlewares
 import (
 	"net/http"
 
-	"github.com/shunwuse/go-hris/internal/infra/config"
+	"github.com/shunwuse/go-hris/internal/pkg/config"
 )
 
 type ProfilerMiddleware struct {

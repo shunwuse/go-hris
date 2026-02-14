@@ -6,7 +6,7 @@ import (
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/dtos"
 	"github.com/shunwuse/go-hris/internal/http/response"
-	"github.com/shunwuse/go-hris/internal/infra/logger"
+	"github.com/shunwuse/go-hris/internal/pkg/logger"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 )
 

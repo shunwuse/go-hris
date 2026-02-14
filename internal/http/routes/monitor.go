@@ -8,7 +8,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/shunwuse/go-hris/internal/http/controllers"
 	"github.com/shunwuse/go-hris/internal/http/middlewares"
-	"github.com/shunwuse/go-hris/internal/infra/logger"
+	"github.com/shunwuse/go-hris/internal/pkg/logger"
 )
 
 type MonitorRoute struct {

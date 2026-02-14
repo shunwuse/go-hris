@@ -10,8 +10,8 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/internal/constants"
-	"github.com/shunwuse/go-hris/internal/infra/config"
-	"github.com/shunwuse/go-hris/internal/infra/logger"
+	"github.com/shunwuse/go-hris/internal/pkg/config"
+	"github.com/shunwuse/go-hris/internal/pkg/logger"
 	"go.uber.org/zap"
 
 	_ "github.com/lib/pq"

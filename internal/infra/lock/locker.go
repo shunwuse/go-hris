@@ -7,7 +7,7 @@ import (
 	"github.com/bsm/redislock"
 	"github.com/shunwuse/go-hris/internal/infra/app"
 	"github.com/shunwuse/go-hris/internal/infra/cache"
-	"github.com/shunwuse/go-hris/internal/infra/logger"
+	"github.com/shunwuse/go-hris/internal/pkg/logger"
 )
 
 // Locker provides distributed locking capabilities using Redis.

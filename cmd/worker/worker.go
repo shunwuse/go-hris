@@ -9,7 +9,7 @@ import (
 
 	"github.com/shunwuse/go-hris/internal/infra/cache"
 	"github.com/shunwuse/go-hris/internal/infra/database"
-	"github.com/shunwuse/go-hris/internal/infra/logger"
+	"github.com/shunwuse/go-hris/internal/pkg/logger"
 	"github.com/shunwuse/go-hris/internal/worker/consumer"
 	"github.com/shunwuse/go-hris/internal/worker/scheduler"
 	"go.uber.org/zap"

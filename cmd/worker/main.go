@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	"github.com/shunwuse/go-hris/internal/infra/config"
+	"github.com/shunwuse/go-hris/internal/pkg/config"
 )
 
 func main() {

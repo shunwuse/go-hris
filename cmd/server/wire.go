@@ -7,8 +7,8 @@ import (
 	"github.com/google/wire"
 	"github.com/shunwuse/go-hris/internal/http"
 	"github.com/shunwuse/go-hris/internal/infra"
-	"github.com/shunwuse/go-hris/internal/infra/config"
-	"github.com/shunwuse/go-hris/internal/infra/logger"
+	"github.com/shunwuse/go-hris/internal/pkg/config"
+	"github.com/shunwuse/go-hris/internal/pkg/logger"
 	"github.com/shunwuse/go-hris/internal/repositories"
 	"github.com/shunwuse/go-hris/internal/services"
 )

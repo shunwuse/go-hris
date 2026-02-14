@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/shunwuse/go-hris/internal/infra/alerter"
-	"github.com/shunwuse/go-hris/internal/infra/logger"
+	"github.com/shunwuse/go-hris/internal/pkg/logger"
 	"go.uber.org/zap"
 )
 

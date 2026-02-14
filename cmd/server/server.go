@@ -11,10 +11,10 @@ import (
 	"github.com/shunwuse/go-hris/internal/http/middlewares"
 	"github.com/shunwuse/go-hris/internal/http/routes"
 	"github.com/shunwuse/go-hris/internal/infra/cache"
-	"github.com/shunwuse/go-hris/internal/infra/config"
 	"github.com/shunwuse/go-hris/internal/infra/database"
 	"github.com/shunwuse/go-hris/internal/infra/handler"
-	"github.com/shunwuse/go-hris/internal/infra/logger"
+	"github.com/shunwuse/go-hris/internal/pkg/config"
+	"github.com/shunwuse/go-hris/internal/pkg/logger"
 	"go.uber.org/zap"
 )
 

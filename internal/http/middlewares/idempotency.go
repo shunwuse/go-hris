@@ -8,10 +8,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/shunwuse/go-hris/internal/infra/config"
 	"github.com/shunwuse/go-hris/internal/infra/idempotency"
-	"github.com/shunwuse/go-hris/internal/infra/logger"
+	"github.com/shunwuse/go-hris/internal/pkg/config"
 	"github.com/shunwuse/go-hris/internal/pkg/contextx"
+	"github.com/shunwuse/go-hris/internal/pkg/logger"
 	"go.uber.org/zap"
 )
 
