@@ -2,7 +2,7 @@ package infra
 
 import (
 	"github.com/google/wire"
-	termalerter "github.com/shunwuse/go-hris/internal/infra/alerter/provider/terminal"
+	"github.com/shunwuse/go-hris/internal/infra/alerter"
 	"github.com/shunwuse/go-hris/internal/infra/cache"
 	"github.com/shunwuse/go-hris/internal/infra/database"
 	"github.com/shunwuse/go-hris/internal/infra/handler"
@@ -21,7 +21,7 @@ var ProviderSet = wire.NewSet(
 	idempotency.New,
 	metrics.New,
 	handler.New,
-	termalerter.New,
+	alerter.NewMultiAlerter,
 	routine.New,
 	lifecycle.New,
 )

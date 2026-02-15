@@ -6,15 +6,15 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/shunwuse/go-hris/internal/infra/alerter"
 	"github.com/shunwuse/go-hris/internal/pkg/contextx"
+	"github.com/shunwuse/go-hris/internal/ports/infra"
 )
 
 type ExceptionMiddleware struct {
-	alerter alerter.Alerter
+	alerter infra.Alerter
 }
 
-func NewExceptionMiddleware(alerter alerter.Alerter) *ExceptionMiddleware {
+func NewExceptionMiddleware(alerter infra.Alerter) *ExceptionMiddleware {
 	return &ExceptionMiddleware{
 		alerter: alerter,
 	}
@@ -33,8 +33,8 @@ func (m *ExceptionMiddleware) Handler() func(http.Handler) http.Handler {
 			if ww.Status() >= 500 {
 				traceID := contextx.GetTraceID(r.Context())
 
-				_ = m.alerter.Send(r.Context(), alerter.Message{
-					Level:   alerter.LevelError,
+				_ = m.alerter.Send(r.Context(), infra.Message{
+					Level:   infra.LevelError,
 					TraceID: traceID,
 					Title:   fmt.Sprintf("HTTP %d Error", ww.Status()),
 					Content: fmt.Sprintf("Method: %s, Path: %s, Status: %d", r.Method, r.URL.Path, ww.Status()),
