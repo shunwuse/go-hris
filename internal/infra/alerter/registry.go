@@ -3,6 +3,8 @@ package alerter
 import (
 	"errors"
 	"sync"
+
+	"github.com/shunwuse/go-hris/internal/ports/infra"
 )
 
 type Provider string
@@ -13,11 +15,11 @@ const (
 )
 
 var (
-	providers = make(map[Provider]Alerter)
+	providers = make(map[Provider]infra.Alerter)
 	mu        sync.RWMutex
 )
 
-func Register(name Provider, p Alerter) {
+func Register(name Provider, p infra.Alerter) {
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -28,7 +30,7 @@ func Register(name Provider, p Alerter) {
 	providers[name] = p
 }
 
-func Get(name Provider) (Alerter, error) {
+func Get(name Provider) (infra.Alerter, error) {
 	mu.RLock()
 	defer mu.RUnlock()
 

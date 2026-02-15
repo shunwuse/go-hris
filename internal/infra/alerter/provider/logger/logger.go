@@ -3,8 +3,8 @@ package logalerter
 import (
 	"context"
 
-	"github.com/shunwuse/go-hris/internal/infra/alerter"
 	"github.com/shunwuse/go-hris/internal/pkg/logger"
+	"github.com/shunwuse/go-hris/internal/ports/infra"
 	"go.uber.org/zap"
 )
 
@@ -12,13 +12,13 @@ type sender struct {
 	logger *logger.Logger
 }
 
-func New(log *logger.Logger) alerter.Alerter {
+func New(log *logger.Logger) infra.Alerter {
 	return &sender{
 		logger: log,
 	}
 }
 
-func (s *sender) Send(ctx context.Context, msg alerter.Message) error {
+func (s *sender) Send(ctx context.Context, msg infra.Message) error {
 	log := s.logger.WithContext(ctx)
 
 	fields := []zap.Field{
@@ -30,7 +30,7 @@ func (s *sender) Send(ctx context.Context, msg alerter.Message) error {
 	}
 
 	switch msg.Level {
-	case alerter.LevelCritical:
+	case infra.LevelCritical:
 		if msg.StackTrace != "" {
 			fields = append(fields, zap.String("stack_trace", msg.StackTrace))
 		}

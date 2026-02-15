@@ -5,16 +5,16 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/shunwuse/go-hris/internal/infra/alerter"
+	"github.com/shunwuse/go-hris/internal/ports/infra"
 )
 
 type sender struct{}
 
-func New() alerter.Alerter {
+func New() infra.Alerter {
 	return &sender{}
 }
 
-func (s *sender) Send(ctx context.Context, msg alerter.Message) error {
+func (s *sender) Send(ctx context.Context, msg infra.Message) error {
 	// ANSI color codes.
 	reset := "\033[0m"
 	red := "\033[31m"
@@ -24,7 +24,7 @@ func (s *sender) Send(ctx context.Context, msg alerter.Message) error {
 
 	color := yellow
 	prefix := "⚠️  ALERT"
-	if msg.Level == alerter.LevelCritical {
+	if msg.Level == infra.LevelCritical {
 		color = red
 		prefix = "🚨 CRITICAL ALERT"
 	}

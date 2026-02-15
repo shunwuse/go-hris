@@ -8,18 +8,18 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/http/response"
-	"github.com/shunwuse/go-hris/internal/infra/alerter"
 	"github.com/shunwuse/go-hris/internal/pkg/contextx"
 	"github.com/shunwuse/go-hris/internal/pkg/logger"
+	"github.com/shunwuse/go-hris/internal/ports/infra"
 	"go.uber.org/zap"
 )
 
 type RecoveryMiddleware struct {
 	logger  *logger.Logger
-	alerter alerter.Alerter
+	alerter infra.Alerter
 }
 
-func NewRecoveryMiddleware(log *logger.Logger, alerter alerter.Alerter) *RecoveryMiddleware {
+func NewRecoveryMiddleware(log *logger.Logger, alerter infra.Alerter) *RecoveryMiddleware {
 	return &RecoveryMiddleware{
 		logger:  log,
 		alerter: alerter,
@@ -49,8 +49,8 @@ func (m *RecoveryMiddleware) Handler() func(http.Handler) http.Handler {
 					// Send Critical Alert.
 					traceID := contextx.GetTraceID(r.Context())
 
-					_ = m.alerter.Send(r.Context(), alerter.Message{
-						Level:      alerter.LevelCritical,
+					_ = m.alerter.Send(r.Context(), infra.Message{
+						Level:      infra.LevelCritical,
 						TraceID:    traceID,
 						Title:      "Panic Recovered",
 						Content:    fmt.Sprintf("Method: %s, Path: %s, Error: %v", r.Method, r.URL.Path, err),
