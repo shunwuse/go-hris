@@ -9,7 +9,6 @@ import (
 	entsql "entgo.io/ent/dialect/sql"
 	"github.com/jmoiron/sqlx"
 	"github.com/shunwuse/go-hris/ent/entgen"
-	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/pkg/config"
 	"github.com/shunwuse/go-hris/internal/pkg/logger"
 	"go.uber.org/zap"
@@ -22,36 +21,8 @@ type Database struct {
 	rawDB  *sqlx.DB
 }
 
-var (
-	instance *Database
-)
-
-// DB returns the database client.
-func DB() *Database {
-	if instance == nil {
-		cfg, _ := config.Load()
-		log := logger.L()
-		if log == nil {
-			log = logger.New(
-				logger.WithConfig(logger.Config{
-					Level:      cfg.Log.Level,
-					FilePath:   cfg.Log.FilePath,
-					MaxSize:    cfg.Log.MaxSize,
-					MaxBackups: cfg.Log.MaxBackups,
-					MaxAge:     cfg.Log.MaxAge,
-					Compress:   cfg.Log.Compress,
-				}),
-				logger.WithConsole(cfg.Service.Environment == constants.EnvDevelopment),
-			)
-		}
-		db := connect(cfg, log)
-		instance = &db
-	}
-
-	return instance
-}
-
-func connect(cfg *config.Config, log *logger.Logger) Database {
+// New returns the database client.
+func New(cfg *config.Config, log *logger.Logger) *Database {
 	dsn := fmt.Sprintf(
 		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
 		cfg.Database.Host, cfg.Database.Port, cfg.Database.User, cfg.Database.Password, cfg.Database.Name, cfg.Database.SSLMode,
@@ -74,7 +45,7 @@ func connect(cfg *config.Config, log *logger.Logger) Database {
 
 	log.Info("database connected successfully")
 
-	return Database{
+	return &Database{
 		client: client,
 		rawDB:  db,
 	}

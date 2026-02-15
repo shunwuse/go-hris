@@ -14,7 +14,7 @@ import (
 )
 
 var ProviderSet = wire.NewSet(
-	database.DB,
+	database.New,
 	database.NewTransactor,
 	cache.New,
 	lock.New,

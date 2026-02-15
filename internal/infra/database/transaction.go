@@ -3,15 +3,13 @@ package database
 import (
 	"context"
 	"fmt"
+
+	"github.com/shunwuse/go-hris/internal/ports/infra"
 )
 
-type Transactor interface {
-	WithTx(ctx context.Context, work func(ctx context.Context) error) error
-}
-
 // NewTransactor returns the database instance as a Transactor.
-func NewTransactor() Transactor {
-	return DB()
+func NewTransactor(db *Database) infra.Transactor {
+	return db
 }
 
 type txKey struct{}

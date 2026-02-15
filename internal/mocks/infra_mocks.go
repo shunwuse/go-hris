@@ -10,7 +10,7 @@ import (
 // Transactor Mock
 // ========================================
 
-// MockTransactor is a mock implementation of database.Transactor
+// MockTransactor is a mock implementation of ports.Transactor
 type MockTransactor struct {
 	mock.Mock
 }
