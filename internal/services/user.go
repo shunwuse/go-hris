@@ -10,10 +10,10 @@ import (
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/infra/cache"
-	"github.com/shunwuse/go-hris/internal/infra/database"
 	"github.com/shunwuse/go-hris/internal/pkg/contextx"
 	"github.com/shunwuse/go-hris/internal/pkg/cryptox"
 	"github.com/shunwuse/go-hris/internal/pkg/logger"
+	"github.com/shunwuse/go-hris/internal/ports/infra"
 	"github.com/shunwuse/go-hris/internal/ports/repository"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"go.uber.org/zap"
@@ -22,7 +22,7 @@ import (
 type userService struct {
 	logger     *logger.Logger
 	cache      *cache.Cache
-	transactor database.Transactor
+	transactor infra.Transactor
 
 	userRepository repository.UserRepository
 	roleRepository repository.RoleRepository
@@ -31,7 +31,7 @@ type userService struct {
 func NewUserService(
 	log *logger.Logger,
 	c *cache.Cache,
-	transactor database.Transactor,
+	transactor infra.Transactor,
 	userRepository repository.UserRepository,
 	roleRepository repository.RoleRepository,
 ) service.UserService {

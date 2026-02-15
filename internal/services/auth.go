@@ -18,11 +18,11 @@ import (
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/infra/cache"
-	"github.com/shunwuse/go-hris/internal/infra/database"
 	"github.com/shunwuse/go-hris/internal/pkg/config"
 	"github.com/shunwuse/go-hris/internal/pkg/contextx"
 	"github.com/shunwuse/go-hris/internal/pkg/cryptox"
 	"github.com/shunwuse/go-hris/internal/pkg/logger"
+	"github.com/shunwuse/go-hris/internal/ports/infra"
 	"github.com/shunwuse/go-hris/internal/ports/repository"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"go.uber.org/zap"
@@ -31,7 +31,7 @@ import (
 type authService struct {
 	logger     *logger.Logger
 	cache      *cache.Cache
-	transactor database.Transactor
+	transactor infra.Transactor
 
 	refreshTokenRepository repository.AuthRepository
 
@@ -46,7 +46,7 @@ func NewAuthService(
 	cfg *config.Config,
 	log *logger.Logger,
 	c *cache.Cache,
-	transactor database.Transactor,
+	transactor infra.Transactor,
 	userService service.UserService,
 	refreshTokenRepository repository.AuthRepository,
 ) service.AuthService {
