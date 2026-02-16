@@ -2,7 +2,6 @@ package middlewares
 
 import (
 	"bytes"
-	stderrors "errors"
 	"net/http"
 	"time"
 
@@ -72,10 +71,6 @@ func (m *IdempotencyMiddleware) HandlerWithTTL(ttl time.Duration) func(http.Hand
 				return
 			}
 
-			if err != nil && !stderrors.Is(err, idempotency.ErrNotFound) {
-				m.logger.Error("failed to get idempotency record", zap.Error(err))
-			}
-
 			// Proxy and Capture.
 			ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
 			bodyBuf := &bytes.Buffer{}
@@ -90,13 +85,11 @@ func (m *IdempotencyMiddleware) HandlerWithTTL(ttl time.Duration) func(http.Hand
 					header["Content-Type"] = ct
 				}
 
-				if err := m.manager.Set(ctx, key, &idempotency.Record{
+				_ = m.manager.Set(ctx, key, &idempotency.Record{
 					Status: ww.Status(),
 					Body:   bodyBuf.Bytes(),
 					Header: header,
-				}, ttl); err != nil {
-					m.logger.Error("failed to set idempotency record", zap.Error(err))
-				}
+				}, ttl)
 			}
 		})
 	}
