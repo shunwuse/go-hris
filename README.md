@@ -34,7 +34,13 @@
    ```
    The server will be running at `http://localhost:8080` by default.
 
-4. **Start the worker (Optional)**
+4. **Format/Modernize the code**
+   ```bash
+   make fmt
+   ```
+   Ensures code style consistency and applies latest Go best practices.
+
+5. **Start the worker (Optional)**
    ```bash
    make run-worker
    ```

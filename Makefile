@@ -11,7 +11,7 @@ NC = \033[0m
 
 .PHONY: help \
 	run run-worker \
-	gen \
+	fmt gen \
 	test test-coverage \
 	test-controllers test-services \
 	build build-static \
@@ -35,6 +35,11 @@ run: ## Run the api server locally
 
 run-worker: ## Run the worker locally
 	go run -ldflags "$(LDFLAGS)" ./cmd/worker
+
+fmt: ## Format and modernize the code
+	go fmt ./...
+	go run golang.org/x/tools/cmd/goimports@latest -w .
+	go run golang.org/x/tools/go/analysis/passes/modernize/cmd/modernize@latest -fix ./...
 
 # go install github.com/google/wire/cmd/wire@latest
 gen: ## Generate wire dependencies
