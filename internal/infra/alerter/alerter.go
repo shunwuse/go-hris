@@ -7,7 +7,6 @@ import (
 
 	logalerter "github.com/shunwuse/go-hris/internal/infra/alerter/provider/logger"
 	termalerter "github.com/shunwuse/go-hris/internal/infra/alerter/provider/terminal"
-	"github.com/shunwuse/go-hris/internal/pkg/config"
 	"github.com/shunwuse/go-hris/internal/pkg/logger"
 	"github.com/shunwuse/go-hris/internal/ports/infra"
 )
@@ -18,7 +17,7 @@ type multiAlerter struct {
 }
 
 // NewMultiAlerter creates an alerter that dispatches to multiple alerters in parallel.
-func NewMultiAlerter(cfg *config.Config, log *logger.Logger) infra.Alerter {
+func NewMultiAlerter(log *logger.Logger) infra.Alerter {
 	return &multiAlerter{
 		alerters: []infra.Alerter{
 			termalerter.New(),

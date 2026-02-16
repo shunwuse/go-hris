@@ -6,7 +6,6 @@ package main
 import (
 	"github.com/google/wire"
 	"github.com/shunwuse/go-hris/internal/infra"
-	"github.com/shunwuse/go-hris/internal/pkg/config"
 	"github.com/shunwuse/go-hris/internal/pkg/logger"
 	"github.com/shunwuse/go-hris/internal/repositories"
 	"github.com/shunwuse/go-hris/internal/services"
@@ -14,10 +13,15 @@ import (
 )
 
 func InitializeWorker(
-	cfg *config.Config,
+	cfg *Config,
 	log *logger.Logger,
 ) *Worker {
 	wire.Build(
+		wire.FieldsOf(new(*Config),
+			"Database",
+			"Cache",
+			"Auth",
+		),
 		infra.ProviderSet,
 		repositories.ProviderSet,
 		services.ProviderSet,

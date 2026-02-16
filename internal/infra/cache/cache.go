@@ -5,7 +5,6 @@ import (
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/redis/go-redis/v9"
-	"github.com/shunwuse/go-hris/internal/pkg/config"
 	"github.com/shunwuse/go-hris/internal/pkg/logger"
 	"go.uber.org/zap"
 	"golang.org/x/sync/singleflight"
@@ -18,14 +17,14 @@ type Cache struct {
 	sf        singleflight.Group
 }
 
-func New(cfg *config.Config, log *logger.Logger) *Cache {
-	addr := cfg.Cache.RedisAddr
-	password := cfg.Cache.RedisPassword
-	db := cfg.Cache.RedisDB
+func New(cfg *Config, log *logger.Logger) *Cache {
+	addr := cfg.RedisAddr
+	password := cfg.RedisPassword
+	db := cfg.RedisDB
 
 	var miniRedis *miniredis.Miniredis
 
-	if cfg.Cache.UseMiniredis {
+	if cfg.UseMiniredis {
 		mini, err := miniredis.Run()
 		if err != nil {
 			log.Fatal("failed to start miniredis", zap.Error(err))

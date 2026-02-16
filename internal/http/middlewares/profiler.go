@@ -3,16 +3,16 @@ package middlewares
 import (
 	"net/http"
 
-	"github.com/shunwuse/go-hris/internal/pkg/config"
+	"github.com/shunwuse/go-hris/internal/infra/app"
 )
 
 type ProfilerMiddleware struct {
 	token string
 }
 
-func NewProfilerMiddleware(cfg *config.Config) *ProfilerMiddleware {
+func NewProfilerMiddleware(cfg *app.ServiceConfig) *ProfilerMiddleware {
 	return &ProfilerMiddleware{
-		token: cfg.Service.ProfilerToken,
+		token: cfg.ProfilerToken,
 	}
 }
 

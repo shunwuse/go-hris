@@ -6,17 +6,14 @@ import (
 	"time"
 
 	"github.com/shunwuse/go-hris/internal/infra/cache"
-	"github.com/shunwuse/go-hris/internal/pkg/config"
 	"github.com/shunwuse/go-hris/internal/pkg/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestLocker(t *testing.T) {
-	cfg := &config.Config{
-		Cache: config.CacheConfig{
-			UseMiniredis: true,
-		},
+	cfg := &cache.Config{
+		UseMiniredis: true,
 	}
 	log := logger.New()
 

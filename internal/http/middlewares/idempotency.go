@@ -8,20 +8,20 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/shunwuse/go-hris/internal/infra/app"
 	"github.com/shunwuse/go-hris/internal/infra/idempotency"
-	"github.com/shunwuse/go-hris/internal/pkg/config"
 	"github.com/shunwuse/go-hris/internal/pkg/contextx"
 	"github.com/shunwuse/go-hris/internal/pkg/logger"
 	"go.uber.org/zap"
 )
 
 type IdempotencyMiddleware struct {
-	config  *config.Config
+	config  *app.ServiceConfig
 	manager *idempotency.Manager
 	logger  *logger.Logger
 }
 
-func NewIdempotencyMiddleware(cfg *config.Config, manager *idempotency.Manager, logger *logger.Logger) *IdempotencyMiddleware {
+func NewIdempotencyMiddleware(cfg *app.ServiceConfig, manager *idempotency.Manager, logger *logger.Logger) *IdempotencyMiddleware {
 	return &IdempotencyMiddleware{
 		config:  cfg,
 		manager: manager,
@@ -35,7 +35,7 @@ func (m *IdempotencyMiddleware) Setup(router chi.Router) {
 
 // Handler returns a middleware with the default timeout from config.
 func (m *IdempotencyMiddleware) Handler() func(http.Handler) http.Handler {
-	return m.HandlerWithTTL(time.Duration(m.config.Service.IdempotencyExpireMinutes) * time.Minute)
+	return m.HandlerWithTTL(time.Duration(m.config.IdempotencyExpireMinutes) * time.Minute)
 }
 
 // HandlerWithTTL returns a middleware with a custom timeout.

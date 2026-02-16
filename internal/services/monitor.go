@@ -7,20 +7,19 @@ import (
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/infra/app"
-	"github.com/shunwuse/go-hris/internal/pkg/config"
 	"github.com/shunwuse/go-hris/internal/pkg/logger"
 	"github.com/shunwuse/go-hris/internal/ports/repository"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 )
 
 type monitorService struct {
-	config            *config.Config
+	config            *app.ServiceConfig
 	logger            *logger.Logger
 	monitorRepository repository.MonitorRepository
 }
 
 func NewMonitorService(
-	cfg *config.Config,
+	cfg *app.ServiceConfig,
 	log *logger.Logger,
 	monitorRepository repository.MonitorRepository,
 ) service.MonitorService {
@@ -58,7 +57,7 @@ func (s *monitorService) HealthCheck(ctx context.Context) *domains.Health {
 		},
 		Info: domains.HealthInfo{
 			Version:     app.Version,
-			Environment: s.config.Service.Environment,
+			Environment: s.config.Environment,
 			Uptime:      uptime,
 			InstanceID:  app.InstanceID,
 			Hostname:    app.Hostname,
