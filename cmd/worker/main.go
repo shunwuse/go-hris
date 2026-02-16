@@ -7,12 +7,18 @@ import (
 )
 
 func main() {
-	cfg, err := config.Load()
-	if err != nil {
+	mgr := config.NewManager[Config](
+		config.WithDotEnv("configs/default.env"),
+		config.WithDotEnv("configs/.env"),
+		config.WithEnv("APP_", "."),
+	)
+	if err := mgr.Load(); err != nil {
 		log.Fatalf("failed to load configuration: %v", err)
 	}
 
-	log := initLogger(cfg)
+	cfg := mgr.Config()
+
+	log := initLogger(mgr)
 
 	worker := InitializeWorker(cfg, log)
 

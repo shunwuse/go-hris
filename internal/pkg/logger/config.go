@@ -6,12 +6,12 @@ import (
 
 // Config defines the configuration for the logger.
 type Config struct {
-	Level      string
-	FilePath   string
-	MaxSize    int
-	MaxBackups int
-	MaxAge     int
-	Compress   bool
+	Level      string `koanf:"log_level"`
+	FilePath   string `koanf:"log_file_path"`
+	MaxSize    int    `koanf:"log_max_size"`
+	MaxBackups int    `koanf:"log_max_backups"`
+	MaxAge     int    `koanf:"log_max_age"`
+	Compress   bool   `koanf:"log_compress"`
 }
 
 type options struct {

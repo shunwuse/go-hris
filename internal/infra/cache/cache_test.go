@@ -5,17 +5,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/shunwuse/go-hris/internal/pkg/config"
 	"github.com/shunwuse/go-hris/internal/pkg/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 func TestFetch(t *testing.T) {
-	cfg := &config.Config{
-		Cache: config.CacheConfig{
-			UseMiniredis: true,
-		},
+	cfg := &Config{
+		UseMiniredis: true,
 	}
 	log := logger.New()
 

@@ -13,13 +13,12 @@ import (
 	"github.com/shunwuse/go-hris/internal/infra/cache"
 	"github.com/shunwuse/go-hris/internal/infra/database"
 	"github.com/shunwuse/go-hris/internal/infra/handler"
-	"github.com/shunwuse/go-hris/internal/pkg/config"
 	"github.com/shunwuse/go-hris/internal/pkg/logger"
 	"go.uber.org/zap"
 )
 
 type Server struct {
-	config            *config.Config
+	config            *Config
 	logger            *logger.Logger
 	database          *database.Database
 	cache             *cache.Cache
@@ -29,7 +28,7 @@ type Server struct {
 }
 
 func NewServer(
-	cfg *config.Config,
+	cfg *Config,
 	log *logger.Logger,
 	db *database.Database,
 	cache *cache.Cache,

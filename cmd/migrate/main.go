@@ -17,11 +17,16 @@ func main() {
 		os.Exit(1)
 	}
 
-	cfg, err := config.Load()
-	if err != nil {
+	mgr := config.NewManager[Config](
+		config.WithDotEnv("configs/default.env"),
+		config.WithDotEnv("configs/.env"),
+		config.WithEnv("APP_", "."),
+	)
+	if err := mgr.Load(); err != nil {
 		log.Fatalf("failed to load configuration: %v", err)
 	}
 
+	cfg := mgr.Config()
 	dsn := fmt.Sprintf(
 		"postgresql://%s:%s@%s:%s/%s?sslmode=%s",
 		cfg.Database.User, cfg.Database.Password, cfg.Database.Host, cfg.Database.Port, cfg.Database.Name, cfg.Database.SSLMode,

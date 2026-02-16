@@ -10,7 +10,9 @@ import (
 	"go.uber.org/zap"
 )
 
-func initLogger(cfg *config.Config) *logger.Logger {
+func initLogger(mgr *config.Manager[Config]) *logger.Logger {
+	cfg := mgr.Config()
+
 	log := logger.New(
 		logger.WithConfig(logger.Config{
 			Level:      cfg.Log.Level,
@@ -30,7 +32,7 @@ func initLogger(cfg *config.Config) *logger.Logger {
 	)
 
 	// Register reload hook for logger.
-	config.OnChange(func(newCfg *config.Config) {
+	mgr.OnChange(func(newCfg *Config) {
 		log.UpdateLevel(newCfg.Log.Level)
 	})
 
