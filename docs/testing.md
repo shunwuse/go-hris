@@ -8,9 +8,16 @@ We use Go's native `testing` package along with:
 - **[testify](https://github.com/stretchr/testify)**: For assertions and mocking.
 - **net/http/httptest**: For testing HTTP controllers without starting a real server.
 
-The test suite is divided into two main layers:
+The test suite is divided into three main layers:
 
-### 1. Controller Tests
+### 1. Infrastructure & Pkg Tests
+Located in `internal/infra/*/*_test.go` and `internal/pkg/*/*_test.go`.
+These tests verify:
+- Core utilities (Config, Logger, Pagination).
+- Infrastructure components (Idempotency, Cache, Redis Locking).
+- We use **Miniredis** for testing Redis-dependent code without an external server.
+
+### 2. Controller Tests
 Located in `internal/http/controllers/*_test.go`.
 These tests verify:
 - HTTP request routing and validation.
@@ -70,4 +77,4 @@ func TestController(t *testing.T) {
 ```
 
 ## Legacy Integration Tests
-The project previously used shell-based integration tests. These are being phased out in favor of Go-native unit tests using `httptest`.
+The project previously used shell-based integration tests (`scripts/*.sh`). These have been phased out in favor of Go-native unit tests using `httptest` and component-level testing with **Miniredis** to ensure a faster and more reliable CI/CD pipeline.
