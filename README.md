@@ -10,6 +10,8 @@
 - **Framework**: Chi (HTTP Router)
 - **ORM**: Ent
 - **DI**: Google Wire
+- **Config**: Koanf
+- **Logging**: Zap
 - **Database**: PostgreSQL
 - **Container**: Docker (Multi-stage build)
 
@@ -83,47 +85,62 @@ To customize your local environment, we recommend creating a `.env` file in the 
 
 ## 🧪 Testing Guide
 
-We provide a comprehensive test suite including unit and integration tests.
+We provide a comprehensive testing suite focusing on unit and layer-based testing.
 
-| Command | Description | Auto-starts Server? |
-|---------|-------------|---------------------|
-| `make test` | Run all unit tests | No |
-| `make test-coverage` | Generate test coverage report | No |
-| `make test-integration` | Run full integration test suite | ✅ Yes |
-| `make test-integration-quick` | Fast smoke test (requires running server) | No |
+| Command | Description |
+|---------|-------------|
+| `make test` | Run all unit tests |
+| `make test-controllers` | Run only HTTP controller tests |
+| `make test-services` | Run only service layer tests |
+| `make test-coverage` | Generate HTML coverage report |
 
-For detailed testing instructions, please refer to [docs/testing.md](docs/testing.md).
+For detailed testing architecture and instructions, please refer to [docs/testing.md](docs/testing.md).
 
 ## 📂 Project Structure
 
-- `build/`: Packaging and CI related files
-  - `package/`: Container and OS specific packages
-  - `ci/`: Continuous Integration configurations and scripts
-  - `scripts/`: Scripts for various build, lint, and release operations
-- `cmd/`: Application entry points (Server, Migration)
-- `configs/`: Configuration file templates or default configs
-- `deployments/`: System configurations and scripts
-- `ent/`: Generated Ent ORM schemas and code
-- `internal/`: Core business logic
-  - `domains/`: Domain models
-  - `services/`: Business logic layer
-  - `repositories/`: Data access layer
-  - `http/`: Controllers and routes
-- `migrations/`: SQL migration files
-- `scripts/`: Helper scripts
+```text
+.
+├── build/                # Packaging and CI related files
+│   ├── ci/               # CI configurations and scripts
+│   ├── package/          # Container and OS specific packages
+│   └── scripts/          # Build, lint, and release scripts
+├── cmd/                  # Application entry points
+├── configs/              # Configuration files (.env)
+├── deployments/          # System configurations and scripts
+├── docs/                 # Documentation and guides
+├── ent/                  # Ent ORM schemas and generated code
+├── internal/             # Core business logic (Layered Architecture)
+│   ├── constants/        # Application-wide constants
+│   ├── domains/          # Pure domain models (Business entities)
+│   ├── dtos/             # Data Transfer Objects (Request/Response)
+│   ├── errors/           # Custom error definitions
+│   ├── http/             # HTTP controllers, middleware and routing
+│   ├── infra/            # Infrastructure
+│   ├── pkg/              # Internal helper packages
+│   ├── ports/            # Interfaces (Service & Repository definitions)
+│   ├── repositories/     # Repository implementations (Ent)
+│   └── services/         # Business logic implementations
+└── migrations/           # SQL migration files (golang-migrate)
+```
 
 ## 📜 Development Commands (Makefile)
 
-Type `make` or `make help` to see all available commands:
+Use `make` or `make help` to see all available commands. Key commands:
 
-- `make gen`: Generate Wire dependency injection code
+- `make gen`: Generate Wire DI (Required after adding dependencies)
+- `make run`: Run the API server locally
+- `make run-worker`: Run the background worker locally
 - `make build`: Build local binary
-- `make clean`: Clean up build artifacts and temporary database
+- `make test`: Run all unit tests
 - `make migrate-create name=xxx`: Create a new database migration file
+- `make docker-build`: Build production Docker image
+
+---
 
 ## ✨ Features
 - [x] User Management (CRUD)
 - [x] JWT Authentication & Authorization
 - [x] Role-Based Access Control (RBAC)
 - [x] Approval Workflow Management
+- [x] Redis-based Idempotency & Distributed Locking
 - [x] Structured Logging & Health Checks
