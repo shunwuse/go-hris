@@ -2,9 +2,11 @@ package lock
 
 import (
 	"context"
+	"errors"
 	"testing"
 	"time"
 
+	"github.com/bsm/redislock"
 	"github.com/shunwuse/go-hris/internal/infra/cache"
 	"github.com/shunwuse/go-hris/internal/pkg/logger"
 	"github.com/stretchr/testify/assert"
@@ -31,6 +33,12 @@ func TestLocker(t *testing.T) {
 
 		err = lock.Release(ctx)
 		assert.NoError(t, err)
+	})
+
+	t.Run("Obtain with too short ttl", func(t *testing.T) {
+		lock, err := locker.Obtain(ctx, key, 50*time.Millisecond, nil)
+		assert.ErrorIs(t, err, ErrInvalidLockTTL)
+		assert.Nil(t, lock)
 	})
 
 	t.Run("Mutual Exclusion", func(t *testing.T) {
@@ -69,5 +77,28 @@ func TestLocker(t *testing.T) {
 		lock2, err := locker.Obtain(ctx, key, 100*time.Millisecond, nil)
 		assert.ErrorIs(t, err, ErrLockNotObtained)
 		assert.Nil(t, lock2)
+	})
+
+	t.Run("ObtainAutoRefresh keeps lock alive", func(t *testing.T) {
+		autoCtx, cancel := context.WithCancel(ctx)
+		defer cancel()
+
+		lock, err := locker.ObtainAutoRefresh(autoCtx, key, 300*time.Millisecond, nil)
+		require.NoError(t, err)
+		require.NotNil(t, lock)
+
+		time.Sleep(500 * time.Millisecond)
+
+		lock2, err := locker.Obtain(ctx, key, 100*time.Millisecond, nil)
+		assert.ErrorIs(t, err, ErrLockNotObtained)
+		assert.Nil(t, lock2)
+
+		cancel()
+		time.Sleep(50 * time.Millisecond)
+
+		err = lock.Release(ctx)
+		if err != nil {
+			assert.True(t, errors.Is(err, redislock.ErrLockNotHeld))
+		}
 	})
 }
