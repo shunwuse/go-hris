@@ -8,6 +8,7 @@ import (
 	"github.com/shunwuse/go-hris/internal/http"
 	"github.com/shunwuse/go-hris/internal/infra"
 	"github.com/shunwuse/go-hris/internal/pkg/logger"
+	"github.com/shunwuse/go-hris/internal/queries"
 	"github.com/shunwuse/go-hris/internal/repositories"
 	"github.com/shunwuse/go-hris/internal/services"
 )
@@ -25,6 +26,7 @@ func InitializeServer(
 		),
 		infra.ProviderSet,
 		repositories.ProviderSet,
+		queries.ProviderSet,
 		services.ProviderSet,
 		http.ProviderSet,
 		NewServer,

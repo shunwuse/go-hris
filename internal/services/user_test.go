@@ -32,6 +32,7 @@ type testUserServiceDependencies struct {
 	transactor     *mocks.MockTransactor
 	userRepository *mocks.MockUserRepository
 	roleRepository *mocks.MockRoleRepository
+	userReader     *mocks.MockUserIdentityReader
 }
 
 func setupTestUserServiceDependencies(t *testing.T) *testUserServiceDependencies {
@@ -50,6 +51,7 @@ func setupTestUserServiceDependencies(t *testing.T) *testUserServiceDependencies
 		transactor:     new(mocks.MockTransactor),
 		userRepository: new(mocks.MockUserRepository),
 		roleRepository: new(mocks.MockRoleRepository),
+		userReader:     new(mocks.MockUserIdentityReader),
 	}
 }
 
@@ -110,10 +112,10 @@ func TestUserService_GetUsers(t *testing.T) {
 
 			svc := services.NewUserService(
 				deps.logger,
-				deps.cache,
 				deps.transactor,
 				deps.userRepository,
 				deps.roleRepository,
+				deps.userReader,
 			)
 
 			users, err := svc.GetUsers(tt.ctx)
@@ -213,10 +215,10 @@ func TestUserService_GetUsersWithOffset(t *testing.T) {
 
 			svc := services.NewUserService(
 				deps.logger,
-				deps.cache,
 				deps.transactor,
 				deps.userRepository,
 				deps.roleRepository,
+				deps.userReader,
 			)
 
 			result, err := svc.GetUsersWithOffset(tt.ctx, tt.query, tt.filter)
@@ -237,17 +239,19 @@ func TestUserService_GetUserByID(t *testing.T) {
 		name        string
 		ctx         context.Context
 		userID      uint
-		mockSetup   func(*mocks.MockUserRepository, *mocks.MockRoleRepository)
+		mockSetup   func(*mocks.MockUserIdentityReader)
 		checkResult func(*testing.T, *domains.UserWithPermissions, error)
 	}{
 		{
 			name:   "Get user success",
 			ctx:    contextWithAdmin(),
 			userID: 1,
-			mockSetup: func(userRepo *mocks.MockUserRepository, roleRepo *mocks.MockRoleRepository) {
-				user := createTestUserEntity(1, "admin", "Admin User")
-				userRepo.On("FindByID", mock.Anything, uint(1)).Return(user, nil)
-				roleRepo.On("GetPermissionsByRole", mock.Anything, constants.Staff).Return(constants.Permissions{"user:read"})
+			mockSetup: func(reader *mocks.MockUserIdentityReader) {
+				result := &domains.UserWithPermissions{
+					User:        createTestUserEntity(1, "admin", "Admin User"),
+					Permissions: constants.Permissions{"user:read"},
+				}
+				reader.On("GetUserWithPermissionsByID", mock.Anything, uint(1)).Return(result, nil)
 			},
 			checkResult: func(t *testing.T, result *domains.UserWithPermissions, err error) {
 				assert.NoError(t, err)
@@ -261,8 +265,8 @@ func TestUserService_GetUserByID(t *testing.T) {
 			name:   "User not found",
 			ctx:    contextWithAdmin(),
 			userID: 999,
-			mockSetup: func(userRepo *mocks.MockUserRepository, roleRepo *mocks.MockRoleRepository) {
-				userRepo.On("FindByID", mock.Anything, uint(999)).Return(nil, errors.ErrNotFound)
+			mockSetup: func(reader *mocks.MockUserIdentityReader) {
+				reader.On("GetUserWithPermissionsByID", mock.Anything, uint(999)).Return(nil, errors.ErrNotFound)
 			},
 			checkResult: func(t *testing.T, result *domains.UserWithPermissions, err error) {
 				assert.ErrorIs(t, err, errors.ErrNotFound)
@@ -273,7 +277,7 @@ func TestUserService_GetUserByID(t *testing.T) {
 			name:      "No identity provided",
 			ctx:       context.Background(),
 			userID:    1,
-			mockSetup: func(userRepo *mocks.MockUserRepository, roleRepo *mocks.MockRoleRepository) {},
+			mockSetup: func(reader *mocks.MockUserIdentityReader) {},
 			checkResult: func(t *testing.T, result *domains.UserWithPermissions, err error) {
 				assert.ErrorIs(t, err, errors.ErrUnauthorized)
 				assert.Nil(t, result)
@@ -283,7 +287,7 @@ func TestUserService_GetUserByID(t *testing.T) {
 			name:      "No read permission",
 			ctx:       contextWithStaff(constants.Permissions{}),
 			userID:    1,
-			mockSetup: func(userRepo *mocks.MockUserRepository, roleRepo *mocks.MockRoleRepository) {},
+			mockSetup: func(reader *mocks.MockUserIdentityReader) {},
 			checkResult: func(t *testing.T, result *domains.UserWithPermissions, err error) {
 				assert.ErrorIs(t, err, errors.ErrForbidden)
 				assert.Nil(t, result)
@@ -294,24 +298,23 @@ func TestUserService_GetUserByID(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			deps := setupTestUserServiceDependencies(t)
-			tt.mockSetup(deps.userRepository, deps.roleRepository)
+			tt.mockSetup(deps.userReader)
 
 			deps.miniRedis.FlushAll() // Clear cache for each test
 
 			svc := services.NewUserService(
 				deps.logger,
-				deps.cache,
 				deps.transactor,
 				deps.userRepository,
 				deps.roleRepository,
+				deps.userReader,
 			)
 
 			result, err := svc.GetUserByID(tt.ctx, tt.userID)
 
 			tt.checkResult(t, result, err)
 
-			deps.userRepository.AssertExpectations(t)
-			deps.roleRepository.AssertExpectations(t)
+			deps.userReader.AssertExpectations(t)
 		})
 	}
 }
@@ -415,10 +418,10 @@ func TestUserService_CreateUser(t *testing.T) {
 
 			svc := services.NewUserService(
 				deps.logger,
-				deps.cache,
 				deps.transactor,
 				deps.userRepository,
 				deps.roleRepository,
+				deps.userReader,
 			)
 
 			err := svc.CreateUser(tt.ctx, tt.user, tt.role)
@@ -500,10 +503,10 @@ func TestUserService_UpdateUser(t *testing.T) {
 
 			svc := services.NewUserService(
 				deps.logger,
-				deps.cache,
 				deps.transactor,
 				deps.userRepository,
 				deps.roleRepository,
+				deps.userReader,
 			)
 
 			err := svc.UpdateUser(tt.ctx, tt.update)
