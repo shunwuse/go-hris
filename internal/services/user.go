@@ -2,18 +2,17 @@ package services
 
 import (
 	"context"
-	"slices"
 	"strings"
 
 	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/errors"
-	"github.com/shunwuse/go-hris/internal/infra/cache"
 	"github.com/shunwuse/go-hris/internal/pkg/contextx"
 	"github.com/shunwuse/go-hris/internal/pkg/cryptox"
 	"github.com/shunwuse/go-hris/internal/pkg/logger"
 	"github.com/shunwuse/go-hris/internal/ports/infra"
+	"github.com/shunwuse/go-hris/internal/ports/query"
 	"github.com/shunwuse/go-hris/internal/ports/repository"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"go.uber.org/zap"
@@ -21,26 +20,27 @@ import (
 
 type userService struct {
 	logger     *logger.Logger
-	cache      *cache.Cache
 	transactor infra.Transactor
 
 	userRepository repository.UserRepository
 	roleRepository repository.RoleRepository
+
+	reader query.UserIdentityReader
 }
 
 func NewUserService(
 	log *logger.Logger,
-	c *cache.Cache,
 	transactor infra.Transactor,
 	userRepository repository.UserRepository,
 	roleRepository repository.RoleRepository,
+	reader query.UserIdentityReader,
 ) service.UserService {
 	return &userService{
 		logger:         log,
-		cache:          c,
 		transactor:     transactor,
 		userRepository: userRepository,
 		roleRepository: roleRepository,
+		reader:         reader,
 	}
 }
 
@@ -86,12 +86,7 @@ func (s *userService) GetUserByUsername(ctx context.Context, username string) (*
 		return nil, errors.ErrForbidden
 	}
 
-	user, err := s.userRepository.FindByUsername(ctx, username)
-	if err != nil {
-		return nil, err
-	}
-
-	return s.GetUserByID(ctx, user.ID)
+	return s.reader.GetUserWithPermissionsByUsername(ctx, username)
 }
 
 func (s *userService) GetUserByID(ctx context.Context, id uint) (*domains.UserWithPermissions, error) {
@@ -106,17 +101,7 @@ func (s *userService) GetUserByID(ctx context.Context, id uint) (*domains.UserWi
 		return nil, errors.ErrForbidden
 	}
 
-	return cache.Fetch(ctx, s.cache, constants.GetUserPermissionsKey(id), constants.CacheTTLUser, func() (*domains.UserWithPermissions, error) {
-		user, err := s.userRepository.FindByID(ctx, id)
-		if err != nil {
-			return nil, err
-		}
-
-		return &domains.UserWithPermissions{
-			User:        user,
-			Permissions: s.getPermissionsForUser(ctx, user),
-		}, nil
-	})
+	return s.reader.GetUserWithPermissionsByID(ctx, id)
 }
 
 func (s *userService) CreateUser(ctx context.Context, user *domains.UserCreate, role constants.Role) error {
@@ -185,22 +170,4 @@ func (s *userService) UpdateUser(ctx context.Context, update *domains.UserUpdate
 	}
 
 	return s.userRepository.Update(ctx, update.ID, update.Name)
-}
-
-func (s *userService) getPermissionsForUser(ctx context.Context, user *entgen.User) constants.Permissions {
-	permissions := make(constants.Permissions, 0)
-
-	// Collect permissions from all roles.
-	for _, role := range user.Edges.Roles {
-		rolePermissions := s.roleRepository.GetPermissionsByRole(ctx, role.Name)
-
-		// Add unique permissions to user.
-		for _, permission := range rolePermissions {
-			if !slices.Contains(permissions, permission) {
-				permissions = append(permissions, permission)
-			}
-		}
-	}
-
-	return permissions
 }

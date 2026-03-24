@@ -19,10 +19,10 @@ import (
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/infra/app"
 	"github.com/shunwuse/go-hris/internal/infra/cache"
-	"github.com/shunwuse/go-hris/internal/pkg/contextx"
 	"github.com/shunwuse/go-hris/internal/pkg/cryptox"
 	"github.com/shunwuse/go-hris/internal/pkg/logger"
 	"github.com/shunwuse/go-hris/internal/ports/infra"
+	"github.com/shunwuse/go-hris/internal/ports/query"
 	"github.com/shunwuse/go-hris/internal/ports/repository"
 	"github.com/shunwuse/go-hris/internal/ports/service"
 	"go.uber.org/zap"
@@ -35,7 +35,7 @@ type authService struct {
 
 	refreshTokenRepository repository.AuthRepository
 
-	userService service.UserService
+	reader query.UserIdentityReader
 
 	jwtKey           jwk.Key
 	jwtExpire        time.Duration
@@ -47,8 +47,8 @@ func NewAuthService(
 	log *logger.Logger,
 	c *cache.Cache,
 	transactor infra.Transactor,
-	userService service.UserService,
 	refreshTokenRepository repository.AuthRepository,
+	reader query.UserIdentityReader,
 ) service.AuthService {
 	key, err := jwk.FromRaw([]byte(cfg.JWTSecret))
 	if err != nil {
@@ -84,7 +84,7 @@ func NewAuthService(
 		cache:                  c,
 		transactor:             transactor,
 		refreshTokenRepository: refreshTokenRepository,
-		userService:            userService,
+		reader:                 reader,
 		jwtKey:                 key,
 		jwtExpire:              expireDuration,
 		jwtRefreshExpire:       refreshExpireDuration,
@@ -95,15 +95,14 @@ func (s *authService) Login(ctx context.Context, username string, password strin
 	// Convert username to lowercase.
 	username = strings.ToLower(username)
 
-	systemCtx := contextx.WithSystemIdentity(ctx)
-	user, err := s.userService.GetUserByUsername(systemCtx, username)
+	user, err := s.reader.GetUserWithPermissionsByUsername(ctx, username)
 	if err != nil {
 		s.logger.WithContext(ctx).Error("failed to get user", zap.String("username", username), zap.Error(err))
 		return nil, err
 	}
 
 	// Verify password.
-	if !cryptox.CheckPasswordHash(password, user.Edges.Password.Hash) {
+	if user.Edges.Password == nil || !cryptox.CheckPasswordHash(password, user.Edges.Password.Hash) {
 		s.logger.WithContext(ctx).Error("password verification failed")
 		return nil, errors.ErrInvalidCredentials
 	}
@@ -212,8 +211,7 @@ func (s *authService) ValidateAccessToken(ctx context.Context, tokenString strin
 
 	// Fetch user data.
 	if claims.Identity.UserID != 0 {
-		systemCtx := contextx.WithSystemIdentity(ctx)
-		user, err := s.userService.GetUserByID(systemCtx, claims.Identity.UserID)
+		user, err := s.reader.GetUserWithPermissionsByID(ctx, claims.Identity.UserID)
 		if err != nil {
 			s.logger.WithContext(ctx).Error("failed to get user data", zap.Uint("userID", claims.Identity.UserID), zap.Error(err))
 			return nil, errors.ErrInternalError
@@ -287,8 +285,7 @@ func (s *authService) RefreshAccessToken(ctx context.Context, refreshToken strin
 			return errors.ErrTokenExpired
 		}
 
-		systemCtx := contextx.WithSystemIdentity(txCtx)
-		user, err := s.userService.GetUserByID(systemCtx, tokenRecord.UserID)
+		user, err := s.reader.GetUserWithPermissionsByID(txCtx, tokenRecord.UserID)
 		if err != nil {
 			s.logger.WithContext(txCtx).Error("failed to get user for refresh", zap.Uint("user_id", tokenRecord.UserID), zap.Error(err))
 			return errors.ErrTokenInvalid
