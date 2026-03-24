@@ -2,6 +2,7 @@ package lock
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/bsm/redislock"
@@ -9,6 +10,8 @@ import (
 	"github.com/shunwuse/go-hris/internal/infra/cache"
 	"github.com/shunwuse/go-hris/internal/pkg/logger"
 )
+
+const MinLockTTL = 100 * time.Millisecond
 
 // Locker provides distributed locking capabilities using Redis.
 type Locker struct {
@@ -33,6 +36,10 @@ func New(cache *cache.Cache, log *logger.Logger) *Locker {
 // Obtain tries to obtain a lock with the given key and TTL.
 // It returns a Lock instance if successful, or an error if the lock cannot be obtained.
 func (l *Locker) Obtain(ctx context.Context, key string, ttl time.Duration, options *redislock.Options) (*Lock, error) {
+	if ttl < MinLockTTL {
+		return nil, ErrInvalidLockTTL
+	}
+
 	if options == nil {
 		options = &redislock.Options{}
 	}
@@ -46,9 +53,24 @@ func (l *Locker) Obtain(ctx context.Context, key string, ttl time.Duration, opti
 	}
 
 	return &Lock{
-		lock: lock,
-		ttl:  ttl,
+		lock:   lock,
+		ttl:    ttl,
+		key:    key,
+		logger: l.logger,
 	}, nil
+}
+
+// ObtainAutoRefresh obtains a lock and immediately starts auto-refresh.
+// This minimizes the gap between lock acquisition and keepalive startup.
+func (l *Locker) ObtainAutoRefresh(ctx context.Context, key string, ttl time.Duration, options *redislock.Options) (*Lock, error) {
+	lock, err := l.Obtain(ctx, key, ttl, options)
+	if err != nil {
+		return nil, err
+	}
+
+	lock.autoRefresh(ctx, true)
+
+	return lock, nil
 }
 
 // PeekMetadata looks up the metadata of a lock without acquiring it.
@@ -70,4 +92,10 @@ func (l *Locker) PeekMetadata(ctx context.Context, key string) (string, error) {
 var (
 	// ErrLockNotObtained is a proxy for redislock.ErrNotObtained.
 	ErrLockNotObtained = redislock.ErrNotObtained
+
+	// ErrInvalidLockTTL indicates lock TTL is too short for safe execution.
+	ErrInvalidLockTTL = errors.New("lock: invalid ttl")
+
+	// ErrLockLost indicates the lock was lost during execution.
+	ErrLockLost = errors.New("lock: lock lost during execution")
 )
