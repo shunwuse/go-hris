@@ -102,3 +102,108 @@ func TestLocker(t *testing.T) {
 		}
 	})
 }
+
+func TestLockerDo(t *testing.T) {
+	c := cache.New(&cache.Config{UseMiniredis: true}, logger.New())
+	defer c.Close() //nolint:errcheck
+
+	locker := New(c, logger.NewNopLogger())
+	ctx := context.Background()
+
+	t.Run("Do executes callback and releases lock", func(t *testing.T) {
+		key := "locker-do-release"
+		called := false
+
+		err := locker.Do(ctx, key, 300*time.Millisecond, func(context.Context) error {
+			called = true
+			return nil
+		})
+		require.NoError(t, err)
+		assert.True(t, called)
+
+		lock, err := locker.Obtain(ctx, key, 300*time.Millisecond, nil)
+		require.NoError(t, err)
+		require.NotNil(t, lock)
+		require.NoError(t, lock.Release(ctx))
+	})
+
+	t.Run("Do keeps lock alive for long task", func(t *testing.T) {
+		key := "locker-do-keepalive"
+
+		err := locker.Do(ctx, key, 300*time.Millisecond, func(context.Context) error {
+			time.Sleep(500 * time.Millisecond)
+			return nil
+		})
+		require.NoError(t, err)
+	})
+
+	t.Run("Do returns callback error", func(t *testing.T) {
+		key := "locker-do-error"
+		expectedErr := errors.New("callback failed")
+
+		err := locker.Do(ctx, key, 300*time.Millisecond, func(context.Context) error {
+			return expectedErr
+		})
+		require.Error(t, err)
+		assert.ErrorIs(t, err, expectedErr)
+	})
+
+	t.Run("Do returns lock not obtained", func(t *testing.T) {
+		key := "locker-do-contention"
+
+		holder, err := locker.Obtain(ctx, key, 1*time.Second, nil)
+		require.NoError(t, err)
+		defer holder.Release(ctx) //nolint:errcheck
+
+		err = locker.Do(ctx, key, 300*time.Millisecond, func(context.Context) error {
+			return nil
+		})
+		require.Error(t, err)
+		assert.ErrorIs(t, err, ErrLockNotObtained)
+	})
+
+	t.Run("Do returns nil function error", func(t *testing.T) {
+		key := "locker-do-nil"
+
+		err := locker.Do(ctx, key, 300*time.Millisecond, nil)
+		require.Error(t, err)
+		assert.ErrorIs(t, err, ErrNilLockFunction)
+	})
+
+	t.Run("Do returns nil locker error", func(t *testing.T) {
+		key := "locker-do-nil-locker"
+		var nilLocker *Locker
+
+		err := nilLocker.Do(ctx, key, 300*time.Millisecond, func(context.Context) error {
+			return nil
+		})
+		require.Error(t, err)
+		assert.ErrorIs(t, err, ErrNilLocker)
+	})
+
+	t.Run("Do ignores lock not held on deferred release", func(t *testing.T) {
+		key := "locker-do-release-not-held"
+
+		err := locker.Do(ctx, key, 300*time.Millisecond, func(runCtx context.Context) error {
+			lock, lockErr := locker.Obtain(runCtx, key, 300*time.Millisecond, nil)
+			if lockErr == nil && lock != nil {
+				assert.Fail(t, "expected lock contention")
+			}
+			return nil
+		})
+		require.NoError(t, err)
+	})
+
+	t.Run("DoWithOptions supports metadata", func(t *testing.T) {
+		key := "locker-do-options"
+		meta := "locker-metadata"
+
+		err := locker.DoWithOptions(ctx, key, 300*time.Millisecond, &redislock.Options{Metadata: meta}, func(context.Context) error {
+			current, peekErr := locker.PeekMetadata(ctx, key)
+			require.NoError(t, peekErr)
+			assert.Equal(t, meta, current)
+			return nil
+		})
+		require.NoError(t, err)
+	})
+}
