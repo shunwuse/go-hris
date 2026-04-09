@@ -145,3 +145,27 @@ func TestConfig_MissingFile(t *testing.T) {
 	)
 	assert.NoError(t, mgr.Load())
 }
+
+func TestConfig_Reload_UsesSnapshot(t *testing.T) {
+	tmpDir := t.TempDir()
+	envFile := filepath.Join(tmpDir, ".env")
+
+	err := os.WriteFile(envFile, []byte(`PORT=1000`), 0644)
+	require.NoError(t, err)
+
+	mgr := NewManager[TestConfig](WithDotEnv(envFile))
+	require.NoError(t, mgr.Load())
+
+	oldCfg := mgr.Config()
+	require.Equal(t, 1000, oldCfg.Port)
+
+	err = os.WriteFile(envFile, []byte(`PORT=2000`), 0644)
+	require.NoError(t, err)
+
+	require.NoError(t, mgr.Load())
+
+	newCfg := mgr.Config()
+	assert.NotSame(t, oldCfg, newCfg)
+	assert.Equal(t, 1000, oldCfg.Port)
+	assert.Equal(t, 2000, newCfg.Port)
+}
