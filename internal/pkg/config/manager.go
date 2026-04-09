@@ -29,9 +29,6 @@ func NewManager[T any](opts ...Option) *Manager[T] {
 
 // Load performs the actual loading of configuration from all sources.
 func (m *Manager[T]) Load() error {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-
 	k := koanf.New(".")
 
 	for _, src := range m.config.sources {
@@ -40,13 +37,20 @@ func (m *Manager[T]) Load() error {
 		}
 	}
 
-	if err := k.Unmarshal("", m.target); err != nil {
+	// Build a fresh snapshot so active readers never observe in-place mutations.
+	nextTarget := new(T)
+	if err := k.Unmarshal("", nextTarget); err != nil {
 		return err
 	}
 
+	m.mu.Lock()
+	m.target = nextTarget
+	hooks := append([]func(*T){}, m.hooks...)
+	m.mu.Unlock()
+
 	// Trigger hooks.
-	for _, hook := range m.hooks {
-		hook(m.target)
+	for _, hook := range hooks {
+		hook(nextTarget)
 	}
 
 	return nil
