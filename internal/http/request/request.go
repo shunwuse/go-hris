@@ -57,7 +57,7 @@ func DecodePath(r *http.Request, dst any) error {
 
 // DecodeJSON decodes the JSON request body.
 func DecodeJSON(r *http.Request, dst any) error {
-	if r.ContentLength <= 0 {
+	if r.Body == nil {
 		return nil
 	}
 
@@ -67,5 +67,10 @@ func DecodeJSON(r *http.Request, dst any) error {
 		_ = r.Body.Close()
 	}()
 
-	return json.NewDecoder(r.Body).Decode(dst)
+	err := json.NewDecoder(r.Body).Decode(dst)
+	if err == io.EOF {
+		return nil
+	}
+
+	return err
 }
