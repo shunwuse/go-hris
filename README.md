@@ -98,30 +98,55 @@ For detailed testing architecture and instructions, please refer to [docs/testin
 
 ## 📂 Project Structure
 
+This section is split into two views to avoid confusion:
+
+- Current Layout: what exists in the repository now (source of truth).
+- Planned Additions: roadmap directories that will be added in future phases.
+
+### Current Layout
+
+Last verified: 2026-04-10
+
 ```text
 .
-├── build/                # Packaging and CI related files
-│   ├── ci/               # CI configurations and scripts
-│   ├── package/          # Container and OS specific packages
-│   └── scripts/          # Build, lint, and release scripts
-├── cmd/                  # Application entry points
-├── configs/              # Configuration files (.env)
-├── deployments/          # System configurations and scripts
-├── docs/                 # Documentation and guides
+├── .github/              # Copilot/instruction files and repository metadata
+├── build/
+│   └── package/          # container and packaging assets
+├── cmd/                  # application entry points
+├── configs/              # configuration files
+├── deployments/          # docker compose and deployment assets
+├── docs/                 # documentation and guides
 ├── ent/                  # Ent ORM schemas and generated code
-├── internal/             # Core business logic (Layered Architecture)
-│   ├── constants/        # Application-wide constants
-│   ├── domains/          # Pure domain models (Business entities)
-│   ├── dtos/             # Data Transfer Objects (Request/Response)
-│   ├── errors/           # Custom error definitions
-│   ├── http/             # HTTP controllers, middleware and routing
-│   ├── infra/            # Infrastructure
-│   ├── pkg/              # Internal helper packages
-│   ├── ports/            # Interfaces (Service & Repository definitions)
-│   ├── repositories/     # Repository implementations (Ent)
-│   └── services/         # Business logic implementations
-└── migrations/           # SQL migration files (golang-migrate)
+├── internal/             # core business logic (layered architecture)
+│   ├── constants/
+│   ├── domains/
+│   ├── dtos/
+│   ├── errors/
+│   ├── http/
+│   ├── infra/
+│   ├── pkg/
+│   ├── ports/
+│   ├── queries/
+│   ├── repositories/
+│   ├── services/
+│   └── worker/
+└── migrations/           # SQL migrations (golang-migrate)
 ```
+
+### Planned Additions (Roadmap)
+
+```text
+.
+├── scripts/              # reusable local/CI scripts (lint, release, utilities)
+└── build/
+   └── ci/               # optional CI helper assets when pipeline grows
+```
+
+Why this structure:
+
+- Keeps onboarding accurate by separating current state from future plans.
+- Uses GitHub standard location for CI definitions under .github/workflows.
+- Keeps scripts reusable across local development and CI jobs.
 
 ## 📜 Development Commands (Makefile)
 
