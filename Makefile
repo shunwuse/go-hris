@@ -4,6 +4,7 @@ MIGRATIONS_DIR = ./migrations
 DB_URL = postgresql://postgres:postgres@localhost:5432/hris?sslmode=disable
 VERSION = $(shell git rev-parse --short HEAD 2>/dev/null || echo "dev")
 LDFLAGS = -X github.com/shunwuse/go-hris/internal/infra/app.Version=$(VERSION)
+DOCKER_IMAGE = go-hris:latest
 
 # Colors for help
 BLUE = \033[0;34m
@@ -92,7 +93,7 @@ go-migrate-down: ## Run migrations down using go run
 
 ## Docker targets
 docker-build: ## Build Docker image
-	docker buildx build --platform linux/amd64 --build-arg VERSION=$(VERSION) -t go-hris:latest -f build/package/Dockerfile .
+	docker buildx build --platform linux/amd64 --build-arg VERSION=$(VERSION) -t $(DOCKER_IMAGE) --load -f build/package/Dockerfile .
 
 docker-run: ## Run Docker container
-	docker run --rm -p 8080:8080 go-hris:latest
+	docker run --rm -p 8080:8080 $(DOCKER_IMAGE)
