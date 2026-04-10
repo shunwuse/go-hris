@@ -33,22 +33,25 @@ These tests verify:
 
 ## Running Tests
 
-We provide several `make` targets to run tests efficiently:
+Use `go test` directly for focused runs. The Makefile keeps only the full-suite helper.
 
 | Command | Description |
 |---------|-------------|
 | `make test` | Run all unit tests in the project. |
-| `make test-controllers` | Run only the HTTP controller tests. |
-| `make test-services` | Run only the service layer logic tests. |
-| `make test-coverage` | Run all tests and generate a `coverage.html` report. |
+| `go test -v ./internal/http/controllers/...` | Run only the HTTP controller tests. |
+| `go test -v ./internal/services/...` | Run only the service layer logic tests. |
+| `go test -v -coverprofile=coverage.out ./... && go tool cover -html=coverage.out -o coverage.html` | Run all tests and generate a `coverage.html` report. |
 
 ### Example: Running specific tests
 ```bash
 # Run all tests
 make test
 
-# Run only auth controller tests
-go test -v ./internal/http/controllers/auth_test.go
+# Run only controller tests
+go test -v ./internal/http/controllers/...
+
+# Run only service tests
+go test -v ./internal/services/...
 ```
 
 ## Writing New Tests
