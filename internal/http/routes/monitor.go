@@ -32,21 +32,23 @@ func NewMonitorRoute(
 func (r *MonitorRoute) Setup(router chi.Router) {
 	r.logger.Info("setting up monitor routes")
 
-	router.Get("/health", r.monitorController.HealthCheck)
+	router.Group(func(monitorRouter chi.Router) {
+		monitorRouter.Use(r.profilerMiddleware.Handler())
 
-	router.Handle("/metrics", promhttp.Handler())
+		monitorRouter.Get("/health", r.monitorController.HealthCheck)
 
-	// Mount pprof routes.
-	router.Route("/debug/pprof", func(router chi.Router) {
-		router.Use(r.profilerMiddleware.Handler())
+		monitorRouter.Handle("/metrics", promhttp.Handler())
 
-		router.HandleFunc("/", pprof.Index)
-		router.HandleFunc("/cmdline", pprof.Cmdline)
-		router.HandleFunc("/profile", pprof.Profile)
-		router.HandleFunc("/symbol", pprof.Symbol)
-		router.HandleFunc("/trace", pprof.Trace)
+		// Mount pprof routes.
+		monitorRouter.Route("/debug/pprof", func(pprofRouter chi.Router) {
+			pprofRouter.HandleFunc("/", pprof.Index)
+			pprofRouter.HandleFunc("/cmdline", pprof.Cmdline)
+			pprofRouter.HandleFunc("/profile", pprof.Profile)
+			pprofRouter.HandleFunc("/symbol", pprof.Symbol)
+			pprofRouter.HandleFunc("/trace", pprof.Trace)
 
-		// Also handle sub-paths like /heap, /goroutine, etc.
-		router.Handle("/{name}", http.HandlerFunc(pprof.Index))
+			// Also handle sub-paths like /heap, /goroutine, etc.
+			pprofRouter.Handle("/{name}", http.HandlerFunc(pprof.Index))
+		})
 	})
 }
