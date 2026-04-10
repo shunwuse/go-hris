@@ -21,3 +21,13 @@ build/
 deployments/
 configs/*
 !configs/default.env
+
+# Documentation and local artifacts #
+docs/
+logs/
+coverage.out
+coverage.html
+
+# CI and metadata not needed for image build #
+.github/
+*.md
