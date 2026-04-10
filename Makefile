@@ -1,7 +1,5 @@
 # Variables
-APP_NAME = app
 MIGRATIONS_DIR = ./migrations
-DB_URL = postgresql://postgres:postgres@localhost:5432/hris?sslmode=disable
 VERSION = $(shell git rev-parse --short HEAD 2>/dev/null || echo "dev")
 LDFLAGS = -X github.com/shunwuse/go-hris/internal/infra/app.Version=$(VERSION)
 DOCKER_IMAGE = go-hris:latest
@@ -12,14 +10,10 @@ NC = \033[0m
 
 .PHONY: help \
 	run run-worker \
-	fmt gen \
-	test test-coverage \
-	test-controllers test-services \
-	build build-static \
-	build-worker build-worker-static \
-	migrate-create migrate-up migrate-down \
-	go-migrate-up go-migrate-down \
-	docker-build docker-run
+	fmt modernize gen \
+	test \
+	migrate-create \
+	docker-build
 
 
 all: help
@@ -37,9 +31,10 @@ run: ## Run the api server locally
 run-worker: ## Run the worker locally
 	go run -ldflags "$(LDFLAGS)" ./cmd/worker
 
-fmt: ## Format and modernize the code
+fmt: ## Format the code
 	go fmt ./...
-	go run golang.org/x/tools/cmd/goimports@latest -w .
+
+modernize: ## Apply x/tools modernizations
 	go run golang.org/x/tools/go/analysis/passes/modernize/cmd/modernize@latest -fix ./...
 
 # go install github.com/google/wire/cmd/wire@latest
@@ -52,48 +47,14 @@ gen: ## Generate wire dependencies
 test: ## Run unit tests
 	go test -v ./...
 
-test-coverage: ## Run tests with coverage report
-	go test -v -coverprofile=coverage.out ./...
-	go tool cover -html=coverage.out -o coverage.html
-
-test-controllers: ## Run controller unit tests
-	go test -v ./internal/http/controllers/...
-
-test-services: ## Run service unit tests
-	go test -v ./internal/services/...
-
-build: ## Build the api server application
-	go build -ldflags "$(LDFLAGS)" -o ./bin/$(APP_NAME) ./cmd/server
-
-build-static: ## Build the server application statically
-	go build -ldflags "$(LDFLAGS) -extldflags '-static'" -o ./bin/$(APP_NAME) ./cmd/server
-
-build-worker: ## Build the worker application
-	go build -ldflags "$(LDFLAGS)" -o ./bin/$(APP_NAME)-worker ./cmd/worker
-
-build-worker-static: ## Build the worker application statically
-	go build -ldflags "$(LDFLAGS) -extldflags '-static'" -o ./bin/$(APP_NAME)-worker ./cmd/worker
-
 ## Database targets
 migrate-create: ## Create a new migration (usage: make migrate-create name=migration_name)
-	@read -p "Enter migration name: " name; \
-	migrate create -ext sql -dir $(MIGRATIONS_DIR) -seq $$name
-
-migrate-up: ## Run migrations up using migrate CLI
-	migrate -path $(MIGRATIONS_DIR) -database "$(DB_URL)" up
-
-migrate-down: ## Run migrations down using migrate CLI
-	migrate -path $(MIGRATIONS_DIR) -database "$(DB_URL)" down
-
-go-migrate-up: ## Run migrations up using go run
-	go run ./cmd/migrate/main.go up
-
-go-migrate-down: ## Run migrations down using go run
-	go run ./cmd/migrate/main.go down
+	@if [ -z "$(name)" ]; then \
+		echo "Usage: make migrate-create name=migration_name"; \
+		exit 1; \
+	fi
+	migrate create -ext sql -dir $(MIGRATIONS_DIR) -seq $(name)
 
 ## Docker targets
 docker-build: ## Build Docker image
 	docker buildx build --platform linux/amd64 --build-arg VERSION=$(VERSION) -t $(DOCKER_IMAGE) --load -f build/package/Dockerfile .
-
-docker-run: ## Run Docker container
-	docker run --rm -p 8080:8080 $(DOCKER_IMAGE)

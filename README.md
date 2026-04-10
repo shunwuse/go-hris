@@ -27,7 +27,7 @@
 
 2. **Initialize the database**
    ```bash
-   make go-migrate-up
+   go run ./cmd/migrate/main.go up
    ```
 
 3. **Start the api server**
@@ -36,13 +36,19 @@
    ```
    The server will be running at `http://localhost:8080` by default.
 
-4. **Format/Modernize the code**
+4. **Format the code**
    ```bash
    make fmt
    ```
-   Ensures code style consistency and applies latest Go best practices.
+   Ensures code style consistency with Go's standard formatter.
 
-5. **Start the worker (Optional)**
+5. **Apply modernizations (Optional)**
+   ```bash
+   make modernize
+   ```
+   Applies x/tools modernize rewrites for newer language and library idioms.
+
+6. **Start the worker (Optional)**
    ```bash
    make run-worker
    ```
@@ -56,7 +62,7 @@
 make docker-build
 
 # Run the container
-make docker-run
+docker run --rm -p 8080:8080 go-hris:latest
 ```
 
 #### Use pre-built image
@@ -90,9 +96,9 @@ We provide a comprehensive testing suite focusing on unit and layer-based testin
 | Command | Description |
 |---------|-------------|
 | `make test` | Run all unit tests |
-| `make test-controllers` | Run only HTTP controller tests |
-| `make test-services` | Run only service layer tests |
-| `make test-coverage` | Generate HTML coverage report |
+| `go test -v ./internal/http/controllers/...` | Run only HTTP controller tests |
+| `go test -v ./internal/services/...` | Run only service layer tests |
+| `go test -v -coverprofile=coverage.out ./... && go tool cover -html=coverage.out -o coverage.html` | Generate HTML coverage report |
 
 For detailed testing architecture and instructions, please refer to [docs/testing.md](docs/testing.md).
 
@@ -150,15 +156,28 @@ Why this structure:
 
 ## 📜 Development Commands (Makefile)
 
-Use `make` or `make help` to see all available commands. Key commands:
+Use `make` or `make help` to see the common local commands. The Makefile stays intentionally small so the most common workflows are easy to remember.
 
-- `make gen`: Generate Wire DI (Required after adding dependencies)
+Key commands:
+
+- `make gen`: Generate Wire DI (required after adding dependencies)
 - `make run`: Run the API server locally
 - `make run-worker`: Run the background worker locally
-- `make build`: Build local binary
+- `make fmt`: Format the code with Go's standard formatter
+- `make modernize`: Apply modern Go modernization rewrites
 - `make test`: Run all unit tests
 - `make migrate-create name=xxx`: Create a new database migration file
-- `make docker-build`: Build production Docker image
+- `make docker-build`: Build the production Docker image
+
+Advanced workflows:
+
+- `go run ./cmd/migrate/main.go up`: Apply database migrations
+- `go run ./cmd/migrate/main.go down`: Roll back database migrations
+- `go test -v ./internal/http/controllers/...`: Run only controller tests
+- `go test -v ./internal/services/...`: Run only service tests
+- `go test -v -coverprofile=coverage.out ./... && go tool cover -html=coverage.out -o coverage.html`: Generate a coverage report
+
+For Docker usage, build with `make docker-build` and run the image with `docker run --rm -p 8080:8080 go-hris:latest`.
 
 ---
 
