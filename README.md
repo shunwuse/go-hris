@@ -188,3 +188,7 @@ For Docker usage, build with `make docker-build` and run the image with `docker 
 - [x] Approval Workflow Management
 - [x] Redis-based Idempotency & Distributed Locking
 - [x] Structured Logging & Health Checks
+
+## 📚 Runtime Contracts
+
+Some implementation details are intentionally shared across the project and documented for contributors in [docs/runtime-contracts.md](docs/runtime-contracts.md).
