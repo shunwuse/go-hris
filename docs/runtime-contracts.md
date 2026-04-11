@@ -5,6 +5,7 @@ This document records a few implementation contracts that are easy to miss when 
 ## Trace ID and Idempotency
 
 The current HTTP stack intentionally reuses `X-Trace-Id` as the idempotency key.
+That means `TraceMiddleware` must run before `IdempotencyMiddleware` so the key is already present in request context.
 The goal is to avoid generating and propagating a second unique id for the same logical request.
 
 That is a valid tradeoff, but the contract needs to stay explicit:
@@ -15,6 +16,7 @@ That is a valid tradeoff, but the contract needs to stay explicit:
 
 Related code:
 
+- [Common middleware order](../internal/http/middlewares/middlewares.go)
 - [Trace middleware](../internal/http/middlewares/trace.go)
 - [Idempotency middleware](../internal/http/middlewares/idempotency.go)
 
