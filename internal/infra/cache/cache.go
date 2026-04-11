@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"time"
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/redis/go-redis/v9"
@@ -47,7 +48,10 @@ func New(cfg *Config, log *logger.Logger) *Cache {
 		DB:       db,
 	})
 
-	if _, err := rdb.Ping(context.Background()).Result(); err != nil {
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	if _, err := rdb.Ping(ctx).Result(); err != nil {
 		log.Fatal("failed to connect to redis", zap.Error(err))
 	}
 
