@@ -8,9 +8,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/shunwuse/go-hris/internal/http/middlewares"
 	"github.com/shunwuse/go-hris/internal/http/router"
-	"github.com/shunwuse/go-hris/internal/http/routes"
 	"github.com/shunwuse/go-hris/internal/infra/cache"
 	"github.com/shunwuse/go-hris/internal/infra/database"
 	"github.com/shunwuse/go-hris/internal/pkg/logger"
@@ -18,13 +16,11 @@ import (
 )
 
 type Server struct {
-	config            *Config
-	logger            *logger.Logger
-	database          *database.Database
-	cache             *cache.Cache
-	commonMiddlewares middlewares.CommonMiddlewares
-	routes            routes.Routes
-	router            *router.RequestHandler
+	config   *Config
+	logger   *logger.Logger
+	database *database.Database
+	cache    *cache.Cache
+	router   *router.Router
 }
 
 func NewServer(
@@ -32,29 +28,19 @@ func NewServer(
 	log *logger.Logger,
 	db *database.Database,
 	cache *cache.Cache,
-	commonMiddlewares middlewares.CommonMiddlewares,
-	routes routes.Routes,
-	router *router.RequestHandler,
+	router *router.Router,
 ) *Server {
 	return &Server{
-		config:            cfg,
-		logger:            log,
-		database:          db,
-		cache:             cache,
-		commonMiddlewares: commonMiddlewares,
-		routes:            routes,
-		router:            router,
+		config:   cfg,
+		logger:   log,
+		database: db,
+		cache:    cache,
+		router:   router,
 	}
 }
 
 func (server *Server) Run() {
 	server.logger.Info("starting server initialization")
-
-	// Setup common middlewares.
-	server.commonMiddlewares.Setup(server.router.Router)
-
-	// Setup routes.
-	server.routes.Setup(server.router.Router)
 
 	port := server.config.Service.Port
 
@@ -65,7 +51,7 @@ func (server *Server) Run() {
 	// Create HTTP server with timeout configurations.
 	httpServer := &http.Server{
 		Addr:              ":" + port,
-		Handler:           server.router.Router,
+		Handler:           server.router,
 		ReadTimeout:       15 * time.Second,
 		ReadHeaderTimeout: 10 * time.Second,
 		WriteTimeout:      15 * time.Second,
