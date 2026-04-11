@@ -9,10 +9,10 @@ import (
 	"time"
 
 	"github.com/shunwuse/go-hris/internal/http/middlewares"
+	"github.com/shunwuse/go-hris/internal/http/router"
 	"github.com/shunwuse/go-hris/internal/http/routes"
 	"github.com/shunwuse/go-hris/internal/infra/cache"
 	"github.com/shunwuse/go-hris/internal/infra/database"
-	"github.com/shunwuse/go-hris/internal/infra/handler"
 	"github.com/shunwuse/go-hris/internal/pkg/logger"
 	"go.uber.org/zap"
 )
@@ -22,9 +22,9 @@ type Server struct {
 	logger            *logger.Logger
 	database          *database.Database
 	cache             *cache.Cache
-	handler           *handler.RequestHandler
 	commonMiddlewares middlewares.CommonMiddlewares
 	routes            routes.Routes
+	router            *router.RequestHandler
 }
 
 func NewServer(
@@ -32,18 +32,18 @@ func NewServer(
 	log *logger.Logger,
 	db *database.Database,
 	cache *cache.Cache,
-	handler *handler.RequestHandler,
 	commonMiddlewares middlewares.CommonMiddlewares,
 	routes routes.Routes,
+	router *router.RequestHandler,
 ) *Server {
 	return &Server{
 		config:            cfg,
 		logger:            log,
 		database:          db,
 		cache:             cache,
-		handler:           handler,
 		commonMiddlewares: commonMiddlewares,
 		routes:            routes,
+		router:            router,
 	}
 }
 
@@ -51,10 +51,10 @@ func (server *Server) Run() {
 	server.logger.Info("starting server initialization")
 
 	// Setup common middlewares.
-	server.commonMiddlewares.Setup(server.handler.Router)
+	server.commonMiddlewares.Setup(server.router.Router)
 
 	// Setup routes.
-	server.routes.Setup(server.handler.Router)
+	server.routes.Setup(server.router.Router)
 
 	port := server.config.Service.Port
 
@@ -65,7 +65,7 @@ func (server *Server) Run() {
 	// Create HTTP server with timeout configurations.
 	httpServer := &http.Server{
 		Addr:              ":" + port,
-		Handler:           server.handler.Router,
+		Handler:           server.router.Router,
 		ReadTimeout:       15 * time.Second,
 		ReadHeaderTimeout: 10 * time.Second,
 		WriteTimeout:      15 * time.Second,
