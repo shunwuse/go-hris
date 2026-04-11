@@ -493,3 +493,44 @@ func TestCommonMiddlewares_Setup(t *testing.T) {
 
 	assert.NotEmpty(t, rr.Header().Get("Access-Control-Allow-Origin"))
 }
+
+func TestNewCommonMiddlewares_Order(t *testing.T) {
+	metricSet := &metrics.Metrics{
+		HttpRequestsTotal: prometheus.NewCounterVec(
+			prometheus.CounterOpts{Name: "test_common_middleware_order_http_requests_total", Help: "test"},
+			[]string{"method", "path", "status"},
+		),
+		HttpRequestDuration: prometheus.NewHistogramVec(
+			prometheus.HistogramOpts{Name: "test_common_middleware_order_http_request_duration_seconds", Help: "test"},
+			[]string{"method", "path"},
+		),
+	}
+
+	trace := NewTraceMiddleware(logger.NewNopLogger())
+	metricsMiddleware := NewMetricsMiddleware(metricSet)
+	requestLoggerMiddleware := NewRequestLoggerMiddleware(logger.NewNopLogger())
+	recoveryMiddleware := NewRecoveryMiddleware(logger.NewNopLogger(), &captureAlerter{})
+	idempotencyMiddleware := NewIdempotencyMiddleware(
+		&app.ServiceConfig{IdempotencyExpireMinutes: 1},
+		nil,
+		logger.NewNopLogger(),
+	)
+	exceptionMiddleware := NewExceptionMiddleware(&captureAlerter{})
+
+	common := NewCommonMiddlewares(
+		trace,
+		metricsMiddleware,
+		requestLoggerMiddleware,
+		recoveryMiddleware,
+		idempotencyMiddleware,
+		exceptionMiddleware,
+	)
+
+	require.Len(t, common, 6)
+	assert.Same(t, trace, common[0])
+	assert.Same(t, metricsMiddleware, common[1])
+	assert.Same(t, requestLoggerMiddleware, common[2])
+	assert.Same(t, recoveryMiddleware, common[3])
+	assert.Same(t, idempotencyMiddleware, common[4])
+	assert.Same(t, exceptionMiddleware, common[5])
+}
