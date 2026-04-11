@@ -484,14 +484,6 @@ func TestCommonMiddlewares_Setup(t *testing.T) {
 
 	assert.Equal(t, 1, first.called)
 	assert.Equal(t, 1, second.called)
-
-	req := httptest.NewRequest(http.MethodOptions, "/ping", nil)
-	req.Header.Set("Origin", "https://example.com")
-	req.Header.Set("Access-Control-Request-Method", "GET")
-	rr := httptest.NewRecorder()
-	router.ServeHTTP(rr, req)
-
-	assert.NotEmpty(t, rr.Header().Get("Access-Control-Allow-Origin"))
 }
 
 func TestNewCommonMiddlewares_Order(t *testing.T) {
@@ -506,6 +498,7 @@ func TestNewCommonMiddlewares_Order(t *testing.T) {
 		),
 	}
 
+	corsMiddleware := NewCORSMiddleware()
 	trace := NewTraceMiddleware(logger.NewNopLogger())
 	metricsMiddleware := NewMetricsMiddleware(metricSet)
 	requestLoggerMiddleware := NewRequestLoggerMiddleware(logger.NewNopLogger())
@@ -518,6 +511,7 @@ func TestNewCommonMiddlewares_Order(t *testing.T) {
 	exceptionMiddleware := NewExceptionMiddleware(&captureAlerter{})
 
 	common := NewCommonMiddlewares(
+		corsMiddleware,
 		trace,
 		metricsMiddleware,
 		requestLoggerMiddleware,
@@ -526,11 +520,12 @@ func TestNewCommonMiddlewares_Order(t *testing.T) {
 		exceptionMiddleware,
 	)
 
-	require.Len(t, common, 6)
-	assert.Same(t, trace, common[0])
-	assert.Same(t, metricsMiddleware, common[1])
-	assert.Same(t, requestLoggerMiddleware, common[2])
-	assert.Same(t, recoveryMiddleware, common[3])
-	assert.Same(t, idempotencyMiddleware, common[4])
-	assert.Same(t, exceptionMiddleware, common[5])
+	require.Len(t, common, 7)
+	assert.Same(t, corsMiddleware, common[0])
+	assert.Same(t, trace, common[1])
+	assert.Same(t, metricsMiddleware, common[2])
+	assert.Same(t, requestLoggerMiddleware, common[3])
+	assert.Same(t, recoveryMiddleware, common[4])
+	assert.Same(t, idempotencyMiddleware, common[5])
+	assert.Same(t, exceptionMiddleware, common[6])
 }

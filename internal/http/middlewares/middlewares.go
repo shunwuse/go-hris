@@ -11,6 +11,7 @@ type ICommonMiddleware interface {
 }
 
 func NewCommonMiddlewares(
+	corsMiddleware *CORSMiddleware,
 	traceMiddleware *TraceMiddleware,
 	metricsMiddleware *MetricsMiddleware,
 	requestLoggerMiddleware *RequestLoggerMiddleware,
@@ -19,6 +20,7 @@ func NewCommonMiddlewares(
 	exceptionMiddleware *ExceptionMiddleware,
 ) CommonMiddlewares {
 	return CommonMiddlewares{
+		corsMiddleware,          // CORS: Top-level cross-origin policy
 		traceMiddleware,         // Trace: Request identification
 		metricsMiddleware,       // Metrics: Performance telemetry
 		requestLoggerMiddleware, // Logger: Traffic observation
@@ -29,8 +31,6 @@ func NewCommonMiddlewares(
 }
 
 func (m CommonMiddlewares) Setup(router chi.Router) {
-	NewCORSMiddleware().Setup(router) // setup CORS middleware
-
 	// Setup built-in middlewares.
 	// router.Use(middleware.Logger) // Replaced by requestLoggerMiddleware
 
