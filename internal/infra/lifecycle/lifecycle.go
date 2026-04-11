@@ -3,6 +3,7 @@ package lifecycle
 import (
 	"context"
 	"errors"
+	"slices"
 	"sync"
 )
 
@@ -55,8 +56,7 @@ func (l *Lifecycle) Stop(ctx context.Context) error {
 
 	var errs []error
 	// LIFO Shutdown.
-	for i := len(l.hooks) - 1; i >= 0; i-- {
-		hook := l.hooks[i]
+	for _, hook := range slices.Backward(l.hooks) {
 		if hook.OnStop != nil {
 			if err := hook.OnStop(ctx); err != nil {
 				errs = append(errs, err)

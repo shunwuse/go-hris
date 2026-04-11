@@ -72,8 +72,7 @@ func CursorList(w http.ResponseWriter, data any, meta CursorPaginationMeta) {
 // Error encodes domain error to HTTP error response.
 func Error(w http.ResponseWriter, err error) {
 	// Extract custom Error (including sentinel errors).
-	var appErr *errors.Error
-	if stderrors.As(err, &appErr) {
+	if appErr, ok := stderrors.AsType[*errors.Error](err); ok {
 		status := domainCodeToHTTPStatus(appErr.Code())
 		JSON(w, status, ErrorResponse{
 			Error: ErrorDetail{
