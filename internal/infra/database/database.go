@@ -52,12 +52,19 @@ func New(cfg *Config, log *logger.Logger) *Database {
 
 // Close closes the database connection.
 func (d *Database) Close() error {
-	if d.client != nil {
-		if err := d.client.Close(); err != nil {
-			return err
-		}
+	if d == nil {
+		return nil
 	}
-	return d.rawDB.Close()
+
+	if d.rawDB != nil {
+		return d.rawDB.Close()
+	}
+
+	if d.client != nil {
+		return d.client.Close()
+	}
+
+	return nil
 }
 
 // GetClient returns the transactional or default database client from context.
