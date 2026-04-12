@@ -43,3 +43,21 @@ func TestServeHTTP_NotFoundReturnsJSONEnvelope(t *testing.T) {
 	assert.Equal(t, apperrors.CodeNotFound, body.Error.Code)
 	assert.Equal(t, "resource not found", body.Error.Message)
 }
+
+func TestServeHTTP_MethodNotAllowedReturnsJSONEnvelopeAndAllowHeader(t *testing.T) {
+	t.Parallel()
+
+	rr := httptest.NewRecorder()
+	req := httptest.NewRequest(http.MethodPost, "/health", nil)
+
+	newTestRouter().ServeHTTP(rr, req)
+
+	require.Equal(t, http.StatusMethodNotAllowed, rr.Code)
+	assert.Equal(t, []string{http.MethodGet}, rr.Header().Values("Allow"))
+	assert.Equal(t, "application/json; charset=utf-8", rr.Header().Get("Content-Type"))
+
+	var body response.ErrorResponse
+	require.NoError(t, json.Unmarshal(rr.Body.Bytes(), &body))
+	assert.Equal(t, apperrors.CodeMethodNotAllowed, body.Error.Code)
+	assert.Equal(t, "method not allowed", body.Error.Message)
+}

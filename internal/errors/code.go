@@ -2,10 +2,11 @@ package errors
 
 const (
 	// Common errors.
-	CodeNotFound      = "NOT_FOUND"
-	CodeAlreadyExists = "ALREADY_EXISTS"
-	CodeInvalidInput  = "INVALID_INPUT"
-	CodeInternalError = "INTERNAL_ERROR"
+	CodeNotFound         = "NOT_FOUND"
+	CodeMethodNotAllowed = "METHOD_NOT_ALLOWED"
+	CodeAlreadyExists    = "ALREADY_EXISTS"
+	CodeInvalidInput     = "INVALID_INPUT"
+	CodeInternalError    = "INTERNAL_ERROR"
 
 	// Authentication & Authorization errors.
 	CodeUnauthorized       = "UNAUTHORIZED"

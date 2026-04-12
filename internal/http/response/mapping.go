@@ -27,6 +27,8 @@ var codeToStatus = map[string]int{
 	// 403 [Forbidden]
 	errors.CodeForbidden:           http.StatusForbidden,
 	errors.CodeOperationNotAllowed: http.StatusForbidden,
+	// 405 [Method Not Allowed]
+	errors.CodeMethodNotAllowed: http.StatusMethodNotAllowed,
 	// 404 [Not Found]
 	errors.CodeNotFound: http.StatusNotFound,
 	// 409 [Conflict]
