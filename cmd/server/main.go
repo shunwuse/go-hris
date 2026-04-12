@@ -19,9 +19,11 @@ func main() {
 
 	cfg := mgr.Config()
 
-	log := initLogger(mgr)
+	appLogger := initLogger(mgr)
 
-	server := InitializeServer(cfg, log)
+	server := InitializeServer(cfg, appLogger)
 
-	server.Run()
+	if err := server.Run(); err != nil {
+		log.Fatalf("server exited with error: %v", err)
+	}
 }
