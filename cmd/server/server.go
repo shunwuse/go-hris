@@ -39,9 +39,18 @@ func NewServer(
 	}
 }
 
-func (server *Server) Run() {
+func (server *Server) Run() error {
 	server.logger.Info("starting server initialization")
 
+	// Channel to listen for interrupt signals.
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	defer signal.Stop(quit)
+
+	return server.run(quit)
+}
+
+func (server *Server) run(quit <-chan os.Signal) error {
 	port := server.config.Service.Port
 
 	if port == "" {
@@ -58,59 +67,62 @@ func (server *Server) Run() {
 		IdleTimeout:       60 * time.Second,
 	}
 
-	// Channel to capture server startup errors.
+	// Capture HTTP server startup and runtime errors.
 	serverErrors := make(chan error, 1)
 
 	go func() {
 		server.logger.Info("starting HTTP server", zap.String("port", port))
 		serverErrors <- httpServer.ListenAndServe()
 	}()
-
-	// Channel to listen for interrupt signals.
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-
-	gracefulShutdown := func() {
-		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-		defer cancel()
-
-		server.logger.Info("initiating graceful shutdown", zap.Duration("timeout", 30*time.Second))
-
-		// Shutdown HTTP server.
-		if err := httpServer.Shutdown(ctx); err != nil {
-			server.logger.Error("graceful shutdown failed", zap.Error(err))
-
-			// if shutdown fails, we should try to close other resources.
-			if closeErr := httpServer.Close(); closeErr != nil {
-				server.logger.Error("forced closure failed", zap.Error(closeErr))
-			}
-
-		}
-
-		// Close cache connection.
-		if err := server.cache.Close(); err != nil {
-			server.logger.Error("failed to close cache connection", zap.Error(err))
-		}
-
-		// Close database connection.
-		if err := server.database.Close(); err != nil {
-			server.logger.Error("failed to close database connection", zap.Error(err))
-		}
-
-		server.logger.Info("server stopped gracefully")
-
-		_ = server.logger.Sync()
-	}
+	defer server.shutdown(httpServer)
 
 	// Block until we receive an error or interrupt signal.
 	select {
 	case err := <-serverErrors:
-		if err != nil && err != http.ErrServerClosed {
-			server.logger.Fatal("server startup failed", zap.Error(err))
+		if err == http.ErrServerClosed {
+			return nil
 		}
 
+		server.logger.Error("server exited unexpectedly", zap.Error(err))
+
+		return err
+
 	case sig := <-quit:
-		server.logger.Info("shutdown signal received", zap.String("signal", sig.String()))
-		gracefulShutdown()
+		if sig != nil {
+			server.logger.Info("shutdown signal received", zap.String("signal", sig.String()))
+		}
+
+		return nil
 	}
+}
+
+func (server *Server) shutdown(httpServer *http.Server) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	server.logger.Info("initiating graceful shutdown", zap.Duration("timeout", 30*time.Second))
+
+	// Shutdown HTTP server.
+	if err := httpServer.Shutdown(ctx); err != nil {
+		server.logger.Error("graceful shutdown failed", zap.Error(err))
+
+		// If shutdown fails, we should try to close other resources.
+		if closeErr := httpServer.Close(); closeErr != nil {
+			server.logger.Error("forced closure failed", zap.Error(closeErr))
+		}
+	}
+
+	// Close cache connection.
+	if err := server.cache.Close(); err != nil {
+		server.logger.Error("failed to close cache connection", zap.Error(err))
+	}
+
+	// Close database connection.
+	if err := server.database.Close(); err != nil {
+		server.logger.Error("failed to close database connection", zap.Error(err))
+	}
+
+	server.logger.Info("server shutdown complete")
+
+	_ = server.logger.Sync()
 }
