@@ -63,12 +63,10 @@ func (l *Locker) Obtain(ctx context.Context, key string, ttl time.Duration, opti
 // ObtainAutoRefresh obtains a lock and immediately starts auto-refresh.
 // This minimizes the gap between lock acquisition and keepalive startup.
 func (l *Locker) ObtainAutoRefresh(ctx context.Context, key string, ttl time.Duration, options *redislock.Options) (*Lock, error) {
-	lock, err := l.Obtain(ctx, key, ttl, options)
+	lock, _, err := l.obtainAutoRefresh(ctx, key, ttl, options)
 	if err != nil {
 		return nil, err
 	}
-
-	lock.autoRefresh(ctx, true)
 
 	return lock, nil
 }
@@ -103,19 +101,72 @@ func (l *Locker) DoWithOptions(ctx context.Context, key string, ttl time.Duratio
 		return ErrNilLocker
 	}
 
-	lock, err := l.ObtainAutoRefresh(ctx, key, ttl, options)
+	runCtx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	lock, lostCh, err := l.obtainAutoRefresh(runCtx, key, ttl, options)
 	if err != nil {
 		return err
 	}
 
-	defer func() {
-		releaseErr := lock.Release(ctx)
-		if releaseErr != nil && !errors.Is(releaseErr, redislock.ErrLockNotHeld) {
-			l.logger.WithContext(ctx).Warn("Failed to release lock in lock helper.")
+	defer l.releaseAfterDo(ctx, lock)
+
+	var lossErr error
+	lossDone := make(chan struct{})
+	go func() {
+		defer close(lossDone)
+
+		if err, ok := <-lostCh; ok && err != nil {
+			lossErr = err
+			cancel()
 		}
 	}()
 
-	return fn(ctx)
+	fnErr := fn(runCtx)
+	cancel()
+	<-lossDone
+
+	if lossErr != nil {
+		return joinDoErrors(lossErr, fnErr)
+	}
+
+	if ctxErr := ctx.Err(); ctxErr != nil {
+		return joinDoErrors(ctxErr, fnErr)
+	}
+
+	return fnErr
+}
+
+func (l *Locker) obtainAutoRefresh(ctx context.Context, key string, ttl time.Duration, options *redislock.Options) (*Lock, <-chan error, error) {
+	lock, err := l.Obtain(ctx, key, ttl, options)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	lostCh, err := lock.autoRefresh(ctx, true)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return lock, lostCh, nil
+}
+
+func (l *Locker) releaseAfterDo(ctx context.Context, lock *Lock) {
+	releaseErr := lock.Release(ctx)
+	if releaseErr != nil && !errors.Is(releaseErr, redislock.ErrLockNotHeld) {
+		l.logger.WithContext(ctx).Warn("Failed to release lock in lock helper.")
+	}
+}
+
+func joinDoErrors(primary, secondary error) error {
+	if secondary != nil && !errors.Is(secondary, context.Canceled) {
+		if primary != nil {
+			return errors.Join(primary, secondary)
+		}
+		return secondary
+	}
+
+	return primary
 }
 
 var (
