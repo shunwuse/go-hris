@@ -23,7 +23,7 @@ func NewConsumer(
 	}
 }
 
-func (c *Consumer) Start(ctx context.Context) {
+func (c *Consumer) Start(ctx context.Context) error {
 	c.logger.Info("starting consumer")
 
 	// register handlers.
@@ -34,6 +34,8 @@ func (c *Consumer) Start(ctx context.Context) {
 	// Block until context is done.
 	<-ctx.Done()
 	c.logger.Info("stopping consumer")
+
+	return nil
 }
 
 func (c *Consumer) Stop(ctx context.Context) {

@@ -18,9 +18,11 @@ func main() {
 
 	cfg := mgr.Config()
 
-	log := initLogger(mgr)
+	appLogger := initLogger(mgr)
 
-	worker := InitializeWorker(cfg, log)
+	worker := InitializeWorker(cfg, appLogger)
 
-	worker.Run()
+	if err := worker.Run(); err != nil {
+		log.Fatalf("worker exited with error: %v", err)
+	}
 }
