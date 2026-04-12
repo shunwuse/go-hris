@@ -206,4 +206,31 @@ func TestLockerDo(t *testing.T) {
 		})
 		require.NoError(t, err)
 	})
+
+	t.Run("DoWithOptions returns lock lost when auto refresh fails", func(t *testing.T) {
+		key := "locker-do-lock-lost"
+
+		resultCh := make(chan error, 1)
+		go func() {
+			resultCh <- locker.DoWithOptions(ctx, key, 300*time.Millisecond, nil, func(runCtx context.Context) error {
+				select {
+				case <-runCtx.Done():
+					return nil
+				case <-time.After(2 * time.Second):
+					return nil
+				}
+			})
+		}()
+
+		require.Eventually(t, func() bool {
+			return locker.cache.Client.Exists(ctx, key).Val() == 1
+		}, time.Second, 10*time.Millisecond)
+
+		time.Sleep(150 * time.Millisecond)
+		require.NoError(t, locker.cache.Client.Del(ctx, key).Err())
+
+		err := <-resultCh
+		require.Error(t, err)
+		assert.ErrorIs(t, err, ErrLockLost)
+	})
 }

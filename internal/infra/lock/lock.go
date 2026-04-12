@@ -2,6 +2,7 @@ package lock
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/bsm/redislock"
@@ -45,10 +46,10 @@ func (l *Lock) Token() string {
 // AutoRefresh starts a background goroutine to refresh the lock at 1/3 of its TTL interval.
 // It stops when the provided context is canceled or if the refresh fails.
 func (l *Lock) AutoRefresh(ctx context.Context) {
-	l.autoRefresh(ctx, false)
+	_, _ = l.autoRefresh(ctx, false)
 }
 
-func (l *Lock) autoRefresh(ctx context.Context, immediateRefresh bool) {
+func (l *Lock) autoRefresh(ctx context.Context, immediateRefresh bool) (<-chan error, error) {
 	log := l.logger.WithContext(ctx)
 
 	if immediateRefresh {
@@ -58,7 +59,7 @@ func (l *Lock) autoRefresh(ctx context.Context, immediateRefresh bool) {
 				zap.String("token", l.Token()),
 				zap.Error(err),
 			)
-			return
+			return nil, errors.Join(ErrLockLost, err)
 		}
 	}
 
@@ -71,19 +72,27 @@ func (l *Lock) autoRefresh(ctx context.Context, immediateRefresh bool) {
 		interval = l.ttl / 2
 	}
 
+	lostCh := make(chan error, 1)
+
 	go func() {
 		ticker := time.NewTicker(interval)
 		defer ticker.Stop()
+		defer close(lostCh)
 
 		for {
 			select {
 			case <-ticker.C:
 				if err := l.Refresh(ctx, l.ttl, nil); err != nil {
+					lostErr := errors.Join(ErrLockLost, err)
 					log.Warn("Failed to refresh lock.",
 						zap.String("key", l.key),
 						zap.String("token", l.Token()),
 						zap.Error(err),
 					)
+					select {
+					case lostCh <- lostErr:
+					default:
+					}
 					return
 				}
 			case <-ctx.Done():
@@ -91,4 +100,6 @@ func (l *Lock) autoRefresh(ctx context.Context, immediateRefresh bool) {
 			}
 		}
 	}()
+
+	return lostCh, nil
 }
