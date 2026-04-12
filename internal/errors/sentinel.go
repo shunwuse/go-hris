@@ -3,10 +3,11 @@ package errors
 // Sentinel errors - predefined common errors.
 var (
 	// Common errors.
-	ErrNotFound      = New(CodeNotFound, "resource not found")
-	ErrAlreadyExists = New(CodeAlreadyExists, "resource already exists")
-	ErrInvalidInput  = New(CodeInvalidInput, "invalid input")
-	ErrInternalError = New(CodeInternalError, "internal error")
+	ErrNotFound         = New(CodeNotFound, "resource not found")
+	ErrMethodNotAllowed = New(CodeMethodNotAllowed, "method not allowed")
+	ErrAlreadyExists    = New(CodeAlreadyExists, "resource already exists")
+	ErrInvalidInput     = New(CodeInvalidInput, "invalid input")
+	ErrInternalError    = New(CodeInternalError, "internal error")
 
 	// Authentication & Authorization errors.
 	ErrUnauthorized       = New(CodeUnauthorized, "unauthorized")

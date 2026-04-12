@@ -115,6 +115,21 @@ func TestError_DomainError(t *testing.T) {
 	assert.Equal(t, "required", body.Error.Details["email"])
 }
 
+func TestError_MethodNotAllowed(t *testing.T) {
+	t.Parallel()
+
+	rr := httptest.NewRecorder()
+	Error(rr, errors.ErrMethodNotAllowed)
+
+	require.Equal(t, http.StatusMethodNotAllowed, rr.Code)
+
+	var body ErrorResponse
+	err := json.Unmarshal(rr.Body.Bytes(), &body)
+	require.NoError(t, err)
+	assert.Equal(t, errors.CodeMethodNotAllowed, body.Error.Code)
+	assert.Equal(t, "method not allowed", body.Error.Message)
+}
+
 func TestError_UnknownDomainCodeFallsBackToInternal(t *testing.T) {
 	t.Parallel()
 
