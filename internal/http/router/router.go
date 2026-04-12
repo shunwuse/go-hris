@@ -4,7 +4,9 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/http/middlewares"
+	"github.com/shunwuse/go-hris/internal/http/response"
 	"github.com/shunwuse/go-hris/internal/http/routes"
 )
 
@@ -18,6 +20,10 @@ func New(
 	routes routes.Routes,
 ) *Router {
 	mux := chi.NewRouter()
+
+	mux.NotFound(func(w http.ResponseWriter, r *http.Request) {
+		response.Error(w, errors.ErrNotFound)
+	})
 
 	// Setup common middlewares.
 	middlewares.Setup(mux)
