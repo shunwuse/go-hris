@@ -34,11 +34,14 @@ func NewScheduler(
 	}
 }
 
-func (s *Scheduler) Start(ctx context.Context) {
+func (s *Scheduler) Start(ctx context.Context) error {
 	s.logger.Info("starting scheduler")
 
 	// Register cron jobs.
-	s.registerJobs(ctx)
+	if err := s.registerJobs(ctx); err != nil {
+		s.logger.Error("failed to register cron jobs", zap.Error(err))
+		return err
+	}
 
 	// Start Cron Scheduler.
 	s.cron.Start()
@@ -46,6 +49,8 @@ func (s *Scheduler) Start(ctx context.Context) {
 	// Block until context is done.
 	<-ctx.Done()
 	s.logger.Info("stopping scheduler")
+
+	return nil
 }
 
 func (s *Scheduler) Stop(ctx context.Context) {
@@ -59,7 +64,7 @@ func (s *Scheduler) Stop(ctx context.Context) {
 	}
 }
 
-func (s *Scheduler) registerJobs(ctx context.Context) {
+func (s *Scheduler) registerJobs(ctx context.Context) error {
 	for _, job := range s.jobs {
 		cronJob := job
 		_, err := s.cron.AddFunc(cronJob.Schedule(), func() {
@@ -67,9 +72,11 @@ func (s *Scheduler) registerJobs(ctx context.Context) {
 		})
 
 		if err != nil {
-			s.logger.Fatal("failed to register job", zap.Error(err))
+			return fmt.Errorf("failed to register job %q: %w", cronJob.Name(), err)
 		}
 	}
+
+	return nil
 }
 
 func (s *Scheduler) runJob(baseCtx context.Context, job jobs.ICronJob) {
