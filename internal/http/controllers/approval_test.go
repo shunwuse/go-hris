@@ -7,10 +7,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/dtos"
@@ -56,10 +54,10 @@ func TestApprovalController_GetApprovals(t *testing.T) {
 			queryParams: "",
 			mockSetup: func(m *mocks.MockApprovalService) {
 				approverName := "Approver"
-				m.On("GetApprovalsWithCursor", mock.Anything, mock.Anything, mock.Anything).Return(&domains.CursorResult[*entgen.Approval]{
-					Items: []*entgen.Approval{
-						createTestApproval(1, "Creator 1", constants.ApprovalStatusPending, nil),
-						createTestApproval(2, "Creator 2", constants.ApprovalStatusApproved, &approverName),
+				m.On("GetApprovalsWithCursor", mock.Anything, mock.Anything, mock.Anything).Return(&domains.CursorResult[domains.Approval]{
+					Items: []domains.Approval{
+						*createTestApproval(1, "Creator 1", constants.ApprovalStatusPending, nil),
+						*createTestApproval(2, "Creator 2", constants.ApprovalStatusApproved, &approverName),
 					},
 					NextCursor: "",
 					HasMore:    false,
@@ -84,8 +82,8 @@ func TestApprovalController_GetApprovals(t *testing.T) {
 			mockSetup: func(m *mocks.MockApprovalService) {
 				m.On("GetApprovalsWithCursor", mock.Anything, mock.MatchedBy(func(q domains.CursorQuery) bool {
 					return q.Cursor == "abc123" && q.Limit == 5
-				}), mock.Anything).Return(&domains.CursorResult[*entgen.Approval]{
-					Items:      []*entgen.Approval{},
+				}), mock.Anything).Return(&domains.CursorResult[domains.Approval]{
+					Items:      []domains.Approval{},
 					NextCursor: "next123",
 					HasMore:    true,
 				}, nil)
@@ -105,9 +103,9 @@ func TestApprovalController_GetApprovals(t *testing.T) {
 			mockSetup: func(m *mocks.MockApprovalService) {
 				m.On("GetApprovalsWithCursor", mock.Anything, mock.Anything, mock.MatchedBy(func(f domains.ApprovalFilter) bool {
 					return f.Status == constants.ApprovalStatusPending
-				})).Return(&domains.CursorResult[*entgen.Approval]{
-					Items: []*entgen.Approval{
-						createTestApproval(1, "Creator", constants.ApprovalStatusPending, nil),
+				})).Return(&domains.CursorResult[domains.Approval]{
+					Items: []domains.Approval{
+						*createTestApproval(1, "Creator", constants.ApprovalStatusPending, nil),
 					},
 					NextCursor: "",
 					HasMore:    false,
@@ -126,8 +124,8 @@ func TestApprovalController_GetApprovals(t *testing.T) {
 			mockSetup: func(m *mocks.MockApprovalService) {
 				m.On("GetApprovalsWithCursor", mock.Anything, mock.Anything, mock.MatchedBy(func(f domains.ApprovalFilter) bool {
 					return f.Status == constants.ApprovalStatusApproved
-				})).Return(&domains.CursorResult[*entgen.Approval]{
-					Items:      []*entgen.Approval{},
+				})).Return(&domains.CursorResult[domains.Approval]{
+					Items:      []domains.Approval{},
 					NextCursor: "",
 					HasMore:    false,
 				}, nil)
@@ -145,8 +143,8 @@ func TestApprovalController_GetApprovals(t *testing.T) {
 			mockSetup: func(m *mocks.MockApprovalService) {
 				m.On("GetApprovalsWithCursor", mock.Anything, mock.Anything, mock.MatchedBy(func(f domains.ApprovalFilter) bool {
 					return f.Status == constants.ApprovalStatusRejected
-				})).Return(&domains.CursorResult[*entgen.Approval]{
-					Items:      []*entgen.Approval{},
+				})).Return(&domains.CursorResult[domains.Approval]{
+					Items:      []domains.Approval{},
 					NextCursor: "",
 					HasMore:    false,
 				}, nil)
@@ -543,27 +541,20 @@ func TestApprovalController_ActionApproval(t *testing.T) {
 // ========================================
 
 // Helper function to create a test approval with edges
-func createTestApproval(id uint, creatorName string, status constants.ApprovalStatus, approverName *string) *entgen.Approval {
-	now := time.Now()
-	approval := &entgen.Approval{
-		ID:        id,
-		CreatedAt: now,
-		UpdatedAt: now,
-		Status:    status,
-		CreatorID: 1,
+func createTestApproval(id uint, creatorName string, status constants.ApprovalStatus, approverName *string) *domains.Approval {
+	approval := &domains.Approval{
+		ID:          id,
+		Status:      status,
+		CreatorID:   1,
+		CreatorName: creatorName,
 	}
-	approval.Edges.Creator = &entgen.User{
-		ID:   1,
-		Name: creatorName,
-	}
+
 	if approverName != nil {
-		approval.Edges.Approver = &entgen.User{
-			ID:   2,
-			Name: *approverName,
-		}
-		approverId := uint(2)
-		approval.ApproverID = &approverId
+		approverID := uint(2)
+		approval.ApproverID = &approverID
+		approval.ApproverName = approverName
 	}
+
 	return approval
 }
 

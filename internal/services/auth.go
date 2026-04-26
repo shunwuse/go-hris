@@ -102,7 +102,7 @@ func (s *authService) Login(ctx context.Context, username string, password strin
 	}
 
 	// Verify password.
-	if user.Edges.Password == nil || !cryptox.CheckPasswordHash(password, user.Edges.Password.Hash) {
+	if user.PasswordHash == "" || !cryptox.CheckPasswordHash(password, user.PasswordHash) {
 		s.logger.WithContext(ctx).Error("password verification failed")
 		return nil, errors.ErrInvalidCredentials
 	}
@@ -119,10 +119,7 @@ func (s *authService) Login(ctx context.Context, username string, password strin
 		return nil, err
 	}
 
-	roles := make([]constants.Role, len(user.Edges.Roles))
-	for idx, role := range user.Edges.Roles {
-		roles[idx] = role.Name
-	}
+	roles := user.Roles
 
 	return &domains.LoginResult{
 		Username:     user.Username,
@@ -133,11 +130,6 @@ func (s *authService) Login(ctx context.Context, username string, password strin
 }
 
 func (s *authService) GenerateAccessToken(ctx context.Context, user *domains.UserWithPermissions) (string, error) {
-	roles := make([]constants.Role, len(user.Edges.Roles))
-	for idx, role := range user.Edges.Roles {
-		roles[idx] = role.Name
-	}
-
 	now := time.Now()
 	expiration := now.Add(s.jwtExpire)
 
@@ -222,10 +214,7 @@ func (s *authService) ValidateAccessToken(ctx context.Context, tokenString strin
 		claims.Identity.CreatedAt = user.CreatedAt
 
 		// Set roles.
-		claims.Identity.Roles = make([]constants.Role, len(user.Edges.Roles))
-		for idx, role := range user.Edges.Roles {
-			claims.Identity.Roles[idx] = role.Name
-		}
+		claims.Identity.Roles = user.Roles
 
 		// Set permissions.
 		claims.Identity.Permissions = user.Permissions

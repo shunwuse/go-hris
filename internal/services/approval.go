@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 
-	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/errors"
@@ -29,7 +28,7 @@ func NewApprovalService(
 	}
 }
 
-func (s *approvalService) GetApprovals(ctx context.Context) ([]*entgen.Approval, error) {
+func (s *approvalService) GetApprovals(ctx context.Context) ([]domains.Approval, error) {
 	identity, ok := contextx.GetIdentity(ctx)
 	if !ok {
 		s.logger.WithContext(ctx).Error("failed to get identity from context")
@@ -44,7 +43,7 @@ func (s *approvalService) GetApprovals(ctx context.Context) ([]*entgen.Approval,
 	return s.approvalRepository.FindAllWithRelations(ctx)
 }
 
-func (s *approvalService) GetApprovalsWithCursor(ctx context.Context, query domains.CursorQuery, filter domains.ApprovalFilter) (*domains.CursorResult[*entgen.Approval], error) {
+func (s *approvalService) GetApprovalsWithCursor(ctx context.Context, query domains.CursorQuery, filter domains.ApprovalFilter) (*domains.CursorResult[domains.Approval], error) {
 	identity, ok := contextx.GetIdentity(ctx)
 	if !ok {
 		s.logger.WithContext(ctx).Error("failed to get identity from context")
@@ -59,7 +58,7 @@ func (s *approvalService) GetApprovalsWithCursor(ctx context.Context, query doma
 	return s.approvalRepository.FindAllWithCursor(ctx, query, filter)
 }
 
-func (s *approvalService) GetApprovalByID(ctx context.Context, id uint) (*entgen.Approval, error) {
+func (s *approvalService) GetApprovalByID(ctx context.Context, id uint) (*domains.Approval, error) {
 	identity, ok := contextx.GetIdentity(ctx)
 	if !ok {
 		s.logger.WithContext(ctx).Error("failed to get identity from context")

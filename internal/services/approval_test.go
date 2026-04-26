@@ -3,9 +3,7 @@ package services_test
 import (
 	"context"
 	"testing"
-	"time"
 
-	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/errors"
@@ -42,19 +40,19 @@ func TestApprovalService_GetApprovals(t *testing.T) {
 		name        string
 		ctx         context.Context
 		mockSetup   func(*mocks.MockApprovalRepository)
-		checkResult func(*testing.T, []*entgen.Approval, error)
+		checkResult func(*testing.T, []domains.Approval, error)
 	}{
 		{
 			name: "Get all approvals success",
 			ctx:  contextWithManager(),
 			mockSetup: func(m *mocks.MockApprovalRepository) {
-				approvals := []*entgen.Approval{
+				approvals := []domains.Approval{
 					createTestApproval(1, constants.ApprovalStatusPending),
 					createTestApproval(2, constants.ApprovalStatusApproved),
 				}
 				m.On("FindAllWithRelations", mock.Anything).Return(approvals, nil)
 			},
-			checkResult: func(t *testing.T, result []*entgen.Approval, err error) {
+			checkResult: func(t *testing.T, result []domains.Approval, err error) {
 				assert.NoError(t, err)
 				assert.Len(t, result, 2)
 			},
@@ -63,7 +61,7 @@ func TestApprovalService_GetApprovals(t *testing.T) {
 			name:      "No identity provided",
 			ctx:       context.Background(),
 			mockSetup: func(m *mocks.MockApprovalRepository) {},
-			checkResult: func(t *testing.T, result []*entgen.Approval, err error) {
+			checkResult: func(t *testing.T, result []domains.Approval, err error) {
 				assert.ErrorIs(t, err, errors.ErrUnauthorized)
 				assert.Nil(t, result)
 			},
@@ -76,7 +74,7 @@ func TestApprovalService_GetApprovals(t *testing.T) {
 				Permissions: constants.Permissions{},
 			}),
 			mockSetup: func(m *mocks.MockApprovalRepository) {},
-			checkResult: func(t *testing.T, result []*entgen.Approval, err error) {
+			checkResult: func(t *testing.T, result []domains.Approval, err error) {
 				assert.ErrorIs(t, err, errors.ErrForbidden)
 				assert.Nil(t, result)
 			},
@@ -87,7 +85,7 @@ func TestApprovalService_GetApprovals(t *testing.T) {
 			mockSetup: func(m *mocks.MockApprovalRepository) {
 				m.On("FindAllWithRelations", mock.Anything).Return(nil, errors.ErrInternalError)
 			},
-			checkResult: func(t *testing.T, result []*entgen.Approval, err error) {
+			checkResult: func(t *testing.T, result []domains.Approval, err error) {
 				assert.ErrorIs(t, err, errors.ErrInternalError)
 				assert.Nil(t, result)
 			},
@@ -121,7 +119,7 @@ func TestApprovalService_GetApprovalsWithCursor(t *testing.T) {
 		query       domains.CursorQuery
 		filter      domains.ApprovalFilter
 		mockSetup   func(*mocks.MockApprovalRepository)
-		checkResult func(*testing.T, *domains.CursorResult[*entgen.Approval], error)
+		checkResult func(*testing.T, *domains.CursorResult[domains.Approval], error)
 	}{
 		{
 			name:   "Get approvals with cursor success",
@@ -129,15 +127,15 @@ func TestApprovalService_GetApprovalsWithCursor(t *testing.T) {
 			query:  domains.CursorQuery{Limit: 10},
 			filter: domains.ApprovalFilter{},
 			mockSetup: func(m *mocks.MockApprovalRepository) {
-				result := &domains.CursorResult[*entgen.Approval]{
-					Items: []*entgen.Approval{
+				result := &domains.CursorResult[domains.Approval]{
+					Items: []domains.Approval{
 						createTestApproval(1, constants.ApprovalStatusPending),
 					},
 					HasMore: false,
 				}
 				m.On("FindAllWithCursor", mock.Anything, mock.Anything, mock.Anything).Return(result, nil)
 			},
-			checkResult: func(t *testing.T, result *domains.CursorResult[*entgen.Approval], err error) {
+			checkResult: func(t *testing.T, result *domains.CursorResult[domains.Approval], err error) {
 				assert.NoError(t, err)
 				assert.NotNil(t, result)
 				assert.Len(t, result.Items, 1)
@@ -149,13 +147,13 @@ func TestApprovalService_GetApprovalsWithCursor(t *testing.T) {
 			query:  domains.CursorQuery{Limit: 10},
 			filter: domains.ApprovalFilter{Status: constants.ApprovalStatusPending},
 			mockSetup: func(m *mocks.MockApprovalRepository) {
-				result := &domains.CursorResult[*entgen.Approval]{
-					Items:   []*entgen.Approval{},
+				result := &domains.CursorResult[domains.Approval]{
+					Items:   []domains.Approval{},
 					HasMore: false,
 				}
 				m.On("FindAllWithCursor", mock.Anything, mock.Anything, mock.Anything).Return(result, nil)
 			},
-			checkResult: func(t *testing.T, result *domains.CursorResult[*entgen.Approval], err error) {
+			checkResult: func(t *testing.T, result *domains.CursorResult[domains.Approval], err error) {
 				assert.NoError(t, err)
 				assert.NotNil(t, result)
 			},
@@ -164,7 +162,7 @@ func TestApprovalService_GetApprovalsWithCursor(t *testing.T) {
 			name:      "No identity provided",
 			ctx:       context.Background(),
 			mockSetup: func(m *mocks.MockApprovalRepository) {},
-			checkResult: func(t *testing.T, result *domains.CursorResult[*entgen.Approval], err error) {
+			checkResult: func(t *testing.T, result *domains.CursorResult[domains.Approval], err error) {
 				assert.ErrorIs(t, err, errors.ErrUnauthorized)
 				assert.Nil(t, result)
 			},
@@ -197,7 +195,7 @@ func TestApprovalService_GetApprovalByID(t *testing.T) {
 		ctx         context.Context
 		approvalID  uint
 		mockSetup   func(*mocks.MockApprovalRepository)
-		checkResult func(*testing.T, *entgen.Approval, error)
+		checkResult func(*testing.T, *domains.Approval, error)
 	}{
 		{
 			name:       "Get single approval success",
@@ -205,9 +203,9 @@ func TestApprovalService_GetApprovalByID(t *testing.T) {
 			approvalID: 1,
 			mockSetup: func(m *mocks.MockApprovalRepository) {
 				approval := createTestApproval(1, constants.ApprovalStatusPending)
-				m.On("FindByID", mock.Anything, uint(1)).Return(approval, nil)
+				m.On("FindByID", mock.Anything, uint(1)).Return(&approval, nil)
 			},
-			checkResult: func(t *testing.T, result *entgen.Approval, err error) {
+			checkResult: func(t *testing.T, result *domains.Approval, err error) {
 				assert.NoError(t, err)
 				assert.NotNil(t, result)
 				assert.Equal(t, uint(1), result.ID)
@@ -221,7 +219,7 @@ func TestApprovalService_GetApprovalByID(t *testing.T) {
 			mockSetup: func(m *mocks.MockApprovalRepository) {
 				m.On("FindByID", mock.Anything, uint(999)).Return(nil, errors.ErrNotFound)
 			},
-			checkResult: func(t *testing.T, result *entgen.Approval, err error) {
+			checkResult: func(t *testing.T, result *domains.Approval, err error) {
 				assert.ErrorIs(t, err, errors.ErrNotFound)
 				assert.Nil(t, result)
 			},
@@ -231,7 +229,7 @@ func TestApprovalService_GetApprovalByID(t *testing.T) {
 			ctx:        context.Background(),
 			approvalID: 1,
 			mockSetup:  func(m *mocks.MockApprovalRepository) {},
-			checkResult: func(t *testing.T, result *entgen.Approval, err error) {
+			checkResult: func(t *testing.T, result *domains.Approval, err error) {
 				assert.ErrorIs(t, err, errors.ErrUnauthorized)
 				assert.Nil(t, result)
 			},
@@ -273,9 +271,10 @@ func TestApprovalService_AddApproval(t *testing.T) {
 				Status: constants.ApprovalStatusPending,
 			},
 			mockSetup: func(m *mocks.MockApprovalRepository) {
+				approval := createTestApproval(1, constants.ApprovalStatusPending)
 				m.On("Create", mock.Anything, mock.MatchedBy(func(a *domains.ApprovalCreate) bool {
 					return a.CreatorID == 2 // manager's user ID
-				})).Return(createTestApproval(1, constants.ApprovalStatusPending), nil)
+				})).Return(&approval, nil)
 			},
 			expectedErr: nil,
 		},
@@ -460,13 +459,13 @@ func contextWithStaffApproval() context.Context {
 }
 
 // Helper to create test approval entity
-func createTestApproval(id uint, status constants.ApprovalStatus) *entgen.Approval {
-	now := time.Now()
-	return &entgen.Approval{
-		ID:        id,
-		Status:    status,
-		CreatorID: 2,
-		CreatedAt: now,
-		UpdatedAt: now,
+func createTestApproval(id uint, status constants.ApprovalStatus) domains.Approval {
+	return domains.Approval{
+		ID:           id,
+		Status:       status,
+		CreatorID:    2,
+		CreatorName:  "Creator",
+		ApproverID:   nil,
+		ApproverName: nil,
 	}
 }

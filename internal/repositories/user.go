@@ -35,7 +35,7 @@ func NewUserRepository(
 	}
 }
 
-func (r *UserRepository) FindAll(ctx context.Context) ([]*entgen.User, error) {
+func (r *UserRepository) FindAll(ctx context.Context) ([]domains.User, error) {
 	users, err := r.GetClient(ctx).User.Query().
 		All(ctx)
 	if err != nil {
@@ -43,10 +43,10 @@ func (r *UserRepository) FindAll(ctx context.Context) ([]*entgen.User, error) {
 		return nil, errors.ErrDatabaseError
 	}
 
-	return users, nil
+	return mapUsers(users), nil
 }
 
-func (r *UserRepository) FindAllWithOffset(ctx context.Context, query domains.OffsetQuery, filter domains.UserFilter) (*domains.OffsetResult[*entgen.User], error) {
+func (r *UserRepository) FindAllWithOffset(ctx context.Context, query domains.OffsetQuery, filter domains.UserFilter) (*domains.OffsetResult[domains.User], error) {
 	dbQuery := r.GetClient(ctx).User.Query()
 
 	if filter.Name != "" {
@@ -82,14 +82,14 @@ func (r *UserRepository) FindAllWithOffset(ctx context.Context, query domains.Of
 		return nil, errors.ErrDatabaseError
 	}
 
-	return &domains.OffsetResult[*entgen.User]{
-		Items:      users,
+	return &domains.OffsetResult[domains.User]{
+		Items:      mapUsers(users),
 		TotalCount: total,
 		TotalPage:  int(math.Ceil(float64(total) / float64(query.PerPage))),
 	}, nil
 }
 
-func (r *UserRepository) FindByUsername(ctx context.Context, username string) (*entgen.User, error) {
+func (r *UserRepository) FindByUsername(ctx context.Context, username string) (*domains.User, error) {
 	u, err := r.GetClient(ctx).User.Query().
 		Where(user.UsernameEQ(username)).
 		Only(ctx)
@@ -101,11 +101,11 @@ func (r *UserRepository) FindByUsername(ctx context.Context, username string) (*
 		return nil, errors.ErrDatabaseError
 	}
 
-	return u, nil
+	return mapUser(u), nil
 }
 
-func (r *UserRepository) FindByID(ctx context.Context, id uint) (*entgen.User, error) {
-	return cache.Fetch(ctx, r.cache, constants.GetUserKey(id), constants.CacheTTLUser, func() (*entgen.User, error) {
+func (r *UserRepository) FindByID(ctx context.Context, id uint) (*domains.UserWithRoles, error) {
+	return cache.Fetch(ctx, r.cache, constants.GetUserKey(id), constants.CacheTTLUser, func() (*domains.UserWithRoles, error) {
 		u, err := r.GetClient(ctx).User.Query().
 			WithPassword().
 			WithRoles().
@@ -119,11 +119,11 @@ func (r *UserRepository) FindByID(ctx context.Context, id uint) (*entgen.User, e
 			return nil, errors.ErrDatabaseError
 		}
 
-		return u, nil
+		return mapUserWithRoles(u), nil
 	})
 }
 
-func (r *UserRepository) Create(ctx context.Context, username string, name string) (*entgen.User, error) {
+func (r *UserRepository) Create(ctx context.Context, username string, name string) (*domains.User, error) {
 	u, err := r.GetClient(ctx).User.Create().
 		SetUsername(username).
 		SetName(name).
@@ -136,7 +136,7 @@ func (r *UserRepository) Create(ctx context.Context, username string, name strin
 		return nil, errors.ErrDatabaseError
 	}
 
-	return u, nil
+	return mapUser(u), nil
 }
 
 func (r *UserRepository) Update(ctx context.Context, id uint, name string) error {
@@ -153,35 +153,84 @@ func (r *UserRepository) Update(ctx context.Context, id uint, name string) error
 	return nil
 }
 
-func (r *UserRepository) CreatePassword(ctx context.Context, hash string, owner *entgen.User) (*entgen.Password, error) {
-	password, err := r.GetClient(ctx).Password.Create().
+func (r *UserRepository) CreatePassword(ctx context.Context, hash string, ownerID uint) error {
+	_, err := r.GetClient(ctx).Password.Create().
 		SetHash(hash).
-		SetOwner(owner).
+		SetOwnerID(ownerID).
 		Save(ctx)
 	if err != nil {
 		r.logger.WithContext(ctx).Error("failed to create password", zap.Error(err))
-		return nil, errors.ErrDatabaseError
+		return errors.ErrDatabaseError
 	}
 
-	return password, nil
+	return nil
 }
 
-func (r *UserRepository) AssignRole(ctx context.Context, userID uint, roleID uint) (*entgen.UserRole, error) {
-	userRole, err := r.GetClient(ctx).UserRole.Create().
+func (r *UserRepository) AssignRole(ctx context.Context, userID uint, roleID uint) error {
+	_, err := r.GetClient(ctx).UserRole.Create().
 		SetUserID(userID).
 		SetRoleID(roleID).
 		Save(ctx)
 	if err != nil {
 		r.logger.WithContext(ctx).Error("failed to create user role association", zap.Error(err))
-		return nil, errors.ErrDatabaseError
+		return errors.ErrDatabaseError
 	}
 
 	r.invalidateUserCache(ctx, userID)
 
-	return userRole, nil
+	return nil
 }
 
 func (r *UserRepository) invalidateUserCache(ctx context.Context, userID uint) {
 	r.cache.Client.Del(ctx, constants.GetUserKey(userID))
 	r.cache.Client.Del(ctx, constants.GetUserPermissionsKey(userID))
+}
+
+func mapUsers(users []*entgen.User) []domains.User {
+	result := make([]domains.User, len(users))
+	for idx, user := range users {
+		result[idx] = *mapUser(user)
+	}
+
+	return result
+}
+
+func mapUser(user *entgen.User) *domains.User {
+	if user == nil {
+		return nil
+	}
+
+	return &domains.User{
+		ID:        user.ID,
+		Username:  user.Username,
+		Name:      user.Name,
+		CreatedAt: user.CreatedAt,
+		UpdatedAt: user.UpdatedAt,
+	}
+}
+
+func mapUserWithRoles(user *entgen.User) *domains.UserWithRoles {
+	if user == nil {
+		return nil
+	}
+
+	roles := make([]constants.Role, len(user.Edges.Roles))
+	for idx, role := range user.Edges.Roles {
+		roles[idx] = role.Name
+	}
+
+	passwordHash := ""
+	if user.Edges.Password != nil {
+		passwordHash = user.Edges.Password.Hash
+	}
+
+	return &domains.UserWithRoles{
+		ID:           user.ID,
+		Username:     user.Username,
+		Name:         user.Name,
+		CreatedAt:    user.CreatedAt,
+		UpdatedAt:    user.UpdatedAt,
+		PasswordHash: passwordHash,
+		Roles:        roles,
+	}
 }

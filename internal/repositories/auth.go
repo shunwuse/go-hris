@@ -6,6 +6,7 @@ import (
 
 	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/ent/entgen/refreshtoken"
+	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/infra/database"
 	"github.com/shunwuse/go-hris/internal/pkg/logger"
@@ -33,7 +34,7 @@ func (r *AuthRepository) CreateRefreshToken(
 	tokenHash string,
 	userID uint,
 	expiresAt time.Time,
-) (*entgen.RefreshToken, error) {
+) (*domains.RefreshToken, error) {
 	query := r.GetClient(ctx).RefreshToken.Create().
 		SetTokenHash(tokenHash).
 		SetUserID(userID).
@@ -45,10 +46,10 @@ func (r *AuthRepository) CreateRefreshToken(
 		return nil, errors.ErrDatabaseError
 	}
 
-	return token, nil
+	return mapRefreshToken(token), nil
 }
 
-func (r *AuthRepository) FindRefreshTokenByTokenHash(ctx context.Context, tokenHash string) (*entgen.RefreshToken, error) {
+func (r *AuthRepository) FindRefreshTokenByTokenHash(ctx context.Context, tokenHash string) (*domains.RefreshToken, error) {
 	token, err := r.GetClient(ctx).RefreshToken.Query().
 		Where(refreshtoken.TokenHash(tokenHash)).
 		Only(ctx)
@@ -60,7 +61,7 @@ func (r *AuthRepository) FindRefreshTokenByTokenHash(ctx context.Context, tokenH
 		return nil, errors.ErrDatabaseError
 	}
 
-	return token, nil
+	return mapRefreshToken(token), nil
 }
 
 func (r *AuthRepository) RevokeRefreshToken(ctx context.Context, tokenHash string) error {
@@ -112,4 +113,19 @@ func (r *AuthRepository) DeleteExpiredTokens(ctx context.Context) (int, error) {
 	}
 
 	return affected, nil
+}
+
+func mapRefreshToken(token *entgen.RefreshToken) *domains.RefreshToken {
+	if token == nil {
+		return nil
+	}
+
+	return &domains.RefreshToken{
+		ID:        token.ID,
+		UserID:    token.UserID,
+		TokenHash: token.TokenHash,
+		ExpiresAt: token.ExpiresAt,
+		Revoked:   token.Revoked,
+		RevokedAt: token.RevokedAt,
+	}
 }

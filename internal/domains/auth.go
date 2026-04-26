@@ -43,6 +43,15 @@ type TokenPair struct {
 	RefreshToken string `json:"refresh_token"`
 }
 
+type RefreshToken struct {
+	ID        uint
+	UserID    uint
+	TokenHash string
+	ExpiresAt time.Time
+	Revoked   bool
+	RevokedAt *time.Time
+}
+
 type LoginResult struct {
 	Username     string
 	Roles        []constants.Role

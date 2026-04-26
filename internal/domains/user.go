@@ -1,14 +1,43 @@
 package domains
 
 import (
-	"github.com/shunwuse/go-hris/ent/entgen"
+	"time"
+
 	"github.com/shunwuse/go-hris/internal/constants"
 )
 
-type UserWithPermissions struct {
-	*entgen.User
+type User struct {
+	ID        uint
+	Username  string
+	Name      string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
 
-	Permissions constants.Permissions
+type UserWithRoles struct {
+	ID           uint
+	Username     string
+	Name         string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	PasswordHash string
+	Roles        []constants.Role
+}
+
+type UserWithPermissions struct {
+	ID           uint
+	Username     string
+	Name         string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
+	PasswordHash string
+	Roles        []constants.Role
+	Permissions  constants.Permissions
+}
+
+type Role struct {
+	ID   uint
+	Name constants.Role
 }
 
 type UserFilter struct {
