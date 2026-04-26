@@ -4,7 +4,6 @@ import (
 	"context"
 	"strings"
 
-	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/errors"
@@ -44,7 +43,7 @@ func NewUserService(
 	}
 }
 
-func (s *userService) GetUsers(ctx context.Context) ([]*entgen.User, error) {
+func (s *userService) GetUsers(ctx context.Context) ([]domains.User, error) {
 	identity, ok := contextx.GetIdentity(ctx)
 	if !ok {
 		s.logger.WithContext(ctx).Error("failed to get identity from context")
@@ -59,7 +58,7 @@ func (s *userService) GetUsers(ctx context.Context) ([]*entgen.User, error) {
 	return s.userRepository.FindAll(ctx)
 }
 
-func (s *userService) GetUsersWithOffset(ctx context.Context, query domains.OffsetQuery, filter domains.UserFilter) (*domains.OffsetResult[*entgen.User], error) {
+func (s *userService) GetUsersWithOffset(ctx context.Context, query domains.OffsetQuery, filter domains.UserFilter) (*domains.OffsetResult[domains.User], error) {
 	identity, ok := contextx.GetIdentity(ctx)
 	if !ok {
 		s.logger.WithContext(ctx).Error("failed to get identity from context")
@@ -137,8 +136,7 @@ func (s *userService) CreateUser(ctx context.Context, user *domains.UserCreate, 
 			return err
 		}
 
-		_, err = s.userRepository.CreatePassword(txCtx, hashedPassword, u)
-		if err != nil {
+		if err = s.userRepository.CreatePassword(txCtx, hashedPassword, u.ID); err != nil {
 			return err
 		}
 
@@ -148,8 +146,7 @@ func (s *userService) CreateUser(ctx context.Context, user *domains.UserCreate, 
 			return errors.ErrNotFound
 		}
 
-		_, err = s.userRepository.AssignRole(txCtx, u.ID, roleModel.ID)
-		if err != nil {
+		if err = s.userRepository.AssignRole(txCtx, u.ID, roleModel.ID); err != nil {
 			return err
 		}
 

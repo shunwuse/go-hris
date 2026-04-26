@@ -4,7 +4,6 @@ import (
 	"context"
 	"time"
 
-	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/stretchr/testify/mock"
@@ -33,20 +32,20 @@ type MockUserService struct {
 	mock.Mock
 }
 
-func (m *MockUserService) GetUsers(ctx context.Context) ([]*entgen.User, error) {
+func (m *MockUserService) GetUsers(ctx context.Context) ([]domains.User, error) {
 	args := m.Called(ctx)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).([]*entgen.User), args.Error(1)
+	return args.Get(0).([]domains.User), args.Error(1)
 }
 
-func (m *MockUserService) GetUsersWithOffset(ctx context.Context, query domains.OffsetQuery, filter domains.UserFilter) (*domains.OffsetResult[*entgen.User], error) {
+func (m *MockUserService) GetUsersWithOffset(ctx context.Context, query domains.OffsetQuery, filter domains.UserFilter) (*domains.OffsetResult[domains.User], error) {
 	args := m.Called(ctx, query, filter)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*domains.OffsetResult[*entgen.User]), args.Error(1)
+	return args.Get(0).(*domains.OffsetResult[domains.User]), args.Error(1)
 }
 
 func (m *MockUserService) GetUserByUsername(ctx context.Context, username string) (*domains.UserWithPermissions, error) {
@@ -147,28 +146,28 @@ type MockApprovalService struct {
 	mock.Mock
 }
 
-func (m *MockApprovalService) GetApprovals(ctx context.Context) ([]*entgen.Approval, error) {
+func (m *MockApprovalService) GetApprovals(ctx context.Context) ([]domains.Approval, error) {
 	args := m.Called(ctx)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).([]*entgen.Approval), args.Error(1)
+	return args.Get(0).([]domains.Approval), args.Error(1)
 }
 
-func (m *MockApprovalService) GetApprovalsWithCursor(ctx context.Context, query domains.CursorQuery, filter domains.ApprovalFilter) (*domains.CursorResult[*entgen.Approval], error) {
+func (m *MockApprovalService) GetApprovalsWithCursor(ctx context.Context, query domains.CursorQuery, filter domains.ApprovalFilter) (*domains.CursorResult[domains.Approval], error) {
 	args := m.Called(ctx, query, filter)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*domains.CursorResult[*entgen.Approval]), args.Error(1)
+	return args.Get(0).(*domains.CursorResult[domains.Approval]), args.Error(1)
 }
 
-func (m *MockApprovalService) GetApprovalByID(ctx context.Context, id uint) (*entgen.Approval, error) {
+func (m *MockApprovalService) GetApprovalByID(ctx context.Context, id uint) (*domains.Approval, error) {
 	args := m.Called(ctx, id)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*entgen.Approval), args.Error(1)
+	return args.Get(0).(*domains.Approval), args.Error(1)
 }
 
 func (m *MockApprovalService) AddApproval(ctx context.Context, approval *domains.ApprovalCreate) error {

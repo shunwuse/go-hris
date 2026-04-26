@@ -31,7 +31,7 @@ func NewApprovalRepository(
 	}
 }
 
-func (r *ApprovalRepository) FindAllWithRelations(ctx context.Context) ([]*entgen.Approval, error) {
+func (r *ApprovalRepository) FindAllWithRelations(ctx context.Context) ([]domains.Approval, error) {
 	approvals, err := r.GetClient(ctx).Approval.Query().
 		WithCreator().
 		WithApprover().
@@ -41,10 +41,10 @@ func (r *ApprovalRepository) FindAllWithRelations(ctx context.Context) ([]*entge
 		return nil, errors.ErrDatabaseError
 	}
 
-	return approvals, nil
+	return mapApprovals(approvals), nil
 }
 
-func (r *ApprovalRepository) FindAllWithCursor(ctx context.Context, query domains.CursorQuery, filter domains.ApprovalFilter) (*domains.CursorResult[*entgen.Approval], error) {
+func (r *ApprovalRepository) FindAllWithCursor(ctx context.Context, query domains.CursorQuery, filter domains.ApprovalFilter) (*domains.CursorResult[domains.Approval], error) {
 	dbQuery := r.GetClient(ctx).Approval.Query().
 		WithCreator().
 		WithApprover().
@@ -83,14 +83,14 @@ func (r *ApprovalRepository) FindAllWithCursor(ctx context.Context, query domain
 		approvals = approvals[:query.Limit]
 	}
 
-	return &domains.CursorResult[*entgen.Approval]{
-		Items:      approvals,
+	return &domains.CursorResult[domains.Approval]{
+		Items:      mapApprovals(approvals),
 		NextCursor: nextCursor,
 		HasMore:    hasMore,
 	}, nil
 }
 
-func (r *ApprovalRepository) FindByID(ctx context.Context, id uint) (*entgen.Approval, error) {
+func (r *ApprovalRepository) FindByID(ctx context.Context, id uint) (*domains.Approval, error) {
 	appr, err := r.GetClient(ctx).Approval.Query().
 		WithCreator().
 		WithApprover().
@@ -104,10 +104,10 @@ func (r *ApprovalRepository) FindByID(ctx context.Context, id uint) (*entgen.App
 		return nil, errors.ErrDatabaseError
 	}
 
-	return appr, nil
+	return mapApproval(appr), nil
 }
 
-func (r *ApprovalRepository) Create(ctx context.Context, approval *domains.ApprovalCreate) (*entgen.Approval, error) {
+func (r *ApprovalRepository) Create(ctx context.Context, approval *domains.ApprovalCreate) (*domains.Approval, error) {
 	appr, err := r.GetClient(ctx).Approval.Create().
 		SetStatus(approval.Status).
 		SetCreatorID(approval.CreatorID).
@@ -117,7 +117,7 @@ func (r *ApprovalRepository) Create(ctx context.Context, approval *domains.Appro
 		return nil, errors.ErrDatabaseError
 	}
 
-	return appr, nil
+	return mapApproval(appr), nil
 }
 
 func (r *ApprovalRepository) UpdateStatusByID(ctx context.Context, id uint, status constants.ApprovalStatus, approverID uint) error {
@@ -139,4 +139,41 @@ func (r *ApprovalRepository) UpdateStatusByID(ctx context.Context, id uint, stat
 	}
 
 	return nil
+}
+
+func mapApprovals(approvals []*entgen.Approval) []domains.Approval {
+	result := make([]domains.Approval, len(approvals))
+	for idx, approval := range approvals {
+		result[idx] = *mapApproval(approval)
+	}
+
+	return result
+}
+
+func mapApproval(approval *entgen.Approval) *domains.Approval {
+	if approval == nil {
+		return nil
+	}
+
+	domainApproval := &domains.Approval{
+		ID:        approval.ID,
+		Status:    approval.Status,
+		CreatorID: approval.CreatorID,
+	}
+
+	if approval.ApproverID != nil {
+		approverID := *approval.ApproverID
+		domainApproval.ApproverID = &approverID
+	}
+
+	if approval.Edges.Creator != nil {
+		domainApproval.CreatorName = approval.Edges.Creator.Name
+	}
+
+	if approval.Edges.Approver != nil {
+		approverName := approval.Edges.Approver.Name
+		domainApproval.ApproverName = &approverName
+	}
+
+	return domainApproval
 }

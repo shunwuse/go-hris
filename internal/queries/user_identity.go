@@ -3,7 +3,6 @@ package queries
 import (
 	"context"
 
-	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/infra/cache"
@@ -46,17 +45,23 @@ func (r *userIdentityReader) GetUserWithPermissionsByID(ctx context.Context, use
 		}
 
 		return &domains.UserWithPermissions{
-			User:        user,
-			Permissions: r.collectPermissions(ctx, user),
+			ID:           user.ID,
+			Username:     user.Username,
+			Name:         user.Name,
+			CreatedAt:    user.CreatedAt,
+			UpdatedAt:    user.UpdatedAt,
+			PasswordHash: user.PasswordHash,
+			Roles:        user.Roles,
+			Permissions:  r.collectPermissions(ctx, user.Roles),
 		}, nil
 	})
 }
 
-func (r *userIdentityReader) collectPermissions(ctx context.Context, user *entgen.User) constants.Permissions {
+func (r *userIdentityReader) collectPermissions(ctx context.Context, roles []constants.Role) constants.Permissions {
 	permissions := make(constants.Permissions, 0)
 
-	for _, role := range user.Edges.Roles {
-		rolePermissions := r.roleRepository.GetPermissionsByRole(ctx, role.Name)
+	for _, roleName := range roles {
+		rolePermissions := r.roleRepository.GetPermissionsByRole(ctx, roleName)
 		for _, permission := range rolePermissions {
 			if !permissions.Contains(permission) {
 				permissions = append(permissions, permission)

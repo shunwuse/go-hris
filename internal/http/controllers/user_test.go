@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/dtos"
@@ -55,8 +54,8 @@ func TestUserController_GetUsers(t *testing.T) {
 			name:        "Get users list success - default pagination",
 			queryParams: "",
 			mockSetup: func(m *mocks.MockUserService) {
-				m.On("GetUsersWithOffset", mock.Anything, mock.Anything, mock.Anything).Return(&domains.OffsetResult[*entgen.User]{
-					Items: []*entgen.User{
+				m.On("GetUsersWithOffset", mock.Anything, mock.Anything, mock.Anything).Return(&domains.OffsetResult[domains.User]{
+					Items: []domains.User{
 						createTestUser(1, "admin", "Admin User"),
 						createTestUser(2, "user1", "Test User"),
 					},
@@ -79,8 +78,8 @@ func TestUserController_GetUsers(t *testing.T) {
 			mockSetup: func(m *mocks.MockUserService) {
 				m.On("GetUsersWithOffset", mock.Anything, mock.MatchedBy(func(q domains.OffsetQuery) bool {
 					return q.Page == 2 && q.PerPage == 5
-				}), mock.Anything).Return(&domains.OffsetResult[*entgen.User]{
-					Items:      []*entgen.User{},
+				}), mock.Anything).Return(&domains.OffsetResult[domains.User]{
+					Items:      []domains.User{},
 					TotalCount: 10,
 					TotalPage:  2,
 				}, nil)
@@ -101,8 +100,8 @@ func TestUserController_GetUsers(t *testing.T) {
 			mockSetup: func(m *mocks.MockUserService) {
 				m.On("GetUsersWithOffset", mock.Anything, mock.Anything, mock.MatchedBy(func(f domains.UserFilter) bool {
 					return f.Name == "test" && f.Role == constants.Manager
-				})).Return(&domains.OffsetResult[*entgen.User]{
-					Items:      []*entgen.User{createTestUser(3, "manager1", "Test Manager")},
+				})).Return(&domains.OffsetResult[domains.User]{
+					Items:      []domains.User{createTestUser(3, "manager1", "Test Manager")},
 					TotalCount: 1,
 					TotalPage:  1,
 				}, nil)
@@ -571,9 +570,9 @@ func TestUserController_UpdateUser(t *testing.T) {
 // ========================================
 
 // Helper function to create a test user (for list operations)
-func createTestUser(id uint, username, name string) *entgen.User {
+func createTestUser(id uint, username, name string) domains.User {
 	now := time.Now()
-	return &entgen.User{
+	return domains.User{
 		ID:        id,
 		Username:  username,
 		Name:      name,
@@ -584,8 +583,13 @@ func createTestUser(id uint, username, name string) *entgen.User {
 
 // Helper function to create a test user with permissions (for GetUser operations)
 func createTestUserWithPermissions(id uint, username, name string) *domains.UserWithPermissions {
+	user := createTestUser(id, username, name)
 	return &domains.UserWithPermissions{
-		User:        createTestUser(id, username, name),
+		ID:          user.ID,
+		Username:    user.Username,
+		Name:        user.Name,
+		CreatedAt:   user.CreatedAt,
+		UpdatedAt:   user.UpdatedAt,
 		Permissions: constants.Permissions{"user:read", "user:write"},
 	}
 }

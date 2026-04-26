@@ -6,6 +6,7 @@ import (
 	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/ent/entgen/role"
 	"github.com/shunwuse/go-hris/internal/constants"
+	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/infra/cache"
 	"github.com/shunwuse/go-hris/internal/infra/database"
@@ -32,19 +33,20 @@ func NewRoleRepository(
 	}
 }
 
-func (r *RoleRepository) FindAllRoles(ctx context.Context) ([]*entgen.Role, error) {
-	return cache.Fetch(ctx, r.cache, constants.GetAllRolesKey(), constants.CacheTTLAllRoles, func() ([]*entgen.Role, error) {
+func (r *RoleRepository) FindAllRoles(ctx context.Context) ([]domains.Role, error) {
+	return cache.Fetch(ctx, r.cache, constants.GetAllRolesKey(), constants.CacheTTLAllRoles, func() ([]domains.Role, error) {
 		roles, err := r.GetClient(ctx).Role.Query().
 			All(ctx)
 		if err != nil {
 			r.logger.WithContext(ctx).Error("failed to find all roles", zap.Error(err))
 			return nil, errors.ErrDatabaseError
 		}
-		return roles, nil
+
+		return mapRoles(roles), nil
 	})
 }
 
-func (r *RoleRepository) FindRoleByName(ctx context.Context, name constants.Role) *entgen.Role {
+func (r *RoleRepository) FindRoleByName(ctx context.Context, name constants.Role) *domains.Role {
 	roles, err := r.FindAllRoles(ctx)
 	if err != nil {
 		return nil
@@ -52,14 +54,14 @@ func (r *RoleRepository) FindRoleByName(ctx context.Context, name constants.Role
 
 	for _, role := range roles {
 		if role.Name == name {
-			return role
+			return &role
 		}
 	}
 
 	return nil
 }
 
-func (r *RoleRepository) CreateRole(ctx context.Context, name constants.Role) (*entgen.Role, error) {
+func (r *RoleRepository) CreateRole(ctx context.Context, name constants.Role) (*domains.Role, error) {
 	role, err := r.GetClient(ctx).Role.Create().
 		SetName(name).
 		Save(ctx)
@@ -70,7 +72,7 @@ func (r *RoleRepository) CreateRole(ctx context.Context, name constants.Role) (*
 
 	r.invalidateRolesCache(ctx)
 
-	return role, nil
+	return mapRole(role), nil
 }
 
 func (r *RoleRepository) GetPermissionsByRole(ctx context.Context, roleName constants.Role) constants.Permissions {
@@ -97,4 +99,24 @@ func (r *RoleRepository) GetPermissionsByRole(ctx context.Context, roleName cons
 
 func (r *RoleRepository) invalidateRolesCache(ctx context.Context) {
 	r.cache.Client.Del(ctx, constants.GetAllRolesKey())
+}
+
+func mapRoles(roles []*entgen.Role) []domains.Role {
+	result := make([]domains.Role, len(roles))
+	for idx, role := range roles {
+		result[idx] = *mapRole(role)
+	}
+
+	return result
+}
+
+func mapRole(role *entgen.Role) *domains.Role {
+	if role == nil {
+		return nil
+	}
+
+	return &domains.Role{
+		ID:   role.ID,
+		Name: role.Name,
+	}
 }

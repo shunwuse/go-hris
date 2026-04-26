@@ -7,7 +7,6 @@ import (
 
 	"github.com/alicebob/miniredis/v2"
 	"github.com/redis/go-redis/v9"
-	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/errors"
@@ -64,20 +63,20 @@ func TestUserService_GetUsers(t *testing.T) {
 		name          string
 		ctx           context.Context
 		mockSetup     func(*mocks.MockUserRepository)
-		expectedUsers []*entgen.User
+		expectedUsers []domains.User
 		expectedErr   error
 	}{
 		{
 			name: "Get all users success",
 			ctx:  contextWithAdmin(),
 			mockSetup: func(m *mocks.MockUserRepository) {
-				users := []*entgen.User{
+				users := []domains.User{
 					createTestUserEntity(1, "admin", "Admin User"),
 					createTestUserEntity(2, "staff", "Staff User"),
 				}
 				m.On("FindAll", mock.Anything).Return(users, nil)
 			},
-			expectedUsers: []*entgen.User{
+			expectedUsers: []domains.User{
 				createTestUserEntity(1, "admin", "Admin User"),
 				createTestUserEntity(2, "staff", "Staff User"),
 			},
@@ -144,7 +143,7 @@ func TestUserService_GetUsersWithOffset(t *testing.T) {
 		query       domains.OffsetQuery
 		filter      domains.UserFilter
 		mockSetup   func(*mocks.MockUserRepository)
-		checkResult func(*testing.T, *domains.OffsetResult[*entgen.User], error)
+		checkResult func(*testing.T, *domains.OffsetResult[domains.User], error)
 	}{
 		{
 			name: "Get users with pagination success",
@@ -155,15 +154,15 @@ func TestUserService_GetUsersWithOffset(t *testing.T) {
 			},
 			filter: domains.UserFilter{},
 			mockSetup: func(m *mocks.MockUserRepository) {
-				result := &domains.OffsetResult[*entgen.User]{
-					Items: []*entgen.User{
+				result := &domains.OffsetResult[domains.User]{
+					Items: []domains.User{
 						createTestUserEntity(1, "admin", "Admin User"),
 					},
 					TotalCount: 1,
 				}
 				m.On("FindAllWithOffset", mock.Anything, mock.Anything, mock.Anything).Return(result, nil)
 			},
-			checkResult: func(t *testing.T, result *domains.OffsetResult[*entgen.User], err error) {
+			checkResult: func(t *testing.T, result *domains.OffsetResult[domains.User], err error) {
 				assert.NoError(t, err)
 				assert.NotNil(t, result)
 				assert.Len(t, result.Items, 1)
@@ -176,13 +175,13 @@ func TestUserService_GetUsersWithOffset(t *testing.T) {
 			query:  domains.OffsetQuery{Page: 1, PerPage: 10},
 			filter: domains.UserFilter{Name: "test", Role: constants.Staff},
 			mockSetup: func(m *mocks.MockUserRepository) {
-				result := &domains.OffsetResult[*entgen.User]{
-					Items:      []*entgen.User{},
+				result := &domains.OffsetResult[domains.User]{
+					Items:      []domains.User{},
 					TotalCount: 0,
 				}
 				m.On("FindAllWithOffset", mock.Anything, mock.Anything, mock.Anything).Return(result, nil)
 			},
-			checkResult: func(t *testing.T, result *domains.OffsetResult[*entgen.User], err error) {
+			checkResult: func(t *testing.T, result *domains.OffsetResult[domains.User], err error) {
 				assert.NoError(t, err)
 				assert.NotNil(t, result)
 				assert.Empty(t, result.Items)
@@ -192,7 +191,7 @@ func TestUserService_GetUsersWithOffset(t *testing.T) {
 			name:      "No identity provided",
 			ctx:       context.Background(),
 			mockSetup: func(m *mocks.MockUserRepository) {},
-			checkResult: func(t *testing.T, result *domains.OffsetResult[*entgen.User], err error) {
+			checkResult: func(t *testing.T, result *domains.OffsetResult[domains.User], err error) {
 				assert.ErrorIs(t, err, errors.ErrUnauthorized)
 				assert.Nil(t, result)
 			},
@@ -201,7 +200,7 @@ func TestUserService_GetUsersWithOffset(t *testing.T) {
 			name:      "No read permission",
 			ctx:       contextWithStaff(constants.Permissions{}),
 			mockSetup: func(m *mocks.MockUserRepository) {},
-			checkResult: func(t *testing.T, result *domains.OffsetResult[*entgen.User], err error) {
+			checkResult: func(t *testing.T, result *domains.OffsetResult[domains.User], err error) {
 				assert.ErrorIs(t, err, errors.ErrForbidden)
 				assert.Nil(t, result)
 			},
@@ -247,8 +246,13 @@ func TestUserService_GetUserByID(t *testing.T) {
 			ctx:    contextWithAdmin(),
 			userID: 1,
 			mockSetup: func(reader *mocks.MockUserIdentityReader) {
+				user := createTestUserEntity(1, "admin", "Admin User")
 				result := &domains.UserWithPermissions{
-					User:        createTestUserEntity(1, "admin", "Admin User"),
+					ID:          user.ID,
+					Username:    user.Username,
+					Name:        user.Name,
+					CreatedAt:   user.CreatedAt,
+					UpdatedAt:   user.UpdatedAt,
 					Permissions: constants.Permissions{"user:read"},
 				}
 				reader.On("GetUserWithPermissionsByID", mock.Anything, uint(1)).Return(result, nil)
@@ -256,8 +260,8 @@ func TestUserService_GetUserByID(t *testing.T) {
 			checkResult: func(t *testing.T, result *domains.UserWithPermissions, err error) {
 				assert.NoError(t, err)
 				assert.NotNil(t, result)
-				assert.Equal(t, uint(1), result.User.ID)
-				assert.Equal(t, "admin", result.User.Username)
+				assert.Equal(t, uint(1), result.ID)
+				assert.Equal(t, "admin", result.Username)
 				assert.Contains(t, result.Permissions, constants.Permission("user:read"))
 			},
 		},
@@ -343,14 +347,12 @@ func TestUserService_CreateUser(t *testing.T) {
 			role: constants.Staff,
 			mockSetup: func(userRepo *mocks.MockUserRepository, roleRepo *mocks.MockRoleRepository, tx *mocks.MockTransactor) {
 				user := createTestUserEntity(3, "newuser", "New User")
-				password := &entgen.Password{ID: 1}
-				userRole := &entgen.UserRole{ID: 1}
-				role := &entgen.Role{ID: 2, Name: constants.Staff}
+				role := &domains.Role{ID: 2, Name: constants.Staff}
 
-				userRepo.On("Create", mock.Anything, "newuser", "New User").Return(user, nil)
-				userRepo.On("CreatePassword", mock.Anything, mock.AnythingOfType("string"), user).Return(password, nil)
+				userRepo.On("Create", mock.Anything, "newuser", "New User").Return(&user, nil)
+				userRepo.On("CreatePassword", mock.Anything, mock.AnythingOfType("string"), user.ID).Return(nil)
 				roleRepo.On("FindRoleByName", mock.Anything, constants.Staff).Return(role)
-				userRepo.On("AssignRole", mock.Anything, uint(3), uint(2)).Return(userRole, nil)
+				userRepo.On("AssignRole", mock.Anything, uint(3), uint(2)).Return(nil)
 				tx.On("WithTx", mock.Anything, mock.AnythingOfType("func(context.Context) error")).Return(nil)
 			},
 			expectedErr: nil,
@@ -547,18 +549,13 @@ func contextWithStaff(permissions constants.Permissions) context.Context {
 }
 
 // Helper to create test user entity
-func createTestUserEntity(id uint, username string, name string) *entgen.User {
+func createTestUserEntity(id uint, username string, name string) domains.User {
 	now := time.Now()
-	return &entgen.User{
+	return domains.User{
 		ID:        id,
 		Username:  username,
 		Name:      name,
 		CreatedAt: now,
 		UpdatedAt: now,
-		Edges: entgen.UserEdges{
-			Roles: []*entgen.Role{
-				{ID: 1, Name: constants.Staff},
-			},
-		},
 	}
 }

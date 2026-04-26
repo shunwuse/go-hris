@@ -60,12 +60,12 @@ func (c *ApprovalController) GetApprovals(w http.ResponseWriter, r *http.Request
 	for idx, approval := range result.Items {
 		approvalResponse := dtos.ApprovalResponse{
 			ID:          approval.ID,
-			CreatorName: approval.Edges.Creator.Name,
+			CreatorName: approval.CreatorName,
 			Status:      approval.Status,
 		}
 
-		if approval.Edges.Approver != nil {
-			approvalResponse.ApproverName = &approval.Edges.Approver.Name
+		if approval.ApproverName != nil {
+			approvalResponse.ApproverName = approval.ApproverName
 		}
 
 		approvalsResponse[idx] = approvalResponse
@@ -100,12 +100,12 @@ func (c *ApprovalController) GetApproval(w http.ResponseWriter, r *http.Request)
 
 	resp := dtos.ApprovalResponse{
 		ID:          approval.ID,
-		CreatorName: approval.Edges.Creator.Name,
+		CreatorName: approval.CreatorName,
 		Status:      approval.Status,
 	}
 
-	if approval.Edges.Approver != nil {
-		resp.ApproverName = &approval.Edges.Approver.Name
+	if approval.ApproverName != nil {
+		resp.ApproverName = approval.ApproverName
 	}
 
 	response.OK(w, resp)

@@ -4,8 +4,8 @@ import (
 	"context"
 	"testing"
 
-	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/internal/constants"
+	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/infra/cache"
 	"github.com/shunwuse/go-hris/internal/mocks"
@@ -39,15 +39,17 @@ func TestUserIdentityReader_GetUserWithPermissionsByUsername(t *testing.T) {
 	userRepo, roleRepo, reader := setupUserIdentityReader(t)
 	ctx := context.Background()
 
-	baseUser := &entgen.User{ID: 10, Username: "alice"}
-	userWithRoles := &entgen.User{
+	baseUser := &domains.User{
 		ID:       10,
 		Username: "alice",
-		Edges: entgen.UserEdges{
-			Roles: []*entgen.Role{
-				{Name: constants.Admin},
-				{Name: constants.Manager},
-			},
+	}
+
+	userWithRoles := &domains.UserWithRoles{
+		ID:       10,
+		Username: "alice",
+		Roles: []constants.Role{
+			constants.Admin,
+			constants.Manager,
 		},
 	}
 
@@ -61,9 +63,8 @@ func TestUserIdentityReader_GetUserWithPermissionsByUsername(t *testing.T) {
 	result, err := reader.GetUserWithPermissionsByUsername(ctx, "alice")
 	require.NoError(t, err)
 	require.NotNil(t, result)
-	require.NotNil(t, result.User)
-	assert.Equal(t, uint(10), result.User.ID)
-	assert.Equal(t, "alice", result.User.Username)
+	assert.Equal(t, uint(10), result.ID)
+	assert.Equal(t, "alice", result.Username)
 
 	assert.True(t, result.Permissions.Contains(constants.PermissionReadUser))
 	assert.True(t, result.Permissions.Contains(constants.PermissionCreateUser))
@@ -78,13 +79,11 @@ func TestUserIdentityReader_GetUserWithPermissionsByID_UsesCache(t *testing.T) {
 	userRepo, roleRepo, reader := setupUserIdentityReader(t)
 	ctx := context.Background()
 
-	userWithRoles := &entgen.User{
+	userWithRoles := &domains.UserWithRoles{
 		ID:       30,
 		Username: "cache-user",
-		Edges: entgen.UserEdges{
-			Roles: []*entgen.Role{
-				{Name: constants.Staff},
-			},
+		Roles: []constants.Role{
+			constants.Staff,
 		},
 	}
 
@@ -100,7 +99,7 @@ func TestUserIdentityReader_GetUserWithPermissionsByID_UsesCache(t *testing.T) {
 	require.NoError(t, err)
 	require.NotNil(t, second)
 
-	assert.Equal(t, first.User.ID, second.User.ID)
+	assert.Equal(t, first.ID, second.ID)
 	assert.Equal(t, first.Permissions, second.Permissions)
 
 	userRepo.AssertExpectations(t)
