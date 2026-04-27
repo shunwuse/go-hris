@@ -3,7 +3,6 @@ package repositories
 import (
 	"context"
 
-	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/ent/entgen/role"
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
@@ -99,24 +98,4 @@ func (r *RoleRepository) GetPermissionsByRole(ctx context.Context, roleName cons
 
 func (r *RoleRepository) invalidateRolesCache(ctx context.Context) {
 	r.cache.Client.Del(ctx, constants.GetAllRolesKey())
-}
-
-func mapRoles(roles []*entgen.Role) []domains.Role {
-	result := make([]domains.Role, len(roles))
-	for idx, role := range roles {
-		result[idx] = *mapRole(role)
-	}
-
-	return result
-}
-
-func mapRole(role *entgen.Role) *domains.Role {
-	if role == nil {
-		return nil
-	}
-
-	return &domains.Role{
-		ID:   role.ID,
-		Name: role.Name,
-	}
 }
