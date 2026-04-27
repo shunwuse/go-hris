@@ -3,22 +3,13 @@ package services
 import (
 	"context"
 	"crypto/rand"
-	"crypto/sha256"
 	"encoding/base64"
-	"encoding/hex"
-	"strconv"
 	"strings"
 	"time"
 
-	"github.com/lestrrat-go/jwx/v2/jwa"
-	"github.com/lestrrat-go/jwx/v2/jwk"
-	"github.com/lestrrat-go/jwx/v2/jwt"
-	"github.com/oklog/ulid/v2"
-	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
 	"github.com/shunwuse/go-hris/internal/errors"
 	"github.com/shunwuse/go-hris/internal/infra/app"
-	"github.com/shunwuse/go-hris/internal/infra/cache"
 	"github.com/shunwuse/go-hris/internal/pkg/cryptox"
 	"github.com/shunwuse/go-hris/internal/pkg/logger"
 	"github.com/shunwuse/go-hris/internal/ports/infra"
@@ -29,64 +20,41 @@ import (
 )
 
 type authService struct {
-	logger     *logger.Logger
-	cache      *cache.Cache
-	transactor infra.Transactor
+	logger       *logger.Logger
+	tokenService infra.TokenService
+	transactor   infra.Transactor
 
 	refreshTokenRepository repository.AuthRepository
 
 	reader query.UserIdentityReader
 
-	jwtKey           jwk.Key
-	jwtExpire        time.Duration
 	jwtRefreshExpire time.Duration
 }
 
 func NewAuthService(
 	cfg *app.AuthConfig,
 	log *logger.Logger,
-	c *cache.Cache,
 	transactor infra.Transactor,
+	tokenService infra.TokenService,
 	refreshTokenRepository repository.AuthRepository,
 	reader query.UserIdentityReader,
 ) service.AuthService {
-	key, err := jwk.FromRaw([]byte(cfg.JWTSecret))
-	if err != nil {
-		log.Fatal("failed to create JWK from secret", zap.Error(err))
-	}
-
-	_ = key.Set(jwk.AlgorithmKey, jwa.HS256)
-
-	hash := sha256.Sum256([]byte(cfg.JWTSecret))
-	kid := hex.EncodeToString(hash[:])[:8]
-	_ = key.Set(jwk.KeyIDKey, kid)
-
-	// Set expire hours with default value.
-	expireDuration := time.Duration(cfg.JWTExpireMinutes) * time.Minute
-	if expireDuration <= 0 {
-		expireDuration = 1 * time.Hour // default to 1 hour
-	}
-
-	// Set refresh expire hours with default value.
+	// Set refresh expire time with default value.
 	refreshExpireDuration := time.Duration(cfg.JWTRefreshExpireMinutes) * time.Minute
 	if refreshExpireDuration <= 0 {
 		refreshExpireDuration = 24 * time.Hour // default to 24 hours
 	}
 
 	log.Info("Auth service initialized",
-		zap.String("kid", kid),
-		zap.Duration("access_token_expire", expireDuration),
 		zap.Duration("refresh_token_expire", refreshExpireDuration),
 	)
 
 	return &authService{
 		logger:                 log,
-		cache:                  c,
+		tokenService:           tokenService,
 		transactor:             transactor,
 		refreshTokenRepository: refreshTokenRepository,
 		reader:                 reader,
-		jwtKey:                 key,
-		jwtExpire:              expireDuration,
 		jwtRefreshExpire:       refreshExpireDuration,
 	}
 }
@@ -130,75 +98,13 @@ func (s *authService) Login(ctx context.Context, username string, password strin
 }
 
 func (s *authService) GenerateAccessToken(ctx context.Context, user *domains.UserWithPermissions) (string, error) {
-	now := time.Now()
-	expiration := now.Add(s.jwtExpire)
-
-	// Build JWT token with jwx.
-	token, err := jwt.NewBuilder().
-		// Issuer("go-hris").
-		IssuedAt(now).
-		Expiration(expiration).
-		JwtID(ulid.Make().String()).
-		Subject(strconv.FormatUint(uint64(user.ID), 10)).
-		Claim(constants.ClaimType, constants.TokenTypeAccess).
-		Build()
-	if err != nil {
-		s.logger.WithContext(ctx).Error("failed to build JWT token", zap.Error(err))
-		return "", errors.ErrInternalError
-	}
-
-	// Sign token with HS256 using JWK.
-	signed, err := jwt.Sign(token, jwt.WithKey(jwa.HS256, s.jwtKey))
-	if err != nil {
-		s.logger.WithContext(ctx).Error("failed to sign JWT token", zap.Error(err))
-		return "", errors.ErrInternalError
-	}
-
-	return string(signed), nil
+	return s.tokenService.GenerateAccessToken(ctx, user)
 }
 
 func (s *authService) ValidateAccessToken(ctx context.Context, tokenString string) (*domains.Claims, error) {
-	// Parse and verify token using JWK.
-	token, err := jwt.Parse(
-		[]byte(tokenString),
-		jwt.WithKey(jwa.HS256, s.jwtKey),
-		jwt.WithValidate(true), // validate claims like exp, nbf, iat
-		// jwt.WithIssuer("go-hris"),
-	)
+	claims, err := s.tokenService.ValidateAccessToken(ctx, tokenString)
 	if err != nil {
-		if strings.Contains(err.Error(), "exp") {
-			return nil, errors.ErrTokenExpired
-		}
-		s.logger.WithContext(ctx).Error("failed to parse JWT token", zap.Error(err))
-		return nil, errors.ErrTokenInvalid
-	}
-
-	// Verify token type.
-	tokenType, ok := token.Get(constants.ClaimType)
-	if !ok || tokenType != string(constants.TokenTypeAccess) {
-		s.logger.WithContext(ctx).Error("invalid token type", zap.Any("type", tokenType))
-		return nil, errors.ErrTokenInvalid
-	}
-
-	// Extract claims.
-	claims := &domains.Claims{}
-
-	claims.JTI = token.JwtID()
-	claims.ExpiresAt = token.Expiration()
-
-	// Check if token is blacklisted.
-	if claims.JTI != "" {
-		blacklisted, err := s.cache.Client.Exists(ctx, constants.GetBlacklistKey(claims.JTI)).Result()
-		if err == nil && blacklisted > 0 {
-			return nil, errors.ErrTokenInvalid
-		}
-	}
-
-	// Parse Subject (User ID) from string back to uint.
-	if sub := token.Subject(); sub != "" {
-		if id, err := strconv.ParseUint(sub, 10, 64); err == nil {
-			claims.Identity.UserID = uint(id)
-		}
+		return nil, err
 	}
 
 	// Fetch user data.
@@ -313,6 +219,54 @@ func (s *authService) RefreshAccessToken(ctx context.Context, refreshToken strin
 	return tokenPair, nil
 }
 
+func (s *authService) Logout(ctx context.Context, refreshToken string, claims *domains.Claims) error {
+	if refreshToken != "" {
+		// Revoke refresh token.
+		if err := s.RevokeRefreshToken(ctx, refreshToken); err != nil {
+			s.logger.WithContext(ctx).Error("failed to revoke refresh token", zap.Error(err))
+			return err
+		}
+	}
+
+	// Blacklist current access token.
+	if claims != nil && claims.JTI != "" {
+		expiration := claims.ExpiresIn()
+		if expiration > 0 {
+			if err := s.tokenService.BlacklistToken(ctx, claims.JTI, expiration); err != nil {
+				s.logger.WithContext(ctx).Error("failed to blacklist token", zap.Error(err))
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (s *authService) LogoutAll(ctx context.Context, claims *domains.Claims) error {
+	if claims == nil {
+		return errors.ErrUnauthorized
+	}
+
+	// Revoke all refresh tokens for this user.
+	if err := s.RevokeAllUserTokens(ctx, claims.Identity.UserID); err != nil {
+		s.logger.WithContext(ctx).Error("failed to revoke all tokens", zap.Uint("user_id", claims.Identity.UserID), zap.Error(err))
+		return err
+	}
+
+	// Blacklist current access token.
+	if claims.JTI != "" {
+		expiration := claims.ExpiresIn()
+		if expiration > 0 {
+			if err := s.tokenService.BlacklistToken(ctx, claims.JTI, expiration); err != nil {
+				s.logger.WithContext(ctx).Error("failed to blacklist token", zap.Error(err))
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
 func (s *authService) RevokeRefreshToken(ctx context.Context, refreshToken string) error {
 	tokenHash := cryptox.SHA256Hex(refreshToken)
 	return s.refreshTokenRepository.RevokeRefreshToken(ctx, tokenHash)
@@ -320,14 +274,6 @@ func (s *authService) RevokeRefreshToken(ctx context.Context, refreshToken strin
 
 func (s *authService) RevokeAllUserTokens(ctx context.Context, userID uint) error {
 	return s.refreshTokenRepository.RevokeAllRefreshTokensForUser(ctx, userID)
-}
-
-func (s *authService) BlacklistToken(ctx context.Context, jti string, expiration time.Duration) error {
-	if jti == "" {
-		return nil
-	}
-
-	return s.cache.Client.Set(ctx, constants.GetBlacklistKey(jti), "1", expiration).Err()
 }
 
 func (s *authService) CleanupExpiredTokens(ctx context.Context) (int, error) {

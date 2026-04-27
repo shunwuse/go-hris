@@ -95,50 +95,22 @@ func (c *AuthController) Logout(w http.ResponseWriter, r *http.Request) {
 
 	_ = request.DecodeJSON(r, &req) // Ignore error, as refresh token is optional
 
-	if req.RefreshToken != "" {
-		// Revoke refresh token.
-		if err := c.authService.RevokeRefreshToken(r.Context(), req.RefreshToken); err != nil {
-			c.logger.WithContext(r.Context()).Error("failed to revoke refresh token", zap.Error(err))
-		}
-	}
-
-	// Blacklist current access token.
-	claims, ok := contextx.GetClaims(r.Context())
-	if ok && claims.JTI != "" {
-		expiration := claims.ExpiresIn()
-		if expiration > 0 {
-			if err := c.authService.BlacklistToken(r.Context(), claims.JTI, expiration); err != nil {
-				c.logger.WithContext(r.Context()).Error("failed to blacklist token", zap.Error(err))
-			}
-		}
+	claims, _ := contextx.GetClaims(r.Context())
+	if err := c.authService.Logout(r.Context(), req.RefreshToken, claims); err != nil {
+		c.logger.WithContext(r.Context()).Error("failed to logout", zap.Error(err))
+		response.Error(w, err)
+		return
 	}
 
 	response.OK(w, "logged out successfully")
 }
 
 func (c *AuthController) LogoutAll(w http.ResponseWriter, r *http.Request) {
-	claims, ok := contextx.GetClaims(r.Context())
-	if !ok {
-		c.logger.WithContext(r.Context()).Error("failed to get claims from context")
-		response.Error(w, errors.ErrUnauthorized)
-		return
-	}
-
-	// Revoke all refresh tokens for this user.
-	if err := c.authService.RevokeAllUserTokens(r.Context(), claims.Identity.UserID); err != nil {
-		c.logger.WithContext(r.Context()).Error("failed to revoke all tokens", zap.Uint("user_id", claims.Identity.UserID), zap.Error(err))
+	claims, _ := contextx.GetClaims(r.Context())
+	if err := c.authService.LogoutAll(r.Context(), claims); err != nil {
+		c.logger.WithContext(r.Context()).Error("failed to logout all", zap.Error(err))
 		response.Error(w, err)
 		return
-	}
-
-	// Blacklist current access token.
-	if claims.JTI != "" {
-		expiration := claims.ExpiresIn()
-		if expiration > 0 {
-			if err := c.authService.BlacklistToken(r.Context(), claims.JTI, expiration); err != nil {
-				c.logger.WithContext(r.Context()).Error("failed to blacklist token", zap.Error(err))
-			}
-		}
 	}
 
 	response.OK(w, "logged out from all devices successfully")

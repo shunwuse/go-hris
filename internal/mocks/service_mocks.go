@@ -2,7 +2,6 @@ package mocks
 
 import (
 	"context"
-	"time"
 
 	"github.com/shunwuse/go-hris/internal/constants"
 	"github.com/shunwuse/go-hris/internal/domains"
@@ -91,22 +90,12 @@ func (m *MockAuthService) Login(ctx context.Context, username string, password s
 	return args.Get(0).(*domains.LoginResult), args.Error(1)
 }
 
-func (m *MockAuthService) GenerateAccessToken(ctx context.Context, user *domains.UserWithPermissions) (string, error) {
-	args := m.Called(ctx, user)
-	return args.String(0), args.Error(1)
-}
-
 func (m *MockAuthService) ValidateAccessToken(ctx context.Context, tokenString string) (*domains.Claims, error) {
 	args := m.Called(ctx, tokenString)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
 	return args.Get(0).(*domains.Claims), args.Error(1)
-}
-
-func (m *MockAuthService) GenerateRefreshToken(ctx context.Context, user *domains.UserWithPermissions) (string, error) {
-	args := m.Called(ctx, user)
-	return args.String(0), args.Error(1)
 }
 
 func (m *MockAuthService) RefreshAccessToken(ctx context.Context, refreshToken string) (*domains.TokenPair, error) {
@@ -117,18 +106,13 @@ func (m *MockAuthService) RefreshAccessToken(ctx context.Context, refreshToken s
 	return args.Get(0).(*domains.TokenPair), args.Error(1)
 }
 
-func (m *MockAuthService) RevokeRefreshToken(ctx context.Context, refreshToken string) error {
-	args := m.Called(ctx, refreshToken)
+func (m *MockAuthService) Logout(ctx context.Context, refreshToken string, claims *domains.Claims) error {
+	args := m.Called(ctx, refreshToken, claims)
 	return args.Error(0)
 }
 
-func (m *MockAuthService) RevokeAllUserTokens(ctx context.Context, userID uint) error {
-	args := m.Called(ctx, userID)
-	return args.Error(0)
-}
-
-func (m *MockAuthService) BlacklistToken(ctx context.Context, jti string, expiration time.Duration) error {
-	args := m.Called(ctx, jti, expiration)
+func (m *MockAuthService) LogoutAll(ctx context.Context, claims *domains.Claims) error {
+	args := m.Called(ctx, claims)
 	return args.Error(0)
 }
 
