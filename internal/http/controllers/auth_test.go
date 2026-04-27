@@ -339,8 +339,7 @@ func TestAuthController_Logout(t *testing.T) {
 				return contextx.WithClaims(ctx, claims)
 			},
 			mockSetup: func(m *mocks.MockAuthService) {
-				m.On("RevokeRefreshToken", mock.Anything, "valid-refresh-token").Return(nil)
-				m.On("BlacklistToken", mock.Anything, "test-jti", mock.AnythingOfType("time.Duration")).Return(nil)
+				m.On("Logout", mock.Anything, "valid-refresh-token", mock.Anything).Return(nil)
 			},
 			expectedStatus: http.StatusOK,
 			checkResponse: func(t *testing.T, w *httptest.ResponseRecorder) {
@@ -362,7 +361,7 @@ func TestAuthController_Logout(t *testing.T) {
 				return contextx.WithClaims(ctx, claims)
 			},
 			mockSetup: func(m *mocks.MockAuthService) {
-				m.On("BlacklistToken", mock.Anything, "test-jti", mock.AnythingOfType("time.Duration")).Return(nil)
+				m.On("Logout", mock.Anything, "", mock.Anything).Return(nil)
 			},
 			expectedStatus: http.StatusOK,
 			checkResponse: func(t *testing.T, w *httptest.ResponseRecorder) {
@@ -378,7 +377,7 @@ func TestAuthController_Logout(t *testing.T) {
 				return ctx // No claims set
 			},
 			mockSetup: func(m *mocks.MockAuthService) {
-				m.On("RevokeRefreshToken", mock.Anything, "valid-refresh-token").Return(nil)
+				m.On("Logout", mock.Anything, "valid-refresh-token", (*domains.Claims)(nil)).Return(nil)
 			},
 			expectedStatus: http.StatusOK,
 			checkResponse: func(t *testing.T, w *httptest.ResponseRecorder) {
@@ -440,8 +439,7 @@ func TestAuthController_LogoutAll(t *testing.T) {
 				return contextx.WithClaims(ctx, claims)
 			},
 			mockSetup: func(m *mocks.MockAuthService) {
-				m.On("RevokeAllUserTokens", mock.Anything, uint(1)).Return(nil)
-				m.On("BlacklistToken", mock.Anything, "test-jti", mock.AnythingOfType("time.Duration")).Return(nil)
+				m.On("LogoutAll", mock.Anything, mock.Anything).Return(nil)
 			},
 			expectedStatus: http.StatusOK,
 			checkResponse: func(t *testing.T, w *httptest.ResponseRecorder) {
@@ -453,7 +451,9 @@ func TestAuthController_LogoutAll(t *testing.T) {
 			setupContext: func(ctx context.Context) context.Context {
 				return ctx // No claims set
 			},
-			mockSetup:      func(m *mocks.MockAuthService) {},
+			mockSetup: func(m *mocks.MockAuthService) {
+				m.On("LogoutAll", mock.Anything, (*domains.Claims)(nil)).Return(errors.ErrUnauthorized)
+			},
 			expectedStatus: http.StatusUnauthorized,
 			checkResponse: func(t *testing.T, w *httptest.ResponseRecorder) {
 				var resp response.ErrorResponse
@@ -476,7 +476,7 @@ func TestAuthController_LogoutAll(t *testing.T) {
 				return contextx.WithClaims(ctx, claims)
 			},
 			mockSetup: func(m *mocks.MockAuthService) {
-				m.On("RevokeAllUserTokens", mock.Anything, uint(1)).Return(errors.ErrInternalError)
+				m.On("LogoutAll", mock.Anything, mock.Anything).Return(errors.ErrInternalError)
 			},
 			expectedStatus: http.StatusInternalServerError,
 			checkResponse: func(t *testing.T, w *httptest.ResponseRecorder) {
