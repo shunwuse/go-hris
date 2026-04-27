@@ -114,18 +114,3 @@ func (r *AuthRepository) DeleteExpiredTokens(ctx context.Context) (int, error) {
 
 	return affected, nil
 }
-
-func mapRefreshToken(token *entgen.RefreshToken) *domains.RefreshToken {
-	if token == nil {
-		return nil
-	}
-
-	return &domains.RefreshToken{
-		ID:        token.ID,
-		UserID:    token.UserID,
-		TokenHash: token.TokenHash,
-		ExpiresAt: token.ExpiresAt,
-		Revoked:   token.Revoked,
-		RevokedAt: token.RevokedAt,
-	}
-}
