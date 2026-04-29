@@ -11,6 +11,10 @@ type Handler interface {
 	Handle(ctx context.Context, payload []byte) error
 }
 
-func NewHandlers() Handlers {
-	return []Handler{}
+func NewHandlers(
+	cleanupTokensHandler *CleanupTokensHandler,
+) Handlers {
+	return []Handler{
+		cleanupTokensHandler,
+	}
 }
