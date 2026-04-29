@@ -5,5 +5,7 @@ import (
 )
 
 var ProviderSet = wire.NewSet(
+	NewCleanupTokensHandler,
+
 	NewHandlers,
 )
