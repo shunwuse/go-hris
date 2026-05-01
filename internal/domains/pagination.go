@@ -53,3 +53,7 @@ type CursorResult[T any] struct {
 	NextCursor string
 	HasMore    bool
 }
+
+type ApprovalCursor struct {
+	ID uint `json:"id"`
+}

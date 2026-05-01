@@ -2,33 +2,36 @@ package pagination
 
 import (
 	"encoding/base64"
+	"encoding/json"
 	"fmt"
-	"strings"
 )
 
-// EncodeCursor encodes multiple values into a single opaque base64 string.
-// Example: EncodeCursor(123) or EncodeCursor("2023-01-01", 123).
-func EncodeCursor(parts ...any) string {
-	strParts := make([]string, len(parts))
-	for idx, part := range parts {
-		strParts[idx] = fmt.Sprintf("%v", part)
+// Encode encodes a value into an opaque base64-encoded JSON string.
+func Encode[T any](data T) (string, error) {
+	raw, err := json.Marshal(data)
+	if err != nil {
+		return "", fmt.Errorf("failed to marshal cursor: %w", err)
 	}
 
-	combined := strings.Join(strParts, ":")
-
-	return base64.StdEncoding.EncodeToString([]byte(combined))
+	return base64.RawURLEncoding.EncodeToString(raw), nil
 }
 
-// DecodeCursor decodes an opaque base64 string into its constituent parts.
-func DecodeCursor(cursor string) ([]string, error) {
+// Decode decodes an opaque base64-encoded JSON string into a value of type T.
+// Returns a pointer to the decoded value. If the cursor is empty, returns nil error but nil value.
+func Decode[T any](cursor string) (*T, error) {
 	if cursor == "" {
 		return nil, nil
 	}
 
-	decoded, err := base64.StdEncoding.DecodeString(cursor)
+	decoded, err := base64.RawURLEncoding.DecodeString(cursor)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to decode cursor: %w", err)
 	}
 
-	return strings.Split(string(decoded), ":"), nil
+	var payload T
+	if err := json.Unmarshal(decoded, &payload); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal cursor: %w", err)
+	}
+
+	return &payload, nil
 }
