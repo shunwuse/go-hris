@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"context"
-	"strconv"
 
 	"github.com/shunwuse/go-hris/ent/entgen"
 	"github.com/shunwuse/go-hris/ent/entgen/approval"
@@ -56,18 +55,12 @@ func (r *ApprovalRepository) FindAllWithCursor(ctx context.Context, query domain
 	}
 
 	if query.Cursor != "" {
-		parts, err := pagination.DecodeCursor(query.Cursor)
-		if err != nil || len(parts) == 0 {
+		cursor, err := pagination.Decode[domains.ApprovalCursor](query.Cursor)
+		if err != nil {
 			r.logger.WithContext(ctx).Error("failed to decode cursor", zap.Error(err))
 			return nil, errors.ErrInvalidInput
 		}
-
-		decodedID, err := strconv.ParseUint(parts[0], 10, 32)
-		if err != nil {
-			r.logger.WithContext(ctx).Error("failed to parse cursor ID", zap.Error(err))
-			return nil, errors.ErrInvalidInput
-		}
-		dbQuery = dbQuery.Where(approval.IDLT(uint(decodedID)))
+		dbQuery = dbQuery.Where(approval.IDLT(cursor.ID))
 	}
 
 	approvals, err := dbQuery.All(ctx)
@@ -79,7 +72,11 @@ func (r *ApprovalRepository) FindAllWithCursor(ctx context.Context, query domain
 	hasMore := len(approvals) > query.Limit
 	var nextCursor string
 	if hasMore {
-		nextCursor = pagination.EncodeCursor(approvals[query.Limit-1].ID)
+		nextCursor, err = pagination.Encode(domains.ApprovalCursor{ID: approvals[query.Limit-1].ID})
+		if err != nil {
+			r.logger.WithContext(ctx).Error("failed to encode cursor", zap.Error(err))
+			return nil, errors.ErrDatabaseError
+		}
 		approvals = approvals[:query.Limit]
 	}
 
