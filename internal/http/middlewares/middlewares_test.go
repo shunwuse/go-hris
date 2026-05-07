@@ -398,7 +398,7 @@ func TestMetricsMiddleware_GetPatternFallback(t *testing.T) {
 	req := httptest.NewRequest(http.MethodGet, "/fallback", nil)
 	req = req.WithContext(context.WithValue(req.Context(), chi.RouteCtxKey, rctx))
 
-	assert.Equal(t, "/fallback", mw.getPattern(req))
+	assert.Equal(t, unmatchedRouteLabel, mw.getPattern(req))
 }
 
 func TestRequestLoggerMiddleware_Handler(t *testing.T) {
