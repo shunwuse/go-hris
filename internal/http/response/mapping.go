@@ -37,4 +37,6 @@ var codeToStatus = map[string]int{
 	// 500 [Internal Server Error]
 	errors.CodeDatabaseError: http.StatusInternalServerError,
 	errors.CodeInternalError: http.StatusInternalServerError,
+	// 503 [Service Unavailable]
+	errors.CodeServiceUnavailable: http.StatusServiceUnavailable,
 }

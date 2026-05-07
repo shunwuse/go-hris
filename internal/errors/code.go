@@ -22,5 +22,6 @@ const (
 	CodeConflict            = "CONFLICT"
 
 	// Infrastructure errors.
-	CodeDatabaseError = "DATABASE_ERROR"
+	CodeDatabaseError      = "DATABASE_ERROR"
+	CodeServiceUnavailable = "SERVICE_UNAVAILABLE"
 )

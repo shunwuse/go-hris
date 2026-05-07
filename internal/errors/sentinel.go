@@ -23,5 +23,6 @@ var (
 	ErrConflict            = New(CodeConflict, "conflict")
 
 	// Infrastructure errors.
-	ErrDatabaseError = New(CodeDatabaseError, "database error")
+	ErrDatabaseError      = New(CodeDatabaseError, "database error")
+	ErrServiceUnavailable = New(CodeServiceUnavailable, "service unavailable")
 )
