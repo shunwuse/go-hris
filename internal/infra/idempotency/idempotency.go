@@ -17,14 +17,14 @@ var (
 )
 
 type Manager struct {
-	log   *logger.Logger
-	cache *cache.Cache
+	logger *logger.Logger
+	cache  *cache.Cache
 }
 
 func New(log *logger.Logger, cache *cache.Cache) *Manager {
 	return &Manager{
-		log:   log,
-		cache: cache,
+		logger: log,
+		cache:  cache,
 	}
 }
 
@@ -42,7 +42,7 @@ func (m *Manager) Get(ctx context.Context, key string) (*Record, error) {
 		}
 
 		// Log error to help trace potential connection or timeout issues.
-		m.log.WithContext(ctx).Error("failed to get idempotency record",
+		m.logger.WithContext(ctx).Error("failed to get idempotency record",
 			zap.String("key", key),
 			zap.Error(err),
 		)
@@ -53,7 +53,7 @@ func (m *Manager) Get(ctx context.Context, key string) (*Record, error) {
 	var record Record
 	if err := json.Unmarshal(val, &record); err != nil {
 		// Data corruption or format changes should be logged as error.
-		m.log.WithContext(ctx).Error("failed to unmarshal idempotency record",
+		m.logger.WithContext(ctx).Error("failed to unmarshal idempotency record",
 			zap.String("key", key),
 			zap.Error(err),
 		)
@@ -67,7 +67,7 @@ func (m *Manager) Set(ctx context.Context, key string, record *Record, ttl time.
 	val, err := json.Marshal(record)
 	if err != nil {
 		// Log serialization error for debugging.
-		m.log.WithContext(ctx).Error("failed to marshal idempotency record",
+		m.logger.WithContext(ctx).Error("failed to marshal idempotency record",
 			zap.String("key", key),
 			zap.Error(err),
 		)
@@ -76,7 +76,7 @@ func (m *Manager) Set(ctx context.Context, key string, record *Record, ttl time.
 
 	if err := m.cache.Client.Set(ctx, m.key(key), val, ttl).Err(); err != nil {
 		// Redis write failures should be tracked.
-		m.log.WithContext(ctx).Error("failed to set idempotency record",
+		m.logger.WithContext(ctx).Error("failed to set idempotency record",
 			zap.String("key", key),
 			zap.Error(err),
 		)
