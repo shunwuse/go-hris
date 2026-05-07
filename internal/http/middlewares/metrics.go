@@ -10,6 +10,8 @@ import (
 	"github.com/shunwuse/go-hris/internal/infra/metrics"
 )
 
+const unmatchedRouteLabel = "unmatched"
+
 type MetricsMiddleware struct {
 	metrics *metrics.Metrics
 }
@@ -40,10 +42,13 @@ func (m *MetricsMiddleware) Handler() func(http.Handler) http.Handler {
 
 func (m *MetricsMiddleware) getPattern(r *http.Request) string {
 	rctx := chi.RouteContext(r.Context())
-	if pattern := rctx.RoutePattern(); pattern != "" {
-		return pattern
+	if rctx != nil {
+		if pattern := rctx.RoutePattern(); pattern != "" {
+			return pattern
+		}
 	}
-	return r.URL.Path
+
+	return unmatchedRouteLabel
 }
 
 func (m *MetricsMiddleware) Setup(router chi.Router) {
