@@ -4,8 +4,8 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	stdErrors "errors"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/lestrrat-go/jwx/v2/jwa"
@@ -97,9 +97,15 @@ func (s *JWTService) ValidateAccessToken(ctx context.Context, tokenString string
 		jwt.WithValidate(true),
 	)
 	if err != nil {
-		if strings.Contains(err.Error(), "exp") {
+		if stdErrors.Is(err, jwt.ErrTokenExpired()) {
 			return nil, errors.ErrTokenExpired
 		}
+
+		if jwt.IsValidationError(err) {
+			s.logger.WithContext(ctx).Error("failed to validate JWT token", zap.Error(err))
+			return nil, errors.ErrTokenInvalid
+		}
+
 		s.logger.WithContext(ctx).Error("failed to parse JWT token", zap.Error(err))
 		return nil, errors.ErrTokenInvalid
 	}
@@ -120,7 +126,15 @@ func (s *JWTService) ValidateAccessToken(ctx context.Context, tokenString string
 	// Check if token is blacklisted.
 	if claims.JTI != "" {
 		blacklisted, err := s.cache.Client.Exists(ctx, constants.GetBlacklistKey(claims.JTI)).Result()
-		if err == nil && blacklisted > 0 {
+		if err != nil {
+			s.logger.WithContext(ctx).Error("failed to check token blacklist",
+				zap.String("jti", claims.JTI),
+				zap.Error(err),
+			)
+			return nil, errors.ErrInternalError
+		}
+
+		if blacklisted > 0 {
 			return nil, errors.ErrTokenInvalid
 		}
 	}
