@@ -146,3 +146,18 @@ func TestError_UnexpectedError(t *testing.T) {
 	assert.Equal(t, errors.CodeInternalError, body.Error.Code)
 	assert.Equal(t, "boom", body.Error.Message)
 }
+
+func TestError_DomainErrorServiceUnavailable(t *testing.T) {
+	t.Parallel()
+
+	rr := httptest.NewRecorder()
+	Error(rr, errors.ErrServiceUnavailable)
+
+	require.Equal(t, http.StatusServiceUnavailable, rr.Code)
+
+	var body ErrorResponse
+	err := json.Unmarshal(rr.Body.Bytes(), &body)
+	require.NoError(t, err)
+	assert.Equal(t, errors.CodeServiceUnavailable, body.Error.Code)
+	assert.Equal(t, "service unavailable", body.Error.Message)
+}
