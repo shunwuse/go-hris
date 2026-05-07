@@ -80,3 +80,26 @@ func TestFetch(t *testing.T) {
 		require.ErrorIs(t, err, context.DeadlineExceeded)
 	})
 }
+
+func TestFetchWithoutCacheClient(t *testing.T) {
+	t.Parallel()
+
+	ctx := context.Background()
+
+	type TestUser struct {
+		ID   int    `json:"id"`
+		Name string `json:"name"`
+	}
+
+	expected := TestUser{ID: 3, Name: "Carol"}
+	fetcherCalled := 0
+	fetcher := func() (TestUser, error) {
+		fetcherCalled++
+		return expected, nil
+	}
+
+	got, err := Fetch(ctx, (*Cache)(nil), "user:nil-cache", time.Minute, fetcher)
+	require.NoError(t, err)
+	assert.Equal(t, 1, fetcherCalled)
+	assert.Equal(t, expected, got)
+}

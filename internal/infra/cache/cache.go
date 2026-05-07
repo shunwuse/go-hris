@@ -12,6 +12,7 @@ import (
 )
 
 type Cache struct {
+	logger *logger.Logger
 	Client *redis.Client
 
 	miniRedis *miniredis.Miniredis
@@ -56,6 +57,7 @@ func New(cfg *Config, log *logger.Logger) *Cache {
 	}
 
 	return &Cache{
+		logger:    log,
 		Client:    rdb,
 		miniRedis: miniRedis,
 		sf:        singleflight.Group{},
@@ -63,6 +65,17 @@ func New(cfg *Config, log *logger.Logger) *Cache {
 }
 
 func (c *Cache) Close() error {
+	if c == nil {
+		return nil
+	}
+
+	if c.Client == nil {
+		if c.miniRedis != nil {
+			c.miniRedis.Close()
+		}
+		return nil
+	}
+
 	if err := c.Client.Close(); err != nil {
 		return err
 	}
@@ -70,4 +83,12 @@ func (c *Cache) Close() error {
 		c.miniRedis.Close()
 	}
 	return nil
+}
+
+func (c *Cache) warn(ctx context.Context, msg string, fields ...zap.Field) {
+	if c == nil || c.logger == nil {
+		return
+	}
+
+	c.logger.WithContext(ctx).Warn(msg, fields...)
 }
