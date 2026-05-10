@@ -131,7 +131,7 @@ func (s *JWTService) ValidateAccessToken(ctx context.Context, tokenString string
 				zap.String("jti", claims.JTI),
 				zap.Error(err),
 			)
-			return nil, errors.ErrInternalError
+			return nil, errors.ErrServiceUnavailable
 		}
 
 		if blacklisted > 0 {
@@ -154,5 +154,13 @@ func (s *JWTService) BlacklistToken(ctx context.Context, jti string, expiration 
 		return nil
 	}
 
-	return s.cache.Client.Set(ctx, constants.GetBlacklistKey(jti), "1", expiration).Err()
+	if err := s.cache.Client.Set(ctx, constants.GetBlacklistKey(jti), "1", expiration).Err(); err != nil {
+		s.logger.WithContext(ctx).Error("failed to blacklist token",
+			zap.String("jti", jti),
+			zap.Error(err),
+		)
+		return errors.ErrServiceUnavailable
+	}
+
+	return nil
 }

@@ -123,8 +123,17 @@ func TestJWTService_ValidateAccessToken_BlacklistLookupFailure(t *testing.T) {
 	require.NoError(t, c.Close())
 
 	claims, err := svc.ValidateAccessToken(context.Background(), tokenString)
-	require.ErrorIs(t, err, errors.ErrInternalError)
+	require.ErrorIs(t, err, errors.ErrServiceUnavailable)
 	assert.Nil(t, claims)
+}
+
+func TestJWTService_BlacklistToken_StorageFailure(t *testing.T) {
+	svc, c, _ := newTestJWTService(t)
+
+	require.NoError(t, c.Close())
+
+	err := svc.BlacklistToken(context.Background(), "blacklist-jti", time.Hour)
+	require.ErrorIs(t, err, errors.ErrServiceUnavailable)
 }
 
 func TestJWTService_ValidateAccessToken_InvalidTokenString(t *testing.T) {
