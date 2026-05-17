@@ -7,16 +7,9 @@ FROM golang:1.26.2-alpine3.23 AS base-builder
 
 # Set the working directory
 WORKDIR /src
-ENV PATH="/go/bin:${PATH}"
 
 # Install build dependencies
 RUN apk add --no-cache ca-certificates
-
-# Install tools
-ARG WIRE_VERSION=v0.7.0
-RUN --mount=type=cache,id=go-mod,target=/go/pkg/mod \
-	--mount=type=cache,id=go-build,target=/root/.cache/go-build \
-	go install github.com/google/wire/cmd/wire@${WIRE_VERSION}
 
 # ========================================
 # Stage 2: Download dependencies and tools
@@ -44,20 +37,16 @@ ARG BUILD_MODE=release
 ENV CGO_ENABLED=0
 ENV GOOS=linux
 
-# Generate wire files and build the application
-RUN --mount=type=cache,id=go-mod,target=/go/pkg/mod \
-	--mount=type=cache,id=go-build,target=/root/.cache/go-build \
-	wire ./cmd/server && wire ./cmd/worker
-
 RUN --mount=type=cache,id=go-mod,target=/go/pkg/mod \
 	--mount=type=cache,id=go-build,target=/root/.cache/go-build \
 	set -eux; \
+	BUILD_METADATA_LDFLAGS="-X github.com/shunwuse/go-hris/internal/infra/app.Version=${VERSION}"; \
 	if [ "${BUILD_MODE}" = "release" ]; then \
-		LDFLAGS="-X github.com/shunwuse/go-hris/internal/infra/app.Version=${VERSION} -s -w -extldflags=-static"; \
+		LDFLAGS="${BUILD_METADATA_LDFLAGS} -s -w -extldflags=-static"; \
 		go build -trimpath -ldflags "${LDFLAGS}" -o /out/app ./cmd/server; \
 		go build -trimpath -ldflags "${LDFLAGS}" -o /out/app-worker ./cmd/worker; \
 	elif [ "${BUILD_MODE}" = "debug" ]; then \
-		LDFLAGS="-X github.com/shunwuse/go-hris/internal/infra/app.Version=${VERSION} -extldflags=-static"; \
+		LDFLAGS="${BUILD_METADATA_LDFLAGS} -extldflags=-static"; \
 		go build -gcflags "all=-N -l" -ldflags "${LDFLAGS}" -o /out/app ./cmd/server; \
 		go build -gcflags "all=-N -l" -ldflags "${LDFLAGS}" -o /out/app-worker ./cmd/worker; \
 	else \
