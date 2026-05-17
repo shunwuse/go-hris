@@ -160,7 +160,7 @@ Use `make` or `make help` to see the common local commands. The Makefile stays i
 
 Key commands:
 
-- `make gen`: Generate Wire DI (required after adding dependencies)
+- `make gen`: Generate Wire DI and Ent code (required after adding dependencies or schemas)
 - `make run`: Run the API server locally
 - `make run-worker`: Run the background worker locally
 - `make fmt`: Format the code with Go's standard formatter

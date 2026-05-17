@@ -32,7 +32,7 @@ modernize: ## Apply x/tools modernizations
 	go run golang.org/x/tools/go/analysis/passes/modernize/cmd/modernize@latest -fix ./...
 
 # go install github.com/google/wire/cmd/wire@latest
-gen: ## Generate wire dependencies
+gen: ## Generate wire and ent dependencies
 	./scripts/gen.sh
 
 ## Test targets
