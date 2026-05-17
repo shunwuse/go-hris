@@ -111,7 +111,7 @@ This section is split into two views to avoid confusion:
 
 ### Current Layout
 
-Last verified: 2026-04-10
+Last verified: 2026-05-16
 
 ```text
 .
@@ -136,6 +136,7 @@ Last verified: 2026-04-10
 │   ├── repositories/
 │   ├── services/
 │   └── worker/
+├── scripts/              # reusable local/CI scripts
 └── migrations/           # SQL migrations (golang-migrate)
 ```
 
@@ -143,7 +144,6 @@ Last verified: 2026-04-10
 
 ```text
 .
-├── scripts/              # reusable local/CI scripts (lint, release, utilities)
 └── build/
    └── ci/               # optional CI helper assets when pipeline grows
 ```
@@ -152,7 +152,7 @@ Why this structure:
 
 - Keeps onboarding accurate by separating current state from future plans.
 - Uses GitHub standard location for CI definitions under .github/workflows.
-- Keeps scripts reusable across local development and CI jobs.
+- Keeps the reusable scripts isolated from future CI helper assets.
 
 ## 📜 Development Commands (Makefile)
 
