@@ -1,9 +1,3 @@
-# Variables
-MIGRATIONS_DIR = ./migrations
-VERSION = $(shell git rev-parse --short HEAD 2>/dev/null || echo "dev")
-LDFLAGS = -X github.com/shunwuse/go-hris/internal/infra/app.Version=$(VERSION)
-DOCKER_IMAGE = go-hris:latest
-
 # Colors for help
 BLUE = \033[0;34m
 NC = \033[0m
@@ -26,10 +20,10 @@ help: ## Show this help message
 
 ## Development targets
 run: ## Run the api server locally
-	go run -ldflags "$(LDFLAGS)" ./cmd/server
+	./scripts/run.sh
 
 run-worker: ## Run the worker locally
-	go run -ldflags "$(LDFLAGS)" ./cmd/worker
+	./scripts/run-worker.sh
 
 fmt: ## Format the code
 	go fmt ./...
@@ -39,9 +33,7 @@ modernize: ## Apply x/tools modernizations
 
 # go install github.com/google/wire/cmd/wire@latest
 gen: ## Generate wire dependencies
-	wire ./cmd/server
-	wire ./cmd/worker
-	go mod tidy
+	./scripts/gen.sh
 
 ## Test targets
 test: ## Run unit tests
@@ -49,12 +41,8 @@ test: ## Run unit tests
 
 ## Database targets
 migrate-create: ## Create a new migration (usage: make migrate-create name=migration_name)
-	@if [ -z "$(name)" ]; then \
-		echo "Usage: make migrate-create name=migration_name"; \
-		exit 1; \
-	fi
-	migrate create -ext sql -dir $(MIGRATIONS_DIR) -seq $(name)
+	./scripts/migrate-create.sh "$(name)"
 
 ## Docker targets
 docker-build: ## Build Docker image
-	docker buildx build --platform linux/amd64 --build-arg VERSION=$(VERSION) -t $(DOCKER_IMAGE) --load -f build/package/Dockerfile .
+	./scripts/docker-build.sh
