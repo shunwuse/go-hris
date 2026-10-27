@@ -25,30 +25,41 @@
    cd go-hris
    ```
 
-2. **Initialize the database**
+2. **Create local configuration (Optional)**
    ```bash
-   go run ./cmd/migrate/main.go up
+   cp configs/default.env configs/.env
    ```
 
-3. **Start the api server**
+3. **Prepare a database (Optional)**
+   Use an existing database, or start the database defined in Docker Compose:
+   ```bash
+   docker compose -f deployments/docker-compose.yaml up -d postgres
+   ```
+
+4. **Initialize the database**
+   ```bash
+   go run ./cmd/migrate up
+   ```
+
+5. **Start the api server**
    ```bash
    make run
    ```
    The server will be running at `http://localhost:8080` by default.
 
-4. **Format the code**
+6. **Format the code**
    ```bash
    make fmt
    ```
    Ensures code style consistency with Go's standard formatter.
 
-5. **Apply modernizations (Optional)**
+7. **Apply modernizations (Optional)**
    ```bash
    make modernize
    ```
    Applies x/tools modernize rewrites for newer language and library idioms.
 
-6. **Start the worker (Optional)**
+8. **Start the worker (Optional)**
    ```bash
    make run-worker
    ```
@@ -171,8 +182,8 @@ Key commands:
 
 Advanced workflows:
 
-- `go run ./cmd/migrate/main.go up`: Apply database migrations
-- `go run ./cmd/migrate/main.go down`: Roll back database migrations
+- `go run ./cmd/migrate up`: Apply database migrations
+- `go run ./cmd/migrate down`: Roll back database migrations
 - `go test -v ./internal/http/controllers/...`: Run only controller tests
 - `go test -v ./internal/services/...`: Run only service tests
 - `go test -v -coverprofile=coverage.out ./... && go tool cover -html=coverage.out -o coverage.html`: Generate a coverage report
