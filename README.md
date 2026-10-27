@@ -179,6 +179,24 @@ Advanced workflows:
 
 For Docker usage, build with `make docker-build` and run the image with `docker run --rm -p 8080:8080 go-hris:latest`.
 
+## Demo data
+
+After applying migrations, run this from the repository root against a disposable development database:
+
+```bash
+go run ./cmd/seed
+```
+
+This appends 20 demo users and 50 approvals by default. Use `-users` and
+`-approvals` to change the counts, or set either to zero to skip it.
+New demo accounts use `password` by default; set `SEED_PASSWORD` to override
+it. Use `-seed` to reproduce the assignments starting from the same database
+state.
+
+The command uses the same database settings as the migrations. Run one batch
+at a time; each batch is committed as a single transaction. Do not run it
+against a shared or production database.
+
 ---
 
 ## ✨ Features
