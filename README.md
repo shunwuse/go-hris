@@ -190,6 +190,25 @@ Advanced workflows:
 
 For Docker usage, build with `make docker-build` and run the image with `docker run --rm -p 8080:8080 go-hris:latest`.
 
+## 🌱 Demo Data
+
+Generate demo users and approvals for pagination demonstrations:
+
+```bash
+go run ./cmd/seed
+```
+
+By default, the command adds 50 demo users and 100 demo approvals. Both
+options specify the number of records to add:
+
+```bash
+go run ./cmd/seed --users 100 --approvals 300
+```
+
+Demo users are created with manager and staff roles, and use `password` as
+their password. Approval creators and statuses are shuffled, while most
+approvals remain pending. Run the command again to add another batch of records.
+
 ---
 
 ## ✨ Features
