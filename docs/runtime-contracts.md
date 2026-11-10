@@ -1,8 +1,8 @@
-# Runtime Contracts
+# 📚 Runtime Contracts
 
 This document records a few implementation contracts that are easy to miss when working on the project.
 
-## Trace ID and Idempotency
+## 🔗 Trace ID and Idempotency
 
 The current HTTP stack intentionally reuses `X-Trace-Id` as the idempotency key.
 That means `TraceMiddleware` must run before `IdempotencyMiddleware` so the key is already present in request context.
@@ -19,9 +19,3 @@ Related code:
 - [Common middleware order](../internal/http/middlewares/middlewares.go)
 - [Trace middleware](../internal/http/middlewares/trace.go)
 - [Idempotency middleware](../internal/http/middlewares/idempotency.go)
-
-## Other Runtime Notes
-
-- `cache.Fetch` is the active cache-aside helper used by user identity reads.
-- `metrics` middleware is wired into the HTTP stack and exposed at `/metrics`.
-- `lock`, `lifecycle`, and `routine` are available infra components, but their runtime consumers are still limited.

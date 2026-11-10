@@ -84,74 +84,13 @@ The application uses a multi-stage configuration loading process:
 
 1. **Default Settings**: Loaded from [configs/default.env](configs/default.env).
 2. **Local Overrides**: Loaded from `configs/.env`.
-3. **Environment Variables**: System variables with `APP_` prefix (e.g., `APP_SERVER_PORT=9090`).
+3. **Environment Variables**: System variables with `APP_` prefix (e.g., `APP_PORT=9090`).
 
 To customize your local environment, we recommend creating a `.env` file in the `configs/` directory.
 
-## 🧪 Testing Guide
-
-We provide a comprehensive testing suite focusing on unit and layer-based testing.
-
-| Command | Description |
-|---------|-------------|
-| `make test` | Run all unit tests |
-| `go test -v ./internal/http/controllers/...` | Run only HTTP controller tests |
-| `go test -v ./internal/services/...` | Run only service layer tests |
-| `go test -v -coverprofile=coverage.out ./... && go tool cover -html=coverage.out -o coverage.html` | Generate HTML coverage report |
-
-For detailed testing architecture and instructions, please refer to [docs/testing.md](docs/testing.md).
-
 ## 📂 Project Structure
 
-This section is split into two views to avoid confusion:
-
-- Current Layout: what exists in the repository now (source of truth).
-- Planned Additions: roadmap directories that will be added in future phases.
-
-### Current Layout
-
-Last verified: 2026-05-16
-
-```text
-.
-├── .github/              # Copilot/instruction files and repository metadata
-├── build/
-│   └── package/          # container and packaging assets
-├── cmd/                  # application entry points
-├── configs/              # configuration files
-├── deployments/          # docker compose and deployment assets
-├── docs/                 # documentation and guides
-├── ent/                  # Ent ORM schemas and generated code
-├── internal/             # core business logic (layered architecture)
-│   ├── constants/
-│   ├── domains/
-│   ├── dtos/
-│   ├── errors/
-│   ├── http/
-│   ├── infra/
-│   ├── pkg/
-│   ├── ports/
-│   ├── queries/
-│   ├── repositories/
-│   ├── services/
-│   └── worker/
-├── scripts/              # reusable local/CI scripts
-└── migrations/           # SQL migrations (golang-migrate)
-```
-
-### Planned Additions (Roadmap)
-
-```text
-.
-└── build/
-   └── ci/               # optional CI helper assets when pipeline grows
-```
-
-Why this structure:
-
-- Keeps onboarding accurate by separating current state from future plans.
-- Uses GitHub standard location for CI definitions under .github/workflows.
-- Keeps the reusable scripts isolated from future CI helper assets.
+The project structure, package responsibilities, and server/worker composition are documented in [docs/architecture.md](docs/architecture.md).
 
 ## 📜 Development Commands (Makefile)
 
@@ -168,17 +107,9 @@ Key commands:
 - `make migrate-create name=xxx`: Create a new database migration file
 - `make docker-build`: Build the production Docker image
 
-Advanced workflows:
+For detailed development setup, database, seed data, Docker, and focused test instructions, please refer to [docs/development.md](docs/development.md).
 
-- `go run ./cmd/migrate up`: Apply database migrations
-- `go run ./cmd/migrate down`: Roll back database migrations
-- `go test -v ./internal/http/controllers/...`: Run only controller tests
-- `go test -v ./internal/services/...`: Run only service tests
-- `go test -v -coverprofile=coverage.out ./... && go tool cover -html=coverage.out -o coverage.html`: Generate a coverage report
-
-For Docker usage, build with `make docker-build` and run the image with `docker run --rm -p 8080:8080 go-hris:latest`.
-
-## 🌱 Demo Data
+### 🌱 Demo Data
 
 Generate demo users and approvals for pagination demonstrations:
 
@@ -186,18 +117,7 @@ Generate demo users and approvals for pagination demonstrations:
 go run ./cmd/seed
 ```
 
-By default, the command adds 50 demo users and 100 demo approvals. Both
-options specify the number of records to add:
-
-```bash
-go run ./cmd/seed --users 100 --approvals 300
-```
-
-Demo users are created with manager and staff roles, and use `password` as
-their password. Approval creators and statuses are shuffled, while most
-approvals remain pending. Run the command again to add another batch of records.
-
----
+For record count options and more details, please refer to [docs/development.md](docs/development.md).
 
 ## ✨ Features
 - [x] User Management (CRUD)
@@ -210,3 +130,5 @@ approvals remain pending. Run the command again to add another batch of records.
 ## 📚 Runtime Contracts
 
 Some implementation details are intentionally shared across the project and documented for contributors in [docs/runtime-contracts.md](docs/runtime-contracts.md).
+
+For HTTP middleware, infrastructure components, monitoring, authentication, and process lifecycle behavior, please refer to [docs/runtime.md](docs/runtime.md).

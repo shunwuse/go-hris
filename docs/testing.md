@@ -1,14 +1,14 @@
-# Testing Guide
+# 🧪 Testing Guide
 
 This guide describes how to run tests for the go-hris project. We have transitioned from legacy shell-based integration tests to a comprehensive Go-native unit testing suite.
 
-## Test Architecture
+## 📐 Test Architecture
 
 We use Go's native `testing` package along with:
 - **[testify](https://github.com/stretchr/testify)**: For assertions and mocking.
 - **net/http/httptest**: For testing HTTP controllers without starting a real server.
 
-The test suite is divided into three main layers:
+The test suite covers the following main test areas:
 
 ### 1. Infrastructure & Pkg Tests
 Located in `internal/infra/*/*_test.go` and `internal/pkg/*/*_test.go`.
@@ -20,18 +20,29 @@ These tests verify:
 ### 2. Controller Tests
 Located in `internal/http/controllers/*_test.go`.
 These tests verify:
-- HTTP request routing and validation.
+- HTTP request routing, handling, and validation.
 - Response Status Codes and JSON structure.
 - Correct interaction with the Service layer via mocks.
 
-### 2. Service Tests
+HTTP infrastructure tests are also located in `internal/http/*/*_test.go`.
+They cover middleware, router composition, request parsing, and response encoding.
+
+### 3. Service Tests
 Located in `internal/services/*_test.go`.
 These tests verify:
 - Business logic in isolation.
 - Integration with the Repository layer (via mocks).
 - Error handling and complex edge cases.
 
-## Running Tests
+### 4. Data Access & Worker Tests
+Query and repository tests are located in `internal/queries/*/*_test.go` and
+`internal/repositories/*/*_test.go`. These tests verify reusable query behavior
+and data mapping.
+
+Worker tests are located in `internal/worker/*/*_test.go` and `cmd/worker/*_test.go`.
+These tests verify scheduled job behavior and worker lifecycle handling.
+
+## ▶️ Running Tests
 
 Use `go test` directly for focused runs. The Makefile keeps only the full-suite helper.
 
@@ -54,10 +65,12 @@ go test -v ./internal/http/controllers/...
 go test -v ./internal/services/...
 ```
 
-## Writing New Tests
+## ✍️ Writing New Tests
 
 ### Mocks
-Mocks are generated or manually defined in `internal/mocks`. When adding a new service or repository interface, ensure you update the corresponding mock.
+Mocks are generated or manually defined in `internal/mocks`. Current mocks include service, repository, query, and infrastructure interfaces. When adding a new service or repository interface, ensure you update the corresponding mock.
+
+The following example is illustrative; use the concrete mock type that matches the interface under test.
 
 Example of a table-driven test with mocking:
 ```go
@@ -72,12 +85,8 @@ func TestController(t *testing.T) {
             mockSetup: func(m *mocks.MockService) {
                 m.On("DoWork").Return(nil)
             },
-            expectedStatus: http.StatusOK,
         },
     }
     // ...
 }
 ```
-
-## Legacy Integration Tests
-The project previously used shell-based integration tests (`scripts/*.sh`). These have been phased out in favor of Go-native unit tests using `httptest` and component-level testing with **Miniredis** to ensure a faster and more reliable CI/CD pipeline.
